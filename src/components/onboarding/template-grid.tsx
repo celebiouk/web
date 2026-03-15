@@ -23,12 +23,14 @@ const PREVIEW_DATA: CreatorPageData = {
     full_name: 'Your Name',
     bio: 'Creator, coach, and digital product maker helping you grow your business.',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
+    banner_url: null,
     social_links: [
       { platform: 'instagram', url: '#' },
       { platform: 'twitter', url: '#' },
       { platform: 'youtube', url: '#' },
     ],
     subscription_tier: 'pro',
+    testimonials_enabled: true,
   },
   products: [
     {

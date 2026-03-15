@@ -309,42 +309,44 @@ export function VibrantSocial({
           </SectionWrapper>
         )}
 
-        {/* Testimonials - Horizontal scroll */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-8"
-        >
-          <h2 className="mb-4 text-center text-lg font-bold text-slate-800">
-            Love from the Fam
-          </h2>
-          <div className="flex snap-x gap-4 overflow-x-auto pb-4">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="w-[280px] flex-shrink-0 snap-center rounded-2xl bg-white p-5 shadow-md"
-              >
-                <p className="mb-4 text-sm text-slate-600">
-                  &ldquo;{testimonial.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={36}
-                    height={36}
-                    className="rounded-full"
-                  />
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">{testimonial.name}</p>
-                    <p className="text-xs text-slate-500">{testimonial.role}</p>
+        {/* Testimonials - Horizontal scroll - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-8"
+          >
+            <h2 className="mb-4 text-center text-lg font-bold text-slate-800">
+              Love from the Fam
+            </h2>
+            <div className="flex snap-x gap-4 overflow-x-auto pb-4">
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="w-[280px] flex-shrink-0 snap-center rounded-2xl bg-white p-5 shadow-md"
+                >
+                  <p className="mb-4 text-sm text-slate-600">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={36}
+                      height={36}
+                      className="rounded-full"
+                    />
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">{testimonial.name}</p>
+                      <p className="text-xs text-slate-500">{testimonial.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </SectionWrapper>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <PoweredByFooter show={showPoweredBy && profile.subscription_tier !== 'pro'} />

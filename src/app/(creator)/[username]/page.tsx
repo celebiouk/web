@@ -161,8 +161,10 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       username: profile.username || '',
       bio: profile.bio,
       avatar_url: profile.avatar_url,
+      banner_url: (profile as any).banner_url || null,
       subscription_tier: profile.subscription_tier,
       social_links: profile.social_links || [],
+      testimonials_enabled: (profile as any).testimonials_enabled ?? false,
     },
     products: digitalProducts.map(p => ({
       id: p.id,

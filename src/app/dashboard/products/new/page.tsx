@@ -180,7 +180,14 @@ export default function NewProductPage() {
 
     } catch (err) {
       console.error('Create product error:', err);
-      setError('Failed to create product. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('storage') || errorMessage.includes('bucket')) {
+        setError('File upload failed. Please ensure storage is configured properly.');
+      } else if (errorMessage.includes('permission') || errorMessage.includes('RLS')) {
+        setError('Permission denied. Please try logging out and back in.');
+      } else {
+        setError(`Failed to create product: ${errorMessage}`);
+      }
     } finally {
       setIsSubmitting(false);
       setCoverProgress(null);

@@ -241,45 +241,47 @@ export function DarkPremium({
           </SectionWrapper>
         )}
 
-        {/* Testimonials Section */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-16"
-        >
-          <div className="mb-10 text-center">
-            <span className="text-xs font-medium uppercase tracking-[0.3em]" style={{ color: accentColor }}>
-              Testimonials
-            </span>
-          </div>
-          <div className="space-y-6">
-            {testimonials.slice(0, 2).map((testimonial, index) => (
-              <div
-                key={index}
-                className="border-l-2 pl-6"
-                style={{ borderColor: accentColor }}
-              >
-                <p className="mb-4 text-lg italic text-zinc-300">
-                  &ldquo;{testimonial.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full grayscale"
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-white">{testimonial.name}</p>
-                    <p className="text-xs text-zinc-500">{testimonial.role}</p>
+        {/* Testimonials Section - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-16"
+          >
+            <div className="mb-10 text-center">
+              <span className="text-xs font-medium uppercase tracking-[0.3em]" style={{ color: accentColor }}>
+                Testimonials
+              </span>
+            </div>
+            <div className="space-y-6">
+              {testimonials.slice(0, 2).map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="border-l-2 pl-6"
+                  style={{ borderColor: accentColor }}
+                >
+                  <p className="mb-4 text-lg italic text-zinc-300">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={40}
+                      height={40}
+                      className="rounded-full grayscale"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-white">{testimonial.name}</p>
+                      <p className="text-xs text-zinc-500">{testimonial.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </SectionWrapper>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <PoweredByFooter show={showPoweredBy && profile.subscription_tier !== 'pro'} theme="dark" />

@@ -271,61 +271,63 @@ export function Luxury({
           </SectionWrapper>
         )}
 
-        {/* Testimonials */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-16"
-        >
-          <div className="mb-10 text-center">
-            <p className="mb-2 text-xs uppercase tracking-[0.3em] opacity-50"
-              style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
-            >
-              Client Experiences
-            </p>
-            <h2 className="text-3xl font-light tracking-wide">Words of Distinction</h2>
-          </div>
-
-          <div className="space-y-8">
-            {testimonials.slice(0, 2).map((testimonial, index) => (
-              <blockquote
-                key={index}
-                className="text-center"
+        {/* Testimonials - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-16"
+          >
+            <div className="mb-10 text-center">
+              <p className="mb-2 text-xs uppercase tracking-[0.3em] opacity-50"
+                style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
               >
-                <span style={{ color: luxuryGold }} className="mb-4 block text-4xl">&ldquo;</span>
-                <p className="mb-6 text-xl italic leading-relaxed opacity-80">
-                  {testimonial.text}
-                </p>
-                <footer className="flex items-center justify-center gap-4">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={48}
-                    height={48}
-                    className="rounded-full ring-1"
-                    style={{ '--tw-ring-color': luxuryGold } as React.CSSProperties}
-                  />
-                  <div className="text-left">
-                    <cite className="text-sm font-medium not-italic"
-                      style={{ 
-                        fontFamily: '"Inter", system-ui, sans-serif',
-                        color: luxuryGold,
-                      }}
-                    >
-                      {testimonial.name}
-                    </cite>
-                    <p className="text-xs opacity-50"
-                      style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
-                    >
-                      {testimonial.role}
-                    </p>
-                  </div>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </SectionWrapper>
+                Client Experiences
+              </p>
+              <h2 className="text-3xl font-light tracking-wide">Words of Distinction</h2>
+            </div>
+
+            <div className="space-y-8">
+              {testimonials.slice(0, 2).map((testimonial, index) => (
+                <blockquote
+                  key={index}
+                  className="text-center"
+                >
+                  <span style={{ color: luxuryGold }} className="mb-4 block text-4xl">&ldquo;</span>
+                  <p className="mb-6 text-xl italic leading-relaxed opacity-80">
+                    {testimonial.text}
+                  </p>
+                  <footer className="flex items-center justify-center gap-4">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={48}
+                      height={48}
+                      className="rounded-full ring-1"
+                      style={{ '--tw-ring-color': luxuryGold } as React.CSSProperties}
+                    />
+                    <div className="text-left">
+                      <cite className="text-sm font-medium not-italic"
+                        style={{ 
+                          fontFamily: '"Inter", system-ui, sans-serif',
+                          color: luxuryGold,
+                        }}
+                      >
+                        {testimonial.name}
+                      </cite>
+                      <p className="text-xs opacity-50"
+                        style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
+                      >
+                        {testimonial.role}
+                      </p>
+                    </div>
+                  </footer>
+                </blockquote>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <footer className="text-center">

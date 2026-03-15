@@ -244,47 +244,49 @@ export function TechVibe({
           </SectionWrapper>
         )}
 
-        {/* Testimonials - Terminal output style */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-10"
-        >
-          <div className="mb-4 flex items-center gap-2">
-            <span style={{ color: techGreen }} className="font-mono text-sm">
-              &gt;
-            </span>
-            <h2 className="text-lg font-semibold">reviews.forEach()</h2>
-          </div>
+        {/* Testimonials - Terminal output style - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-10"
+          >
+            <div className="mb-4 flex items-center gap-2">
+              <span style={{ color: techGreen }} className="font-mono text-sm">
+                &gt;
+              </span>
+              <h2 className="text-lg font-semibold">reviews.forEach()</h2>
+            </div>
 
-          <div className="space-y-4">
-            {testimonials.slice(0, 2).map((testimonial, index) => (
-              <div
-                key={index}
-                className="rounded-lg p-4"
-                style={{ backgroundColor: techGray }}
-              >
-                <p className="mb-3 font-mono text-sm text-slate-300">
-                  <span style={{ color: techGreen }}>$</span> echo &quot;{testimonial.text}&quot;
-                </p>
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
-                  <div>
-                    <p className="text-sm font-medium">{testimonial.name}</p>
-                    <p className="font-mono text-xs text-slate-500">{testimonial.role}</p>
+            <div className="space-y-4">
+              {testimonials.slice(0, 2).map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="rounded-lg p-4"
+                  style={{ backgroundColor: techGray }}
+                >
+                  <p className="mb-3 font-mono text-sm text-slate-300">
+                    <span style={{ color: techGreen }}>$</span> echo &quot;{testimonial.text}&quot;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={32}
+                      height={32}
+                      className="rounded-full"
+                    />
+                    <div>
+                      <p className="text-sm font-medium">{testimonial.name}</p>
+                      <p className="font-mono text-xs text-slate-500">{testimonial.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </SectionWrapper>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <footer className="text-center">

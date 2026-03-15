@@ -20,7 +20,7 @@ export type UploadResult = {
  * Upload a file to Supabase Storage
  */
 export async function uploadFile(
-  bucket: 'product-covers' | 'product-files' | 'avatars',
+  bucket: 'product-covers' | 'product-files' | 'avatars' | 'banners',
   file: File,
   options?: {
     folder?: string;
@@ -55,7 +55,7 @@ export async function uploadFile(
   }
 
   // Get public URL for public buckets
-  if (bucket === 'product-covers' || bucket === 'avatars') {
+  if (bucket === 'product-covers' || bucket === 'avatars' || bucket === 'banners') {
     const { data: { publicUrl } } = supabase.storage
       .from(bucket)
       .getPublicUrl(filePath);
@@ -103,7 +103,7 @@ async function uploadWithProgress(
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         // Get public URL for public buckets
-        if (bucket === 'product-covers' || bucket === 'avatars') {
+        if (bucket === 'product-covers' || bucket === 'avatars' || bucket === 'banners') {
           const { data: { publicUrl } } = supabase.storage
             .from(bucket)
             .getPublicUrl(filePath);
@@ -132,7 +132,7 @@ async function uploadWithProgress(
  * Delete a file from Supabase Storage
  */
 export async function deleteFile(
-  bucket: 'product-covers' | 'product-files' | 'avatars',
+  bucket: 'product-covers' | 'product-files' | 'avatars' | 'banners',
   filePath: string
 ): Promise<void> {
   const supabase = createClient();

@@ -251,47 +251,49 @@ export function Editorial({
           </SectionWrapper>
         )}
 
-        {/* Testimonials / Press Section */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="border-b border-black/10 px-6 py-10"
-        >
-          <div className="mb-8 text-center">
-            <p className="mb-2 text-xs uppercase tracking-[0.2em] text-slate-500"
-              style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
-            >
-              What People Say
-            </p>
-            <h2 className="text-2xl font-bold italic">Praise &amp; Reviews</h2>
-          </div>
+        {/* Testimonials / Press Section - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="border-b border-black/10 px-6 py-10"
+          >
+            <div className="mb-8 text-center">
+              <p className="mb-2 text-xs uppercase tracking-[0.2em] text-slate-500"
+                style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
+              >
+                What People Say
+              </p>
+              <h2 className="text-2xl font-bold italic">Praise &amp; Reviews</h2>
+            </div>
 
-          <div className="grid gap-8 md:grid-cols-2">
-            {testimonials.slice(0, 2).map((testimonial, index) => (
-              <blockquote key={index} className="border-l-2 pl-6" style={{ borderColor: editorialAccent }}>
-                <p className="mb-4 text-lg italic text-slate-700">
-                  &ldquo;{testimonial.text}&rdquo;
-                </p>
-                <footer className="flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full grayscale"
-                  />
-                  <div style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
-                    <cite className="text-sm font-semibold not-italic text-slate-800">
-                      {testimonial.name}
-                    </cite>
-                    <p className="text-xs text-slate-500">{testimonial.role}</p>
-                  </div>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </SectionWrapper>
+            <div className="grid gap-8 md:grid-cols-2">
+              {testimonials.slice(0, 2).map((testimonial, index) => (
+                <blockquote key={index} className="border-l-2 pl-6" style={{ borderColor: editorialAccent }}>
+                  <p className="mb-4 text-lg italic text-slate-700">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
+                  <footer className="flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={40}
+                      height={40}
+                      className="rounded-full grayscale"
+                    />
+                    <div style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
+                      <cite className="text-sm font-semibold not-italic text-slate-800">
+                        {testimonial.name}
+                      </cite>
+                      <p className="text-xs text-slate-500">{testimonial.role}</p>
+                    </div>
+                  </footer>
+                </blockquote>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <footer className="px-6 py-8 text-center">

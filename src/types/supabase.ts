@@ -55,6 +55,7 @@ export interface Database {
           full_name: string | null;
           bio: string | null;
           avatar_url: string | null;
+          banner_url: string | null;
           website: string | null;
           subscription_tier: SubscriptionTier;
           stripe_account_id: string | null;
@@ -64,6 +65,7 @@ export interface Database {
           domain_verified: boolean;
           template_id: string | null;
           onboarding_completed: boolean;
+          testimonials_enabled: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -73,6 +75,7 @@ export interface Database {
           full_name?: string | null;
           bio?: string | null;
           avatar_url?: string | null;
+          banner_url?: string | null;
           website?: string | null;
           subscription_tier?: SubscriptionTier;
           stripe_account_id?: string | null;
@@ -82,6 +85,7 @@ export interface Database {
           domain_verified?: boolean;
           template_id?: string | null;
           onboarding_completed?: boolean;
+          testimonials_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -91,6 +95,7 @@ export interface Database {
           full_name?: string | null;
           bio?: string | null;
           avatar_url?: string | null;
+          banner_url?: string | null;
           website?: string | null;
           subscription_tier?: SubscriptionTier;
           stripe_account_id?: string | null;
@@ -100,6 +105,7 @@ export interface Database {
           domain_verified?: boolean;
           template_id?: string | null;
           onboarding_completed?: boolean;
+          testimonials_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };

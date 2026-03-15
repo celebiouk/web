@@ -207,8 +207,8 @@ export function MinimalClean({
           </SectionWrapper>
         )}
 
-        {/* Testimonials Section */}
-        {testimonials.length > 0 && (
+        {/* Testimonials Section - Only show if enabled */}
+        {profile.testimonials_enabled && testimonials.length > 0 && (
           <SectionWrapper
             id="testimonials"
             isPreview={isPreview}

@@ -68,8 +68,10 @@ export type CreatorPageData = {
     full_name: string;
     bio: string | null;
     avatar_url: string | null;
+    banner_url: string | null;
     social_links: SocialLink[];
     subscription_tier: 'free' | 'pro';
+    testimonials_enabled: boolean;
   };
   products: CreatorProduct[];
   coaching: CoachingSession | null;

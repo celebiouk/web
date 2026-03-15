@@ -246,42 +246,44 @@ export function WarmApproachable({
           </SectionWrapper>
         )}
 
-        {/* Testimonials Section */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-12"
-        >
-          <h2 className="mb-6 text-center text-lg font-semibold text-stone-700">
-            Kind Words
-          </h2>
-          <div className="space-y-4">
-            {testimonials.slice(0, 2).map((testimonial, index) => (
-              <div
-                key={index}
-                className="rounded-2xl bg-white p-5 shadow-sm"
-              >
-                <p className="mb-4 text-sm text-stone-600">
-                  &ldquo;{testimonial.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={36}
-                    height={36}
-                    className="rounded-full"
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-stone-800">{testimonial.name}</p>
-                    <p className="text-xs text-stone-400">{testimonial.role}</p>
+        {/* Testimonials Section - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-12"
+          >
+            <h2 className="mb-6 text-center text-lg font-semibold text-stone-700">
+              Kind Words
+            </h2>
+            <div className="space-y-4">
+              {testimonials.slice(0, 2).map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl bg-white p-5 shadow-sm"
+                >
+                  <p className="mb-4 text-sm text-stone-600">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={36}
+                      height={36}
+                      className="rounded-full"
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-stone-800">{testimonial.name}</p>
+                      <p className="text-xs text-stone-400">{testimonial.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </SectionWrapper>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <PoweredByFooter show={showPoweredBy && profile.subscription_tier !== 'pro'} />

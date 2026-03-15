@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Avatar } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@/components/ui';
+import { ProfileSection } from '@/components/dashboard/ProfileSection';
 import { PRICING } from '@/lib/constants';
 import { isInternalAdminEmail } from '@/lib/admin';
 import { Check } from 'lucide-react';
@@ -42,39 +43,7 @@ export default async function SettingsPage() {
       </div>
 
       {/* Profile Section */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Profile</CardTitle>
-          <Button variant="outline" size="sm" disabled>
-            Edit Profile
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <Avatar
-              src={profile?.avatar_url}
-              name={profile?.full_name || 'User'}
-              size="lg"
-            />
-            <div>
-              <p className="font-semibold text-gray-900 dark:text-white">
-                {profile?.full_name}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                @{profile?.username}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {user?.email}
-              </p>
-            </div>
-          </div>
-          {profile?.bio && (
-            <p className="mt-4 text-gray-600 dark:text-gray-400">
-              {profile.bio}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <ProfileSection profile={profile!} email={user?.email} />
 
       {/* Billing Section */}
       <Card id="billing">

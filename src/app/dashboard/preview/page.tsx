@@ -124,8 +124,10 @@ export default function DashboardPreviewPage() {
           username: profile.username || '',
           bio: profile.bio,
           avatar_url: profile.avatar_url,
+          banner_url: (profile as any).banner_url || null,
           subscription_tier: profile.subscription_tier,
           social_links: (profile as Record<string, unknown>).social_links as CreatorPageData['profile']['social_links'] || [],
+          testimonials_enabled: (profile as any).testimonials_enabled ?? false,
         },
         products: products.filter(p => p.type !== 'coaching').map(p => ({
           id: p.id,

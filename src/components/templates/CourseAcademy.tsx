@@ -245,46 +245,48 @@ export function CourseAcademy({
           </SectionWrapper>
         )}
 
-        {/* Testimonials Section */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-12"
-        >
-          <div className="mb-4 flex items-center gap-2">
-            <span className="text-lg">⭐</span>
-            <span className="text-sm font-semibold text-slate-700">Student Reviews</span>
-          </div>
-          <div className="space-y-3">
-            {testimonials.slice(0, 2).map((testimonial, index) => (
-              <div
-                key={index}
-                className="rounded-xl bg-white p-5 shadow-sm"
-              >
-                <div className="mb-3 flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={36}
-                    height={36}
-                    className="rounded-full"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{testimonial.name}</p>
-                    <p className="text-xs text-slate-400">{testimonial.role}</p>
+        {/* Testimonials Section - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-12"
+          >
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-lg">⭐</span>
+              <span className="text-sm font-semibold text-slate-700">Student Reviews</span>
+            </div>
+            <div className="space-y-3">
+              {testimonials.slice(0, 2).map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl bg-white p-5 shadow-sm"
+                >
+                  <div className="mb-3 flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={36}
+                      height={36}
+                      className="rounded-full"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{testimonial.name}</p>
+                      <p className="text-xs text-slate-400">{testimonial.role}</p>
+                    </div>
+                    <div className="ml-auto flex text-amber-400">
+                      {[1, 2, 3, 4, 5].map((_, i) => (
+                        <Star key={i} className="h-3 w-3 fill-current" />
+                      ))}
+                    </div>
                   </div>
-                  <div className="ml-auto flex text-amber-400">
-                    {[1, 2, 3, 4, 5].map((_, i) => (
-                      <Star key={i} className="h-3 w-3 fill-current" />
-                    ))}
-                  </div>
+                  <p className="text-sm text-slate-600">&ldquo;{testimonial.text}&rdquo;</p>
                 </div>
-                <p className="text-sm text-slate-600">&ldquo;{testimonial.text}&rdquo;</p>
-              </div>
-            ))}
-          </div>
-        </SectionWrapper>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <PoweredByFooter show={showPoweredBy && profile.subscription_tier !== 'pro'} />

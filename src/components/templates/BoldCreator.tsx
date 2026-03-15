@@ -252,42 +252,44 @@ export function BoldCreator({
           </SectionWrapper>
         )}
 
-        {/* Testimonials Section */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-16"
-        >
-          <h2 className="mb-8 text-2xl font-black uppercase tracking-tight text-gray-900">
-            Real Results
-          </h2>
-          <div className="space-y-4">
-            {testimonials.slice(0, 3).map((testimonial, index) => (
-              <div
-                key={index}
-                className="rounded-2xl bg-white p-6 shadow-lg"
-              >
-                <div className="mb-4 flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
-                  <div>
-                    <p className="font-bold text-gray-900">{testimonial.name}</p>
-                    <p className="text-xs text-gray-400">{testimonial.role}</p>
+        {/* Testimonials Section - Only show if enabled */}
+        {profile.testimonials_enabled && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-16"
+          >
+            <h2 className="mb-8 text-2xl font-black uppercase tracking-tight text-gray-900">
+              Real Results
+            </h2>
+            <div className="space-y-4">
+              {testimonials.slice(0, 3).map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl bg-white p-6 shadow-lg"
+                >
+                  <div className="mb-4 flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={48}
+                      height={48}
+                      className="rounded-full"
+                    />
+                    <div>
+                      <p className="font-bold text-gray-900">{testimonial.name}</p>
+                      <p className="text-xs text-gray-400">{testimonial.role}</p>
+                    </div>
                   </div>
+                  <p className="text-gray-600">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
                 </div>
-                <p className="text-gray-600">
-                  &ldquo;{testimonial.text}&rdquo;
-                </p>
-              </div>
-            ))}
-          </div>
-        </SectionWrapper>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
 
         {/* Footer */}
         <PoweredByFooter show={showPoweredBy && profile.subscription_tier !== 'pro'} />
