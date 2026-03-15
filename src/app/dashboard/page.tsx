@@ -176,7 +176,7 @@ export default async function DashboardPage() {
     } else if (nudgeMap.has('first_sale') && !nudgeMap.get('first_sale')?.clicked) {
       dashboardNudge = {
         type: 'first_sale',
-        title: '🎉 You made your first sale',
+        title: 'You made your first sale!',
         description: 'Upgrade to Pro to keep 100% of future revenue and unlock courses.',
         ctaLabel: 'Upgrade to Pro',
       };

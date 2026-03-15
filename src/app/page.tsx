@@ -1,5 +1,15 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui';
+import { 
+  ShoppingBag, 
+  CalendarCheck, 
+  GraduationCap, 
+  Palette, 
+  CreditCard, 
+  BarChart3,
+  Sparkles,
+  Check
+} from 'lucide-react';
 
 /**
  * Landing page - cele.bio homepage
@@ -11,8 +21,8 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="gradient-bg relative overflow-hidden">
         {/* Navigation */}
-        <nav className="container-page relative z-10 flex items-center justify-between py-4">
-          <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
+        <nav className="container-page relative z-10 flex items-center justify-between py-6">
+          <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
             cele<span className="text-brand-600">.bio</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -28,22 +38,22 @@ export default function HomePage() {
         </nav>
 
         {/* Hero Content */}
-        <div className="container-page pb-20 pt-16 text-center md:pb-32 md:pt-24">
+        <div className="container-page pb-24 pt-20 text-center md:pb-36 md:pt-28">
           <div className="mx-auto max-w-3xl">
             {/* Badge */}
-            <div className="mb-6 inline-flex items-center rounded-full bg-brand-50 px-4 py-2 text-sm font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
-              <span className="mr-2">✨</span>
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50/80 px-4 py-2 text-sm font-medium text-brand-700 backdrop-blur-sm dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-400">
+              <Sparkles className="h-4 w-4" />
               The #1 storefront for creators
             </div>
 
             {/* Headline */}
-            <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
+            <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl lg:text-7xl">
               Monetize your audience{' '}
               <span className="gradient-text">in minutes</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="mb-10 text-lg text-gray-600 dark:text-gray-400 md:text-xl">
+            <p className="mx-auto mb-12 max-w-2xl text-lg text-gray-600 dark:text-gray-400 md:text-xl">
               Create your beautiful storefront at cele.bio/you. Sell digital products, 
               book 1:1 coaching calls, and launch courses — all in one place.
             </p>
@@ -51,20 +61,20 @@ export default function HomePage() {
             {/* CTA Buttons */}
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link href="/signup">
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full px-8 sm:w-auto">
                   Create Your Page — It&apos;s Free
                 </Button>
               </Link>
               <Link href="#features">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="w-full px-8 sm:w-auto">
                   See How It Works
                 </Button>
               </Link>
             </div>
 
             {/* Social Proof */}
-            <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-              Trusted by 10,000+ creators • No credit card required
+            <p className="mt-8 text-sm text-gray-500 dark:text-gray-400">
+              Trusted by 10,000+ creators · No credit card required
             </p>
           </div>
         </div>
@@ -86,14 +96,14 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-gray-200 bg-white p-6 transition-all duration-200 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900"
+                className="group rounded-2xl border border-gray-200/80 bg-white p-6 transition-all duration-300 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-brand-500/30"
               >
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-2xl dark:bg-brand-500/10">
-                  {feature.icon}
+                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-100 dark:bg-brand-500/10 dark:text-brand-400 dark:group-hover:bg-brand-500/20">
+                  <feature.icon className="h-6 w-6" />
                 </div>
                 <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
                   {feature.title}
@@ -135,19 +145,7 @@ export default function HomePage() {
                 {['Digital products', '1:1 coaching', '500 email subscribers', 'All templates'].map(
                   (item) => (
                     <li key={item} className="flex items-center text-gray-600 dark:text-gray-400">
-                      <svg
-                        className="mr-3 h-5 w-5 text-success-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                      <Check className="mr-3 h-5 w-5 text-success-500" />
                       {item}
                     </li>
                   )
@@ -184,19 +182,7 @@ export default function HomePage() {
                   'Advanced analytics',
                 ].map((item) => (
                   <li key={item} className="flex items-center text-gray-600 dark:text-gray-400">
-                    <svg
-                      className="mr-3 h-5 w-5 text-success-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                    <Check className="mr-3 h-5 w-5 text-success-500" />
                     {item}
                   </li>
                 ))}
@@ -243,37 +229,37 @@ export default function HomePage() {
 
 const features = [
   {
-    icon: '🛍️',
+    icon: ShoppingBag,
     title: 'Digital Products',
     description:
       'Sell ebooks, templates, presets, and any digital file. Instant delivery, no hassle.',
   },
   {
-    icon: '📅',
+    icon: CalendarCheck,
     title: '1:1 Coaching',
     description:
       'Let fans book paid calls with you. Integrate with your calendar seamlessly.',
   },
   {
-    icon: '🎓',
+    icon: GraduationCap,
     title: 'Online Courses',
     description:
       'Create and sell video courses with modules, lessons, and progress tracking.',
   },
   {
-    icon: '✨',
+    icon: Palette,
     title: 'Beautiful Templates',
     description:
       'Choose from 10+ stunning templates. Your page looks professional in minutes.',
   },
   {
-    icon: '💳',
+    icon: CreditCard,
     title: 'Instant Payouts',
     description:
       'Get paid directly to your bank via Stripe. No waiting for payouts.',
   },
   {
-    icon: '📊',
+    icon: BarChart3,
     title: 'Analytics',
     description:
       'Track views, sales, and revenue. Understand what your audience loves.',

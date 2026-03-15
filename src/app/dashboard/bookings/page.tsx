@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, Button, Badge, Textarea } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { formatTimeForDisplay, TIMEZONE_OPTIONS } from '@/lib/utils/generateAvailableSlots';
+import { Calendar, CheckCircle2, XCircle } from 'lucide-react';
 import type { Booking, Product, AvailabilitySchedule } from '@/types/supabase';
 
 type TabType = 'upcoming' | 'past' | 'cancelled';
@@ -158,7 +159,7 @@ export default function BookingsPage() {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-500/20">
-                📅
+                <Calendar className="h-6 w-6 text-brand-600 dark:text-brand-400" />
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
@@ -237,9 +238,13 @@ export default function BookingsPage() {
         <Card>
           <CardContent className="p-8 text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-              <span className="text-3xl">
-                {activeTab === 'upcoming' ? '📅' : activeTab === 'past' ? '✅' : '❌'}
-              </span>
+              {activeTab === 'upcoming' ? (
+                <Calendar className="h-8 w-8 text-gray-400" />
+              ) : activeTab === 'past' ? (
+                <CheckCircle2 className="h-8 w-8 text-gray-400" />
+              ) : (
+                <XCircle className="h-8 w-8 text-gray-400" />
+              )}
             </div>
             <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">
               No {activeTab} bookings

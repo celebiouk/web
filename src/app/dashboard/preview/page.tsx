@@ -6,6 +6,20 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { TemplateRenderer } from '@/components/templates/TemplateRenderer';
+import { 
+  Sparkles, 
+  Flame, 
+  BookOpen, 
+  Moon, 
+  Sun, 
+  Briefcase, 
+  PartyPopper, 
+  Newspaper, 
+  Terminal, 
+  Crown,
+  Palette,
+  type LucideIcon
+} from 'lucide-react';
 import type { CreatorPageData, PageTheme, TemplateSlug } from '@/types/creator-page';
 import type { Profile, Product } from '@/types/supabase';
 
@@ -350,7 +364,9 @@ export default function DashboardPreviewPage() {
                 All Templates
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                {TEMPLATES.map((template) => (
+                {TEMPLATES.map((template) => {
+                  const TemplateIcon = getTemplateIcon(template.slug);
+                  return (
                   <button
                     key={template.slug}
                     onClick={() => handleTemplateChange(template.slug)}
@@ -360,8 +376,8 @@ export default function DashboardPreviewPage() {
                         : 'border-gray-100 hover:border-primary/50 dark:border-gray-800'
                     }`}
                   >
-                    <div className="mb-2 flex h-16 items-center justify-center rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 text-3xl dark:from-gray-800 dark:to-gray-700">
-                      {getTemplateEmoji(template.slug)}
+                    <div className="mb-2 flex h-16 items-center justify-center rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
+                      <TemplateIcon className="h-7 w-7 text-gray-600 dark:text-gray-300" />
                     </div>
                     <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
                       {template.name}
@@ -375,7 +391,8 @@ export default function DashboardPreviewPage() {
                       </div>
                     )}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -424,21 +441,21 @@ export default function DashboardPreviewPage() {
   );
 }
 
-// Helper to get emoji for template
-function getTemplateEmoji(slug: TemplateSlug): string {
-  const emojis: Record<TemplateSlug, string> = {
-    'minimal-clean': '✨',
-    'bold-creator': '🔥',
-    'course-academy': '📚',
-    'dark-premium': '🌙',
-    'warm-approachable': '☀️',
-    'corporate-pro': '💼',
-    'vibrant-social': '🎉',
-    'editorial': '📰',
-    'tech-vibe': '💻',
-    'luxury': '👑',
+// Helper to get icon for template
+function getTemplateIcon(slug: TemplateSlug): LucideIcon {
+  const icons: Record<TemplateSlug, LucideIcon> = {
+    'minimal-clean': Sparkles,
+    'bold-creator': Flame,
+    'course-academy': BookOpen,
+    'dark-premium': Moon,
+    'warm-approachable': Sun,
+    'corporate-pro': Briefcase,
+    'vibrant-social': PartyPopper,
+    'editorial': Newspaper,
+    'tech-vibe': Terminal,
+    'luxury': Crown,
   };
-  return emojis[slug] || '🎨';
+  return icons[slug] || Palette;
 }
 
 // Loading skeleton for mobile preview

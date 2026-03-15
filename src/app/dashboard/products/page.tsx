@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { FileText, GraduationCap, Users } from 'lucide-react';
 import type { Product, Profile } from '@/types/supabase';
 import Image from 'next/image';
 
@@ -235,10 +236,10 @@ export default function ProductsPage() {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-4xl">
-                        {product.type === 'digital' && '📁'}
-                        {product.type === 'course' && '🎓'}
-                        {product.type === 'coaching' && '👤'}
+                      <div className="flex h-full items-center justify-center">
+                        {product.type === 'digital' && <FileText className="h-10 w-10 text-gray-400" />}
+                        {product.type === 'course' && <GraduationCap className="h-10 w-10 text-gray-400" />}
+                        {product.type === 'coaching' && <Users className="h-10 w-10 text-gray-400" />}
                       </div>
                     )}
                   </div>

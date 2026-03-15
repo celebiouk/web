@@ -119,7 +119,7 @@ export function BillingSettingsClient({
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="mb-2 flex items-center gap-2">
-                    <Badge variant="pro">You’re now Pro! 🎉</Badge>
+                    <Badge variant="pro">You're now Pro!</Badge>
                     <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Upgrade complete</span>
                   </div>
                   <p className="text-sm text-gray-700 dark:text-gray-200">Courses, custom domains, advanced analytics, and 0% commission are now unlocked.</p>

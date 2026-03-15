@@ -7,25 +7,26 @@ import Image from 'next/image';
 import { Card, CardContent, Button, Input, Badge, Spinner } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { uploadFile, validateFile, FILE_TYPES, type UploadProgress } from '@/lib/utils/uploadFile';
+import { FileText, GraduationCap, Users, type LucideIcon } from 'lucide-react';
 import type { ProductType, ProductInsert } from '@/types/supabase';
 
-const PRODUCT_TYPES: { value: ProductType; label: string; icon: string; description: string }[] = [
+const PRODUCT_TYPES: { value: ProductType; label: string; icon: LucideIcon; description: string }[] = [
   {
     value: 'digital',
     label: 'Digital Download',
-    icon: '📁',
+    icon: FileText,
     description: 'PDFs, eBooks, templates, presets',
   },
   {
     value: 'course',
     label: 'Course',
-    icon: '🎓',
+    icon: GraduationCap,
     description: 'Video courses and tutorials',
   },
   {
     value: 'coaching',
     label: 'Coaching',
-    icon: '👤',
+    icon: Users,
     description: '1-on-1 coaching sessions',
   },
 ];
@@ -225,7 +226,7 @@ export default function NewProductPage() {
                       : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
                   }`}
                 >
-                  <span className="text-2xl">{type.icon}</span>
+                  <type.icon className="h-6 w-6 text-brand-600 dark:text-brand-400" />
                   <h3 className="mt-2 font-medium text-gray-900 dark:text-white">
                     {type.label}
                   </h3>

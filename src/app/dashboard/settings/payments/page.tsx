@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { CheckCircle2 } from 'lucide-react';
 
 type StripeStatus = 'not_connected' | 'pending' | 'complete';
 
@@ -167,8 +168,9 @@ export default function PaymentsSettingsPage() {
 
       {/* Success Alert */}
       {connectedParam === 'true' && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          🎉 Stripe connected successfully! You can now receive payments.
+        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          <CheckCircle2 className="h-5 w-5 text-green-600" />
+          Stripe connected successfully! You can now receive payments.
         </div>
       )}
 
