@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import type { Profile } from '@/types/supabase';
 import {
+  Eye,
   Palette,
   ExternalLink,
   ArrowRight,
@@ -237,11 +238,11 @@ export default async function MyPagePage() {
           </div>
           <div className="flex gap-2">
             <Link
-              href="/dashboard/preview"
+              href="/dashboard/page-editor"
               className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-400"
             >
               <Eye className="h-4 w-4" strokeWidth={1.75} />
-              Live Preview
+              Edit Page
             </Link>
             <Link
               href="/dashboard/products/new"
