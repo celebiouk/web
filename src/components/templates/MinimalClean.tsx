@@ -4,22 +4,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { TemplateProps } from './TemplateRenderer';
 import {
-  formatPrice,
+  formatPriceClean,
   getThemeStyles,
   getTestimonials,
   getSalesProofItems,
-  SalesProofBar,
   SectionWrapper,
   SocialLinks,
   PoweredByFooter,
-  getProductPlaceholderImage,
+  ProductCardHorizontal,
+  CoachingCard,
+  TrustBadges,
   CoursesSection,
 } from './shared';
 
 /**
- * Minimal Clean Template
- * Clean white, lots of whitespace, serif font
- * Perfect for coaches, writers, and consultants
+ * Minimal Clean Template - Premium Redesign
+ * Clean, sophisticated, conversion-optimized
+ * Outclasses Stan.store with better typography and UX
  */
 export function MinimalClean({
   data,
@@ -31,7 +32,6 @@ export function MinimalClean({
   const testimonials = getTestimonials();
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
   const primaryOffer = digitalProducts[0] || null;
-  const heroProofItems = getSalesProofItems(data);
   const themeStyles = getThemeStyles(theme);
 
   return (
@@ -39,30 +39,49 @@ export function MinimalClean({
       className="min-h-screen bg-white"
       style={{
         ...themeStyles,
-        fontFamily: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
+        fontFamily: '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
       }}
     >
-      <div className="mx-auto max-w-md px-6 py-12 md:max-w-lg">
-        {/* Hero Section */}
-        <SectionWrapper
-          id="hero"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('hero')}
-          className="mb-16 text-center"
-        >
+      {/* Hero Section */}
+      <SectionWrapper
+        id="hero"
+        isPreview={isPreview}
+        onEdit={() => onSectionClick?.('hero')}
+        className="relative overflow-hidden"
+      >
+        {/* Subtle gradient background */}
+        <div 
+          className="absolute inset-0 opacity-[0.03]"
+          style={{ 
+            background: `radial-gradient(ellipse at top, ${theme.primary_color} 0%, transparent 70%)` 
+          }}
+        />
+        
+        <div className="relative mx-auto max-w-lg px-6 pb-12 pt-16 text-center">
           {/* Avatar */}
-          <div className="mb-6">
+          <div className="mb-6 inline-block">
             {profile.avatar_url ? (
-              <Image
-                src={profile.avatar_url}
-                alt={profile.full_name}
-                width={120}
-                height={120}
-                className="mx-auto rounded-full object-cover"
-              />
+              <div className="relative">
+                <Image
+                  src={profile.avatar_url}
+                  alt={profile.full_name}
+                  width={140}
+                  height={140}
+                  className="rounded-full object-cover ring-4 ring-white shadow-2xl"
+                />
+                {/* Status indicator */}
+                <div 
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white shadow-lg flex items-center justify-center"
+                  style={{ backgroundColor: theme.primary_color }}
+                >
+                  <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
             ) : (
               <div
-                className="mx-auto flex h-[120px] w-[120px] items-center justify-center rounded-full text-3xl font-medium text-white"
+                className="flex h-[140px] w-[140px] items-center justify-center rounded-full text-4xl font-bold text-white shadow-2xl"
                 style={{ backgroundColor: theme.primary_color }}
               >
                 {profile.full_name?.charAt(0) || '?'}
@@ -71,29 +90,25 @@ export function MinimalClean({
           </div>
 
           {/* Name */}
-          <h1 className="mb-3 text-3xl font-light tracking-tight text-gray-900">
+          <h1 className="mb-3 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             {profile.full_name || 'Your Name'}
           </h1>
 
           {/* Bio */}
-          <p className="mb-6 text-lg leading-relaxed text-gray-600">
+          <p className="mx-auto mb-8 max-w-md text-lg leading-relaxed text-gray-500">
             {profile.bio || 'Add a bio to tell visitors about yourself'}
           </p>
-
-          <SalesProofBar
-            items={heroProofItems}
-            primaryColor={theme.primary_color}
-            className="mb-6"
-          />
 
           {/* Social Links */}
           <SocialLinks
             links={profile.social_links}
-            className="mb-8 justify-center text-gray-400"
+            className="mb-8 justify-center"
+            variant="filled"
+            iconSize={18}
           />
 
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          {/* Primary CTA */}
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href={
                 primaryOffer
@@ -102,68 +117,51 @@ export function MinimalClean({
                     ? `/book/${profile.username}/${coaching.id}`
                     : '#products'
               }
-              className="rounded-full px-8 py-3 text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-semibold text-white shadow-lg shadow-gray-900/10 transition-all hover:shadow-xl hover:shadow-gray-900/15 active:scale-[0.98] sm:w-auto"
               style={{ backgroundColor: theme.primary_color }}
             >
-              {primaryOffer ? 'Get Instant Access' : coaching?.is_published ? 'Book a Session' : 'Explore Offers'}
+              {primaryOffer ? `Get ${primaryOffer.title}` : coaching?.is_published ? 'Book a Session' : 'View Offers'}
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
             </Link>
-            <a
-              href="#products"
-              className="rounded-full border border-gray-300 px-8 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-            >
-              View Offers
-            </a>
+            {digitalProducts.length > 1 && (
+              <a
+                href="#products"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-8 py-4 text-base font-medium text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 sm:w-auto"
+              >
+                See All Offers
+              </a>
+            )}
           </div>
-        </SectionWrapper>
+        </div>
+      </SectionWrapper>
 
+      {/* Main Content */}
+      <div className="mx-auto max-w-lg px-6 pb-16">
         {/* Products Section */}
         {digitalProducts.length > 0 && (
           <SectionWrapper
             id="products"
             isPreview={isPreview}
             onEdit={() => onSectionClick?.('products')}
-            className="mb-16"
+            className="mb-12"
           >
-            <h2 className="mb-8 text-center text-sm font-medium uppercase tracking-widest text-gray-400">
-              Products
-            </h2>
-            <div className="space-y-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">
+                Products
+              </h2>
+              <span className="text-sm text-gray-400">{digitalProducts.length} available</span>
+            </div>
+            <div className="space-y-4">
               {digitalProducts.map((product) => (
-                <div
+                <ProductCardHorizontal
                   key={product.id}
-                  className="group overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all hover:border-gray-200 hover:shadow-lg"
-                >
-                  <div className="aspect-[3/2] overflow-hidden bg-gray-50">
-                    <Image
-                      src={product.cover_image_url || getProductPlaceholderImage(product.type)}
-                      alt={product.title}
-                      width={600}
-                      height={400}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-6">
-                    <h3 className="mb-2 text-lg font-medium text-gray-900">
-                      {product.title}
-                    </h3>
-                    <p className="mb-4 text-sm leading-relaxed text-gray-500">
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-medium text-gray-900">
-                        {formatPrice(product.price)}
-                      </span>
-                      <Link href={`/checkout/${product.id}`}>
-                        <button
-                          className="rounded-full px-6 py-2 text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95"
-                          style={{ backgroundColor: theme.primary_color }}
-                        >
-                          Get Access
-                        </button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                  product={product}
+                  username={profile.username}
+                  primaryColor={theme.primary_color}
+                  variant="light"
+                />
               ))}
             </div>
           </SectionWrapper>
@@ -175,48 +173,17 @@ export function MinimalClean({
             id="coaching"
             isPreview={isPreview}
             onEdit={() => onSectionClick?.('coaching')}
-            className="mb-16"
+            className="mb-12"
           >
-            <h2 className="mb-8 text-center text-sm font-medium uppercase tracking-widest text-gray-400">
+            <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-400">
               Work With Me
             </h2>
-            <div className="rounded-2xl border border-gray-100 p-8 text-center">
-              <div
-                className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
-                style={{ backgroundColor: `${theme.primary_color}15` }}
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  style={{ color: theme.primary_color }}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <h3 className="mb-2 text-xl font-medium text-gray-900">
-                {coaching.title}
-              </h3>
-              <p className="mb-4 text-sm text-gray-500">
-                {coaching.description}
-              </p>
-              <p className="mb-6 text-sm text-gray-400">
-                {coaching.duration_minutes} minutes • {formatPrice(coaching.price)}
-              </p>
-              <Link
-                href={`/book/${profile.username}/${coaching.id}`}
-                className="block w-full rounded-full px-6 py-3 text-center text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95"
-                style={{ backgroundColor: theme.primary_color }}
-              >
-                Book a Call
-              </Link>
-            </div>
+            <CoachingCard
+              coaching={coaching}
+              username={profile.username}
+              primaryColor={theme.primary_color}
+              variant="light"
+            />
           </SectionWrapper>
         )}
 
@@ -226,9 +193,9 @@ export function MinimalClean({
             id="courses"
             isPreview={isPreview}
             onEdit={() => onSectionClick?.('courses')}
-            className="mb-16"
+            className="mb-12"
           >
-            <h2 className="mb-8 text-center text-sm font-medium uppercase tracking-widest text-gray-400">
+            <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-400">
               Courses
             </h2>
             <CoursesSection
@@ -241,43 +208,56 @@ export function MinimalClean({
         )}
 
         {/* Testimonials Section */}
-        <SectionWrapper
-          id="testimonials"
-          isPreview={isPreview}
-          onEdit={() => onSectionClick?.('testimonials')}
-          className="mb-16"
-        >
-          <h2 className="mb-8 text-center text-sm font-medium uppercase tracking-widest text-gray-400">
-            What People Say
-          </h2>
-          <div className="space-y-6">
-            {testimonials.slice(0, 2).map((testimonial, index) => (
-              <div
-                key={index}
-                className="rounded-2xl border border-gray-100 p-6"
-              >
-                <p className="mb-4 text-sm leading-relaxed text-gray-600 italic">
-                  &ldquo;{testimonial.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-xs text-gray-400">{testimonial.role}</p>
+        {testimonials.length > 0 && (
+          <SectionWrapper
+            id="testimonials"
+            isPreview={isPreview}
+            onEdit={() => onSectionClick?.('testimonials')}
+            className="mb-12"
+          >
+            <h2 className="mb-6 text-sm font-semibold uppercase tracking-wider text-gray-400">
+              What People Say
+            </h2>
+            <div className="space-y-4">
+              {testimonials.slice(0, 2).map((testimonial, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl border border-gray-100 bg-gray-50/50 p-6"
+                >
+                  {/* Stars */}
+                  <div className="mb-3 flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="h-4 w-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="mb-4 text-gray-600 leading-relaxed">
+                    &ldquo;{testimonial.text}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={40}
+                      height={40}
+                      className="rounded-full"
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {testimonial.name}
+                      </p>
+                      <p className="text-xs text-gray-500">{testimonial.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </SectionWrapper>
+              ))}
+            </div>
+          </SectionWrapper>
+        )}
+
+        {/* Trust Badges */}
+        <TrustBadges variant="light" className="mb-8" />
 
         {/* Footer */}
         <PoweredByFooter show={showPoweredBy && profile.subscription_tier !== 'pro'} />
