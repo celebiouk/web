@@ -7,6 +7,8 @@ import {
   formatPrice,
   getThemeStyles,
   getTestimonials,
+  getSalesProofItems,
+  SalesProofBar,
   SectionWrapper,
   SocialLinks,
   PoweredByFooter,
@@ -28,6 +30,8 @@ export function MinimalClean({
   const { profile, products, coaching, courses, theme } = data;
   const testimonials = getTestimonials();
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
+  const primaryOffer = digitalProducts[0] || null;
+  const heroProofItems = getSalesProofItems(data);
   const themeStyles = getThemeStyles(theme);
 
   return (
@@ -76,19 +80,40 @@ export function MinimalClean({
             {profile.bio || 'Add a bio to tell visitors about yourself'}
           </p>
 
+          <SalesProofBar
+            items={heroProofItems}
+            primaryColor={theme.primary_color}
+            className="mb-6"
+          />
+
           {/* Social Links */}
           <SocialLinks
             links={profile.social_links}
             className="mb-8 justify-center text-gray-400"
           />
 
-          {/* CTA Button */}
-          <button
-            className="rounded-full px-8 py-3 text-sm font-medium text-white transition-all hover:opacity-90 active:scale-95"
-            style={{ backgroundColor: theme.primary_color }}
-          >
-            Get Updates
-          </button>
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href={
+                primaryOffer
+                  ? `/checkout/${primaryOffer.id}`
+                  : coaching?.is_published
+                    ? `/book/${profile.username}/${coaching.id}`
+                    : '#products'
+              }
+              className="rounded-full px-8 py-3 text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+              style={{ backgroundColor: theme.primary_color }}
+            >
+              {primaryOffer ? 'Get Instant Access' : coaching?.is_published ? 'Book a Session' : 'Explore Offers'}
+            </Link>
+            <a
+              href="#products"
+              className="rounded-full border border-gray-300 px-8 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              View Offers
+            </a>
+          </div>
         </SectionWrapper>
 
         {/* Products Section */}

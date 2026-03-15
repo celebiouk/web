@@ -1,13 +1,12 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { DashboardNav } from '@/components/dashboard/dashboard-nav';
-import { CommandSearch } from '@/components/dashboard/command-search';
-import { NotificationBell } from '@/components/dashboard/notification-bell';
+import { DashboardSidebar } from '@/components/dashboard/sidebar';
+import { TopBar } from '@/components/dashboard/top-bar';
 import type { Profile } from '@/types/supabase';
 
 /**
  * Dashboard layout - protected area for creators
- * Features sidebar navigation (desktop) and bottom nav (mobile)
+ * Premium design with Vercel/Linear inspired sidebar and top bar
  */
 export default async function DashboardLayout({
   children,
@@ -40,9 +39,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      {/* Sidebar Navigation - Desktop */}
-      <DashboardNav
+    <div className="min-h-screen bg-[#0A0A0B]">
+      {/* Premium Sidebar - Desktop */}
+      <DashboardSidebar
         profile={{
           id: profile.id,
           fullName: profile.full_name || '',
@@ -52,16 +51,63 @@ export default async function DashboardLayout({
         }}
       />
 
-      {/* Main Content */}
-      <main className="lg:pl-64">
-        <div className="container-page py-4 pb-24 lg:pb-6">
-          <div className="mb-4 flex items-center justify-end gap-2">
-            <CommandSearch />
-            <NotificationBell userId={profile.id} />
-          </div>
+      {/* Main Content Area */}
+      <div className="lg:pl-[260px]">
+        {/* Top Bar */}
+        <TopBar
+          title="Dashboard"
+          userId={profile.id}
+        />
+
+        {/* Page Content */}
+        <main className="min-h-[calc(100vh-3.5rem)] px-6 py-6 pb-24 lg:pb-8">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNav username={profile.username || ''} />
     </div>
+  );
+}
+
+/**
+ * Mobile bottom navigation bar
+ */
+import Link from 'next/link';
+import { Home, LayoutGrid, Package, Settings } from 'lucide-react';
+
+function MobileNav({ username }: { username: string }) {
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-zinc-800/60 bg-[#0A0A0B]/95 backdrop-blur-xl lg:hidden">
+      <Link
+        href="/dashboard"
+        className="flex flex-col items-center gap-1 px-4 py-2 text-zinc-400 transition-colors hover:text-zinc-200"
+      >
+        <Home className="h-5 w-5" strokeWidth={1.75} />
+        <span className="text-[10px] font-medium">Home</span>
+      </Link>
+      <Link
+        href="/dashboard/page"
+        className="flex flex-col items-center gap-1 px-4 py-2 text-zinc-400 transition-colors hover:text-zinc-200"
+      >
+        <LayoutGrid className="h-5 w-5" strokeWidth={1.75} />
+        <span className="text-[10px] font-medium">Page</span>
+      </Link>
+      <Link
+        href="/dashboard/products"
+        className="flex flex-col items-center gap-1 px-4 py-2 text-zinc-400 transition-colors hover:text-zinc-200"
+      >
+        <Package className="h-5 w-5" strokeWidth={1.75} />
+        <span className="text-[10px] font-medium">Products</span>
+      </Link>
+      <Link
+        href="/dashboard/settings"
+        className="flex flex-col items-center gap-1 px-4 py-2 text-zinc-400 transition-colors hover:text-zinc-200"
+      >
+        <Settings className="h-5 w-5" strokeWidth={1.75} />
+        <span className="text-[10px] font-medium">Settings</span>
+      </Link>
+    </nav>
   );
 }

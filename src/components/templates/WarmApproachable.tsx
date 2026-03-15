@@ -2,11 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { Hand, Heart, Clock, Sparkles } from 'lucide-react';
 import type { TemplateProps } from './TemplateRenderer';
 import {
   formatPrice,
   getThemeStyles,
   getTestimonials,
+  getSalesProofItems,
+  SalesProofBar,
   SectionWrapper,
   SocialLinks,
   PoweredByFooter,
@@ -28,6 +31,8 @@ export function WarmApproachable({
   const { profile, products, coaching, courses, theme } = data;
   const testimonials = getTestimonials();
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
+  const primaryOffer = digitalProducts[0] || null;
+  const heroProofItems = getSalesProofItems(data);
   const themeStyles = getThemeStyles(theme);
 
   // Warm color palette
@@ -51,8 +56,12 @@ export function WarmApproachable({
           onEdit={() => onSectionClick?.('hero')}
           className="mb-14 text-center"
         >
-          {/* Hand-drawn wave decoration */}
-          <div className="mb-6 text-4xl">👋</div>
+          {/* Wave decoration */}
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: `${warmAccent}20` }}>
+              <Hand className="h-6 w-6" style={{ color: warmAccent }} strokeWidth={1.5} />
+            </div>
+          </div>
 
           {/* Avatar */}
           <div className="mb-6">
@@ -76,7 +85,7 @@ export function WarmApproachable({
 
           {/* Name */}
           <h1 className="mb-3 text-2xl font-semibold text-stone-800">
-            Hey, I&apos;m {profile.full_name || 'Your Name'} ✨
+            Hey, I&apos;m {profile.full_name || 'Your Name'}
           </h1>
 
           {/* Bio */}
@@ -84,19 +93,42 @@ export function WarmApproachable({
             {profile.bio || 'Add a bio to tell visitors about yourself'}
           </p>
 
+          {/* Sales Proof Bar */}
+          <SalesProofBar
+            items={heroProofItems}
+            primaryColor={warmAccent}
+            className="mb-6"
+          />
+
           {/* Social Links */}
           <SocialLinks
             links={profile.social_links}
             className="mb-8 justify-center text-stone-400"
           />
 
-          {/* CTA */}
-          <button
-            className="rounded-2xl px-8 py-4 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-            style={{ backgroundColor: warmAccent }}
-          >
-            ☕ Let&apos;s Connect
-          </button>
+          {/* Dual CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href={
+                primaryOffer
+                  ? `/checkout/${primaryOffer.id}`
+                  : coaching?.is_published
+                    ? `/book/${profile.username}/${coaching.id}`
+                    : '#products'
+              }
+              className="rounded-2xl px-8 py-4 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+              style={{ backgroundColor: warmAccent }}
+            >
+              {primaryOffer ? 'Get Started' : coaching?.is_published ? 'Book a Session' : 'See What I Offer'}
+            </Link>
+            <a
+              href="#products"
+              className="rounded-2xl border-2 px-8 py-4 text-sm font-semibold transition-all hover:bg-stone-50"
+              style={{ borderColor: warmAccent, color: warmAccent }}
+            >
+              Browse Resources
+            </a>
+          </div>
         </SectionWrapper>
 
         {/* Products Section */}
@@ -108,7 +140,7 @@ export function WarmApproachable({
             className="mb-14"
           >
             <h2 className="mb-6 text-center text-lg font-semibold text-stone-700">
-              Resources for You 💝
+              Resources for You
             </h2>
             <div className="space-y-5">
               {digitalProducts.map((product) => (
@@ -143,7 +175,7 @@ export function WarmApproachable({
                           className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 active:translate-y-0"
                           style={{ backgroundColor: warmAccent }}
                         >
-                          Get It ♡
+                          Get It
                         </button>
                       </Link>
                     </div>
@@ -166,7 +198,9 @@ export function WarmApproachable({
               className="rounded-3xl p-6"
               style={{ backgroundColor: `${warmAccent}15` }}
             >
-              <div className="mb-4 text-3xl">💫</div>
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: `${warmAccent}20` }}>
+                <Sparkles className="h-5 w-5" style={{ color: warmAccent }} strokeWidth={1.5} />
+              </div>
               <h3 className="mb-2 text-lg font-semibold text-stone-800">
                 {coaching.title}
               </h3>
@@ -174,8 +208,8 @@ export function WarmApproachable({
                 {coaching.description}
               </p>
               <div className="mb-5 flex items-center gap-3 text-sm text-stone-500">
-                <span className="rounded-full bg-white px-3 py-1">
-                  🕐 {coaching.duration_minutes} min
+                <span className="flex items-center gap-1 rounded-full bg-white px-3 py-1">
+                  <Clock className="h-3.5 w-3.5" strokeWidth={1.5} /> {coaching.duration_minutes} min
                 </span>
                 <span className="font-semibold text-stone-700">
                   {formatPrice(coaching.price)}
@@ -186,7 +220,7 @@ export function WarmApproachable({
                 className="block w-full rounded-2xl py-3.5 text-center text-sm font-semibold text-white transition-all hover:-translate-y-0.5 active:translate-y-0"
                 style={{ backgroundColor: warmAccent }}
               >
-                Book Your Session 🌸
+                Book Your Session
               </Link>
             </div>
           </SectionWrapper>
@@ -201,7 +235,7 @@ export function WarmApproachable({
             className="mb-16"
           >
             <h2 className="mb-8 text-center text-2xl font-semibold text-gray-800">
-              Courses ✨
+              Courses
             </h2>
             <CoursesSection
               courses={courses}
@@ -220,7 +254,7 @@ export function WarmApproachable({
           className="mb-12"
         >
           <h2 className="mb-6 text-center text-lg font-semibold text-stone-700">
-            Kind Words 💕
+            Kind Words
           </h2>
           <div className="space-y-4">
             {testimonials.slice(0, 2).map((testimonial, index) => (

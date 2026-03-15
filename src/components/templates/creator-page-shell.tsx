@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { Calendar, Package } from 'lucide-react';
 import { Avatar, Badge, Button } from '@/components/ui';
 import { formatPrice } from '@/lib/utils';
 import type { Profile, Product } from '@/types/supabase';
@@ -187,7 +188,11 @@ function PlaceholderProductCard({
     >
       <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl">{isCoaching ? '📅' : '📦'}</span>
+          {isCoaching ? (
+            <Calendar className="h-10 w-10 text-gray-400" strokeWidth={1.5} />
+          ) : (
+            <Package className="h-10 w-10 text-gray-400" strokeWidth={1.5} />
+          )}
         </div>
       </div>
       <div className="p-5">

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { Diamond, Gem } from 'lucide-react';
 import type { TemplateProps } from './TemplateRenderer';
 import {
   formatPrice,
@@ -59,9 +60,7 @@ export function Luxury({
           {/* Decorative element */}
           <div className="mb-8 flex items-center justify-center gap-4">
             <div className="h-px w-12" style={{ backgroundColor: luxuryGold }} />
-            <span style={{ color: luxuryGold }} className="text-sm tracking-[0.3em]">
-              ✦
-            </span>
+            <Gem className="h-4 w-4" style={{ color: luxuryGold }} strokeWidth={1.5} />
             <div className="h-px w-12" style={{ backgroundColor: luxuryGold }} />
           </div>
 
@@ -212,13 +211,13 @@ export function Luxury({
               style={{ borderColor: luxuryGold }}
             >
               <div className="mb-4 flex items-center justify-center gap-2">
-                <span style={{ color: luxuryGold }} className="text-xl">✦</span>
+                <Gem className="h-4 w-4" style={{ color: luxuryGold }} strokeWidth={1.5} />
                 <span className="text-xs uppercase tracking-[0.2em] opacity-50"
                   style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
                 >
                   Private &amp; Exclusive
                 </span>
-                <span style={{ color: luxuryGold }} className="text-xl">✦</span>
+                <Gem className="h-4 w-4" style={{ color: luxuryGold }} strokeWidth={1.5} />
               </div>
               <h3 className="mb-4 text-3xl font-light tracking-wide">
                 {coaching.title}
@@ -332,7 +331,7 @@ export function Luxury({
         <footer className="text-center">
           <div className="mb-6 flex items-center justify-center gap-4">
             <div className="h-px w-8" style={{ backgroundColor: luxuryGold }} />
-            <span style={{ color: luxuryGold }} className="text-sm">✦</span>
+            <Gem className="h-3 w-3" style={{ color: luxuryGold }} strokeWidth={1.5} />
             <div className="h-px w-8" style={{ backgroundColor: luxuryGold }} />
           </div>
           <PoweredByFooter show={showPoweredBy && profile.subscription_tier !== 'pro'} />

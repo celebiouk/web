@@ -2,11 +2,14 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ShoppingBag, UserPlus, MessageCircle, Phone, Rocket } from 'lucide-react';
 import type { TemplateProps } from './TemplateRenderer';
 import {
   formatPrice,
   getThemeStyles,
   getTestimonials,
+  getSalesProofItems,
+  SalesProofBar,
   SectionWrapper,
   SocialLinks,
   PoweredByFooter,
@@ -28,6 +31,8 @@ export function VibrantSocial({
   const { profile, products, coaching, courses, theme } = data;
   const testimonials = getTestimonials();
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
+  const primaryOffer = digitalProducts[0] || null;
+  const heroProofItems = getSalesProofItems(data);
   const themeStyles = getThemeStyles(theme);
 
   // Vibrant Gen-Z palette
@@ -108,8 +113,15 @@ export function VibrantSocial({
 
             {/* Bio */}
             <p className="mb-5 text-center text-sm text-slate-600">
-              {profile.bio || 'Your bio goes here ✨'}
+              {profile.bio || 'Your bio goes here'}
             </p>
+
+            {/* Sales Proof Bar */}
+            <SalesProofBar
+              items={heroProofItems}
+              primaryColor={vibrantPrimary}
+              className="mb-5 justify-center"
+            />
 
             {/* Social Links - Colorful */}
             <div className="mb-5 flex justify-center gap-2">
@@ -132,20 +144,30 @@ export function VibrantSocial({
 
             {/* CTAs */}
             <div className="space-y-3">
-              <button
-                className="w-full rounded-xl py-3.5 text-sm font-bold text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              <Link
+                href={
+                  primaryOffer
+                    ? `/checkout/${primaryOffer.id}`
+                    : coaching?.is_published
+                      ? `/book/${profile.username}/${coaching.id}`
+                      : '#products'
+                }
+                className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 style={{
                   background: `linear-gradient(135deg, ${vibrantPrimary}, ${vibrantSecondary})`,
                 }}
               >
-                🔥 Shop My Favorites
-              </button>
-              <button
-                className="w-full rounded-xl border-2 py-3.5 text-sm font-bold transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                <ShoppingBag className="h-4 w-4" strokeWidth={2} />
+                {primaryOffer ? 'Get My Picks' : 'Shop Now'}
+              </Link>
+              <a
+                href="#products"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 py-3.5 text-sm font-bold transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 style={{ borderColor: vibrantPrimary, color: vibrantPrimary }}
               >
-                📱 Follow Me
-              </button>
+                <UserPlus className="h-4 w-4" strokeWidth={2} />
+                Follow Me
+              </a>
             </div>
           </div>
         </SectionWrapper>
@@ -159,7 +181,7 @@ export function VibrantSocial({
             className="mb-8"
           >
             <h2 className="mb-4 text-center text-lg font-bold text-slate-800">
-              My Stuff 🎁
+              My Stuff
             </h2>
             <div className="space-y-4">
               {digitalProducts.map((product, idx) => (
@@ -200,7 +222,7 @@ export function VibrantSocial({
                           background: `linear-gradient(135deg, ${vibrantPrimary}, ${vibrantSecondary})`,
                         }}
                       >
-                        Get It Now ✨
+                        Get It Now
                       </button>
                     </Link>
                   </div>
@@ -226,7 +248,7 @@ export function VibrantSocial({
             >
               <div className="rounded-[13px] bg-white p-5">
                 <div className="mb-3 flex items-center gap-2">
-                  <span className="text-2xl">💬</span>
+                  <MessageCircle className="h-5 w-5" style={{ color: vibrantSecondary }} strokeWidth={2} />
                   <span
                     className="rounded-full px-3 py-1 text-xs font-bold text-white"
                     style={{ backgroundColor: vibrantSecondary }}
@@ -260,7 +282,7 @@ export function VibrantSocial({
                     background: `linear-gradient(135deg, ${vibrantPrimary}, ${vibrantSecondary})`,
                   }}
                 >
-                  Book a Call 📞
+                  Book a Call
                 </Link>
               </div>
             </div>
@@ -276,7 +298,7 @@ export function VibrantSocial({
             className="mb-16"
           >
             <h2 className="mb-8 text-center text-2xl font-bold text-gray-900">
-              Courses 🚀
+              Courses
             </h2>
             <CoursesSection
               courses={courses}
@@ -295,7 +317,7 @@ export function VibrantSocial({
           className="mb-8"
         >
           <h2 className="mb-4 text-center text-lg font-bold text-slate-800">
-            Love from the Fam 💜
+            Love from the Fam
           </h2>
           <div className="flex snap-x gap-4 overflow-x-auto pb-4">
             {testimonials.map((testimonial, index) => (

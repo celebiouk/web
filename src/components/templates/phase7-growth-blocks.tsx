@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Package } from 'lucide-react';
 import { Button, Card, CardContent } from '@/components/ui';
 import type { CreatorPageData } from '@/types/creator-page';
 
@@ -68,7 +69,9 @@ export function Phase7GrowthBlocks({ data }: { data: CreatorPageData }) {
                       {cover ? (
                         <Image src={cover} alt={bundle.title} fill className="object-cover" />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-3xl">📦</div>
+                        <div className="flex h-full items-center justify-center">
+                          <Package className="h-8 w-8 text-gray-400" strokeWidth={1.5} />
+                        </div>
                       )}
                     </div>
                     <h3 className="font-semibold text-gray-900 dark:text-white">{bundle.title}</h3>

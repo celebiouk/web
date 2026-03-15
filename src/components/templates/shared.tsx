@@ -4,7 +4,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { PLACEHOLDER_TESTIMONIALS, FONT_FAMILIES, type Testimonial, type PageTheme, type CreatorCourse } from '@/types/creator-page';
+import { PLACEHOLDER_TESTIMONIALS, FONT_FAMILIES, type Testimonial, type PageTheme, type CreatorCourse, type CreatorPageData } from '@/types/creator-page';
 
 // Format price from cents to display string
 export function formatPrice(cents: number): string {
@@ -46,6 +46,68 @@ export function getTestimonials(): Testimonial[] {
   return PLACEHOLDER_TESTIMONIALS;
 }
 
+// Generate concise conversion-proof bullets for hero sections
+export function getSalesProofItems(data: CreatorPageData): string[] {
+  const publishedProducts = data.products.filter((product) => product.is_published).length;
+  const publishedCourses = data.courses.length;
+  const hasCoaching = Boolean(data.coaching?.is_published);
+
+  const items: string[] = [];
+
+  if (publishedProducts > 0) {
+    items.push(`${publishedProducts} digital offer${publishedProducts === 1 ? '' : 's'}`);
+  }
+
+  if (publishedCourses > 0) {
+    items.push(`${publishedCourses} course${publishedCourses === 1 ? '' : 's'}`);
+  }
+
+  if (hasCoaching) {
+    items.push('1:1 coaching available');
+  }
+
+  if (items.length === 0) {
+    items.push('New premium offers dropping soon');
+  }
+
+  return items.slice(0, 3);
+}
+
+export function SalesProofBar({
+  items,
+  primaryColor,
+  variant = 'light',
+  className = '',
+}: {
+  items: string[];
+  primaryColor: string;
+  variant?: 'light' | 'dark';
+  className?: string;
+}) {
+  if (!items.length) return null;
+
+  const isDark = variant === 'dark';
+
+  return (
+    <div className={`flex flex-wrap items-center justify-center gap-2 ${className}`}>
+      {items.map((item) => (
+        <span
+          key={item}
+          className={`rounded-full border px-3 py-1 text-xs font-semibold tracking-wide ${
+            isDark ? 'text-white/85' : 'text-gray-700'
+          }`}
+          style={{
+            borderColor: `${primaryColor}55`,
+            backgroundColor: isDark ? `${primaryColor}26` : `${primaryColor}14`,
+          }}
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // Common animation classes
 export const ANIMATIONS = {
   fadeIn: 'animate-fade-in',
@@ -70,15 +132,15 @@ export function SectionWrapper({
   style?: React.CSSProperties;
 }) {
   return (
-    <section id={id} className={`relative ${className}`} style={style}>
+    <section id={id} className={`group/section relative ${className}`} style={style}>
       {children}
       {isPreview && onEdit && (
         <button
           onClick={onEdit}
-          className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all hover:bg-black/20 hover:opacity-100 group cursor-pointer"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-200 hover:bg-black/15 hover:opacity-100 group-hover/section:opacity-100 cursor-pointer"
           aria-label={`Edit ${id} section`}
         >
-          <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-900 shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+          <span className="rounded-full border border-white/70 bg-white/95 px-4 py-2 text-sm font-semibold text-gray-900 shadow-xl backdrop-blur transform scale-95 group-hover/section:scale-100 transition-transform">
             Edit {id.charAt(0).toUpperCase() + id.slice(1)}
           </span>
         </button>
@@ -111,7 +173,7 @@ export function SocialLinks({
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-transform hover:scale-110"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-current/15 bg-white/10 transition-all hover:-translate-y-0.5 hover:scale-105 hover:bg-white/20"
             aria-label={`Visit ${link.platform}`}
           >
             <svg
@@ -119,7 +181,7 @@ export function SocialLinks({
               height={iconSize}
               viewBox="0 0 24 24"
               fill="currentColor"
-              className="opacity-70 hover:opacity-100 transition-opacity"
+              className="opacity-80 transition-opacity hover:opacity-100"
             >
               <path d={iconPath} />
             </svg>

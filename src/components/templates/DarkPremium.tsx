@@ -6,6 +6,8 @@ import type { TemplateProps } from './TemplateRenderer';
 import {
   formatPrice,
   getTestimonials,
+  getSalesProofItems,
+  SalesProofBar,
   SectionWrapper,
   SocialLinks,
   PoweredByFooter,
@@ -27,6 +29,8 @@ export function DarkPremium({
   const { profile, products, coaching, courses, theme } = data;
   const testimonials = getTestimonials();
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
+  const primaryOffer = digitalProducts[0] || null;
+  const heroProofItems = getSalesProofItems(data);
   
   // Use gold accent for this template
   const accentColor = '#D4AF37';
@@ -85,6 +89,14 @@ export function DarkPremium({
             {profile.bio || 'Add a bio to tell visitors about yourself'}
           </p>
 
+          {/* Sales Proof Bar */}
+          <SalesProofBar
+            items={heroProofItems}
+            primaryColor={accentColor}
+            variant="dark"
+            className="mb-8"
+          />
+
           {/* Social Links */}
           <SocialLinks
             links={profile.social_links}
@@ -92,13 +104,28 @@ export function DarkPremium({
             iconSize={20}
           />
 
-          {/* CTA */}
-          <button
-            className="rounded-none border px-10 py-4 text-xs font-medium uppercase tracking-[0.2em] text-white transition-all hover:bg-white hover:text-zinc-950"
-            style={{ borderColor: accentColor }}
-          >
-            Join the Inner Circle
-          </button>
+          {/* Dual CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href={
+                primaryOffer
+                  ? `/checkout/${primaryOffer.id}`
+                  : coaching?.is_published
+                    ? `/book/${profile.username}/${coaching.id}`
+                    : '#products'
+              }
+              className="border px-10 py-4 text-xs font-medium uppercase tracking-[0.2em] transition-all hover:bg-white hover:text-zinc-950"
+              style={{ borderColor: accentColor, color: accentColor }}
+            >
+              {primaryOffer ? 'Get Exclusive Access' : coaching?.is_published ? 'Book Private Session' : 'View Collection'}
+            </Link>
+            <a
+              href="#products"
+              className="border border-zinc-700 px-8 py-4 text-xs font-medium uppercase tracking-[0.2em] text-zinc-400 transition-all hover:border-zinc-500 hover:text-white"
+            >
+              Explore
+            </a>
+          </div>
         </SectionWrapper>
 
         {/* Products Section */}
@@ -169,7 +196,7 @@ export function DarkPremium({
             <div className="border p-8 text-center" style={{ borderColor: accentColor }}>
               <div className="mb-6">
                 <span className="text-xs font-medium uppercase tracking-[0.3em]" style={{ color: accentColor }}>
-                  ★ Private ★
+                  Private
                 </span>
               </div>
               <h3 className="mb-3 text-2xl font-light text-white">

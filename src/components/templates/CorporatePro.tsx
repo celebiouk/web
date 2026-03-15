@@ -7,6 +7,8 @@ import {
   formatPrice,
   getThemeStyles,
   getTestimonials,
+  getSalesProofItems,
+  SalesProofBar,
   SectionWrapper,
   SocialLinks,
   PoweredByFooter,
@@ -28,6 +30,8 @@ export function CorporatePro({
   const { profile, products, coaching, courses, theme } = data;
   const testimonials = getTestimonials();
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
+  const primaryOffer = digitalProducts[0] || null;
+  const heroProofItems = getSalesProofItems(data);
   const themeStyles = getThemeStyles(theme);
 
   // Professional color palette
@@ -92,12 +96,32 @@ export function CorporatePro({
               <p className="mb-4 text-slate-600">
                 {profile.bio || 'Add a professional bio to introduce yourself'}
               </p>
-              <button
-                className="rounded-md px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:opacity-90"
-                style={{ backgroundColor: corpBlue }}
-              >
-                Schedule a Consultation
-              </button>
+              <SalesProofBar
+                items={heroProofItems}
+                primaryColor={corpBlue}
+                className="mb-4 md:justify-start"
+              />
+              <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+                <Link
+                  href={
+                    primaryOffer
+                      ? `/checkout/${primaryOffer.id}`
+                      : coaching?.is_published
+                        ? `/book/${profile.username}/${coaching.id}`
+                        : '#products'
+                  }
+                  className="rounded-md px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:opacity-90"
+                  style={{ backgroundColor: corpBlue }}
+                >
+                  {primaryOffer ? 'Get Started' : coaching?.is_published ? 'Schedule Consultation' : 'Explore Services'}
+                </Link>
+                <a
+                  href="#products"
+                  className="rounded-md border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  View Services
+                </a>
+              </div>
             </div>
           </div>
         </SectionWrapper>

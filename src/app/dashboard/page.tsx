@@ -1,20 +1,33 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from '@/components/ui';
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist';
 import { UpgradeNudgeBanner, type DashboardNudge } from '@/components/dashboard/upgrade-nudge-banner';
-import { ArrowRight, ExternalLink, Package, Calendar, DollarSign } from 'lucide-react';
+import {
+  TrendingUp,
+  ShoppingBag,
+  Users,
+  Eye,
+  ArrowUpRight,
+  ArrowRight,
+  Package,
+  LayoutGrid,
+  Mail,
+  Sparkles,
+  Calendar,
+  ExternalLink,
+} from 'lucide-react';
 import type { Profile } from '@/types/supabase';
 import { ensureUpgradeNudge } from '@/lib/nudges';
+import { cn } from '@/lib/utils';
 
 export const metadata = {
   title: 'Dashboard',
 };
 
 /**
- * Dashboard home page
- * Shows overview, stats, and onboarding checklist
+ * Premium Dashboard Home Page
+ * Vercel/Linear inspired design - clean, data-driven, sophisticated
  */
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -190,23 +203,28 @@ export default async function DashboardPage() {
     }
   }
 
+  const isPro = profile?.subscription_tier === 'pro';
+
   return (
     <div className="animate-fade-in space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white md:text-3xl">
-            Welcome back, {profile?.full_name?.split(' ')[0] || 'Creator'}!
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl">
+            Welcome back, {profile?.full_name?.split(' ')[0] || 'Creator'}
           </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
-            Here&apos;s what&apos;s happening with your page
+          <p className="mt-1 text-[13px] text-zinc-500">
+            Here's what's happening with your page today
           </p>
         </div>
-        <Link href={`/${profile?.username}`} target="_blank">
-          <Button variant="outline" size="sm">
-            <ExternalLink className="mr-2 h-4 w-4" />
-            View Page
-          </Button>
+        <Link
+          href={`/${profile?.username}`}
+          target="_blank"
+          className="group inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[13px] font-medium text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
+        >
+          <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
+          View Page
+          <ArrowUpRight className="h-3.5 w-3.5 text-zinc-500 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
         </Link>
       </div>
 
@@ -218,265 +236,273 @@ export default async function DashboardPage() {
         />
       )}
 
-      {/* Quick Stats */}
+      {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-500/10">
-                <DollarSign className="h-6 w-6 text-brand-600 dark:text-brand-400" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Revenue Today
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${(todayRevenueCents / 100).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success-50 dark:bg-success-500/10">
-                <Package className="h-6 w-6 text-success-600 dark:text-success-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Products
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {productsCount ?? 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-500/10">
-                <Calendar className="h-6 w-6 text-amber-600 dark:text-amber-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  New Subscribers Today
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {newSubscribersToday || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-500/10">
-                <svg
-                  className="h-6 w-6 text-purple-600 dark:text-purple-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Page Views Today
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {todayPageViews || 0}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={TrendingUp}
+          label="Revenue Today"
+          value={`$${(todayRevenueCents / 100).toFixed(2)}`}
+          iconColor="text-emerald-400"
+          iconBgColor="bg-emerald-500/10"
+        />
+        <StatCard
+          icon={ShoppingBag}
+          label="Products"
+          value={`${productsCount ?? 0}`}
+          iconColor="text-indigo-400"
+          iconBgColor="bg-indigo-500/10"
+        />
+        <StatCard
+          icon={Users}
+          label="New Subscribers"
+          value={`${newSubscribersToday || 0}`}
+          iconColor="text-amber-400"
+          iconBgColor="bg-amber-500/10"
+        />
+        <StatCard
+          icon={Eye}
+          label="Page Views"
+          value={`${todayPageViews || 0}`}
+          iconColor="text-purple-400"
+          iconBgColor="bg-purple-500/10"
+        />
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card hoverable>
-          <Link href="/dashboard/products" className="block">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Add Your First Product
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Start selling digital products or coaching sessions
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-gray-400" />
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card hoverable>
-          <Link href="/dashboard/page" className="block">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Customize Your Page
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Edit your template, colors, and content
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-gray-400" />
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card hoverable>
-          <Link href="/dashboard/email/broadcasts/new" className="block">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    New Broadcast
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Send an email campaign now
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-gray-400" />
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card hoverable>
-          <Link href={`/${profile?.username || ''}`} className="block" target="_blank">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    View My Page
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    See your storefront live
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-gray-400" />
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card hoverable>
-          <Link href="/dashboard/preview" className="block">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Share Link
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Copy and share your URL
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-gray-400" />
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <QuickActionCard
+          href="/dashboard/products"
+          icon={Package}
+          title="Add Product"
+          description="Start selling digital products"
+        />
+        <QuickActionCard
+          href="/dashboard/page"
+          icon={LayoutGrid}
+          title="Edit Page"
+          description="Customize your storefront"
+        />
+        <QuickActionCard
+          href="/dashboard/email/broadcasts/new"
+          icon={Mail}
+          title="Send Broadcast"
+          description="Email your subscribers"
+        />
+        <QuickActionCard
+          href="/dashboard/bookings"
+          icon={Calendar}
+          title="Manage Bookings"
+          description="View your schedule"
+        />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+      {/* Two Column Layout */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Recent Orders */}
+        <div className="rounded-xl border border-zinc-800/60 bg-[#111113]">
+          <div className="flex items-center justify-between border-b border-zinc-800/60 px-5 py-4">
+            <h2 className="text-[15px] font-semibold text-zinc-100">Recent Orders</h2>
+            <Link
+              href="/dashboard/orders"
+              className="group flex items-center gap-1 text-[13px] text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              View all
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+          <div className="p-3">
             {(recentOrdersRaw || []).length === 0 ? (
-              <p className="text-sm text-gray-500">No orders yet.</p>
-            ) : (
-              (recentOrdersRaw || []).map((order: { id: string; buyer_email: string; amount_cents: number; created_at: string; products?: { title?: string } }) => (
-                <div key={order.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{order.products?.title || 'Product'}</p>
-                    <p className="text-xs text-gray-500">{order.buyer_email}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900 dark:text-white">${(order.amount_cents / 100).toFixed(2)}</p>
-                    <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString()}</p>
-                  </div>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50">
+                  <ShoppingBag className="h-5 w-5 text-zinc-600" strokeWidth={1.75} />
                 </div>
-              ))
+                <p className="mt-3 text-[13px] text-zinc-500">No orders yet</p>
+                <p className="mt-1 text-[12px] text-zinc-600">Share your page to get your first sale</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {(recentOrdersRaw || []).map((order: { id: string; buyer_email: string; amount_cents: number; created_at: string; products?: { title?: string } }) => (
+                  <div
+                    key={order.id}
+                    className="group flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-zinc-800/30"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-medium text-zinc-200">
+                        {order.products?.title || 'Product'}
+                      </p>
+                      <p className="truncate text-[12px] text-zinc-500">{order.buyer_email}</p>
+                    </div>
+                    <div className="ml-4 text-right">
+                      <p className="font-mono text-[13px] font-medium text-zinc-200">
+                        ${(order.amount_cents / 100).toFixed(2)}
+                      </p>
+                      <p className="text-[11px] text-zinc-600">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Bookings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
+        {/* Upcoming Bookings */}
+        <div className="rounded-xl border border-zinc-800/60 bg-[#111113]">
+          <div className="flex items-center justify-between border-b border-zinc-800/60 px-5 py-4">
+            <h2 className="text-[15px] font-semibold text-zinc-100">Upcoming Bookings</h2>
+            <Link
+              href="/dashboard/bookings"
+              className="group flex items-center gap-1 text-[13px] text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              View all
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+          <div className="p-3">
             {(upcomingBookingsRaw || []).length === 0 ? (
-              <p className="text-sm text-gray-500">No upcoming bookings.</p>
-            ) : (
-              (upcomingBookingsRaw || []).map((booking: { id: string; buyer_name: string; scheduled_at: string; amount_cents: number }) => (
-                <div key={booking.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700">
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{booking.buyer_name}</p>
-                    <p className="text-xs text-gray-500">{new Date(booking.scheduled_at).toLocaleString()}</p>
-                  </div>
-                  <p className="font-medium text-gray-900 dark:text-white">${(booking.amount_cents / 100).toFixed(2)}</p>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-800/50">
+                  <Calendar className="h-5 w-5 text-zinc-600" strokeWidth={1.75} />
                 </div>
-              ))
+                <p className="mt-3 text-[13px] text-zinc-500">No upcoming bookings</p>
+                <p className="mt-1 text-[12px] text-zinc-600">Add a booking product to get started</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {(upcomingBookingsRaw || []).map((booking: { id: string; buyer_name: string; scheduled_at: string; amount_cents: number }) => (
+                  <div
+                    key={booking.id}
+                    className="group flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-zinc-800/30"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-medium text-zinc-200">
+                        {booking.buyer_name}
+                      </p>
+                      <p className="truncate text-[12px] text-zinc-500">
+                        {new Date(booking.scheduled_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <p className="ml-4 font-mono text-[13px] font-medium text-zinc-200">
+                      ${(booking.amount_cents / 100).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      {/* Subscription Banner - Show for free users */}
-      {profile?.subscription_tier === 'free' && (
-        <Card className="border-brand-200 bg-gradient-to-r from-brand-50 to-accent-50 dark:border-brand-800 dark:from-brand-950/30 dark:to-accent-950/30">
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Upgrade Banner - Free users only */}
+      {!isPro && (
+        <div className="relative overflow-hidden rounded-xl border border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20">
+                <Sparkles className="h-5 w-5 text-indigo-400" strokeWidth={1.75} />
+              </div>
               <div>
-                <div className="mb-2 flex items-center gap-2">
-                  <Badge variant="pro">PRO</Badge>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    Upgrade to unlock courses & 0% commission
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="rounded bg-indigo-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+                    Pro
+                  </span>
+                  <span className="text-[14px] font-medium text-zinc-200">
+                    Unlock courses & 0% commission
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Go Pro for just $13.99/month (billed yearly) and keep 100% of
-                  your earnings
+                <p className="text-[13px] text-zinc-500">
+                  Go Pro for just $13.99/month (billed yearly) and keep 100% of your earnings
                 </p>
               </div>
-              <Link href="/dashboard/settings/billing">
-                <Button>Upgrade Now</Button>
-              </Link>
             </div>
-          </CardContent>
-        </Card>
+            <Link
+              href="/dashboard/settings?tab=billing"
+              className="inline-flex shrink-0 items-center justify-center rounded-lg bg-indigo-500 px-5 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-indigo-400"
+            >
+              Upgrade Now
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </div>
+          {/* Decorative gradient */}
+          <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-purple-500/10 blur-3xl" />
+        </div>
       )}
 
       {dashboardNudge ? <UpgradeNudgeBanner nudge={dashboardNudge} /> : null}
     </div>
+  );
+}
+
+/**
+ * Premium Stat Card Component
+ */
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  iconColor,
+  iconBgColor,
+}: {
+  icon: typeof TrendingUp;
+  label: string;
+  value: string;
+  iconColor: string;
+  iconBgColor: string;
+}) {
+  return (
+    <div className="rounded-xl border border-zinc-800/60 bg-[#111113] p-5">
+      <div className="flex items-center gap-4">
+        <div className={cn('flex h-11 w-11 items-center justify-center rounded-xl', iconBgColor)}>
+          <Icon className={cn('h-5 w-5', iconColor)} strokeWidth={1.75} />
+        </div>
+        <div>
+          <p className="text-[12px] font-medium uppercase tracking-wider text-zinc-500">
+            {label}
+          </p>
+          <p className="mt-0.5 font-mono text-xl font-semibold text-zinc-100">
+            {value}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Premium Quick Action Card
+ */
+function QuickActionCard({
+  href,
+  icon: Icon,
+  title,
+  description,
+}: {
+  href: string;
+  icon: typeof Package;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-xl border border-zinc-800/60 bg-[#111113] p-5 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-800/50"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800/80 transition-colors group-hover:bg-zinc-700/80">
+            <Icon className="h-5 w-5 text-zinc-400 group-hover:text-zinc-300" strokeWidth={1.75} />
+          </div>
+          <div>
+            <h3 className="text-[14px] font-medium text-zinc-200 group-hover:text-white">
+              {title}
+            </h3>
+            <p className="text-[12px] text-zinc-500">{description}</p>
+          </div>
+        </div>
+        <ArrowRight className="h-4 w-4 text-zinc-600 transition-transform group-hover:translate-x-0.5 group-hover:text-zinc-400" />
+      </div>
+    </Link>
   );
 }

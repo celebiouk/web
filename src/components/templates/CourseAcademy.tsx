@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { GraduationCap, Star, Play, Users, Clock, Award } from 'lucide-react';
 import type { TemplateProps } from './TemplateRenderer';
 import {
   formatPrice,
@@ -99,7 +100,7 @@ export function CourseAcademy({
         {digitalProducts.length > 0 && (
           <div className="mb-4 flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full text-xs" style={{ backgroundColor: `${theme.primary_color}20`, color: theme.primary_color }}>
-              🎓
+              <GraduationCap className="h-4 w-4" strokeWidth={1.75} />
             </span>
             <span className="text-sm font-semibold text-slate-700">Featured Courses</span>
           </div>
@@ -274,8 +275,8 @@ export function CourseAcademy({
                     <p className="text-xs text-slate-400">{testimonial.role}</p>
                   </div>
                   <div className="ml-auto flex text-amber-400">
-                    {'★★★★★'.split('').map((star, i) => (
-                      <span key={i}>{star}</span>
+                    {[1, 2, 3, 4, 5].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 fill-current" />
                     ))}
                   </div>
                 </div>

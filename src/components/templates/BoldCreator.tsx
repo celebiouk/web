@@ -7,6 +7,8 @@ import {
   formatPrice,
   getThemeStyles,
   getTestimonials,
+  getSalesProofItems,
+  SalesProofBar,
   SectionWrapper,
   SocialLinks,
   PoweredByFooter,
@@ -28,6 +30,8 @@ export function BoldCreator({
   const { profile, products, coaching, courses, theme } = data;
   const testimonials = getTestimonials();
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
+  const primaryOffer = digitalProducts[0] || null;
+  const heroProofItems = getSalesProofItems(data);
   const themeStyles = getThemeStyles(theme);
 
   return (
@@ -92,6 +96,13 @@ export function BoldCreator({
             {profile.bio || 'Add a bio to tell visitors about yourself'}
           </p>
 
+          <SalesProofBar
+            items={heroProofItems}
+            primaryColor="#ffffff"
+            variant="dark"
+            className="mb-6 justify-start"
+          />
+
           {/* Social Links */}
           <SocialLinks
             links={profile.social_links}
@@ -99,12 +110,28 @@ export function BoldCreator({
             iconSize={22}
           />
 
-          {/* CTA Button */}
-          <button className="rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95"
-            style={{ color: theme.primary_color }}
-          >
-            Join the Community
-          </button>
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={
+                primaryOffer
+                  ? `/checkout/${primaryOffer.id}`
+                  : coaching?.is_published
+                    ? `/book/${profile.username}/${coaching.id}`
+                    : '#products'
+              }
+              className="rounded-full bg-white px-8 py-4 text-sm font-bold uppercase tracking-wider transition-all hover:scale-105 active:scale-95"
+              style={{ color: theme.primary_color }}
+            >
+              {primaryOffer ? 'Get It Now' : coaching?.is_published ? 'Book Now' : 'Explore Offers'}
+            </Link>
+            <a
+              href="#products"
+              className="rounded-full border border-white/40 px-8 py-4 text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-white/10"
+            >
+              See Everything
+            </a>
+          </div>
         </div>
       </SectionWrapper>
 
@@ -137,7 +164,7 @@ export function BoldCreator({
                   </div>
                   <div className="p-6">
                     <div className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">
-                      {product.type === 'course' ? '🎓 Course' : '📦 Digital'}
+                      {product.type === 'course' ? 'Course' : 'Digital'}
                     </div>
                     <h3 className="mb-2 text-xl font-bold text-gray-900">
                       {product.title}
@@ -178,7 +205,7 @@ export function BoldCreator({
               style={{ backgroundColor: theme.primary_color }}
             >
               <div className="mb-4 text-xs font-bold uppercase tracking-wider opacity-70">
-                🔥 Limited Spots
+                Limited Spots Available
               </div>
               <h3 className="mb-3 text-2xl font-black">
                 {coaching.title}
