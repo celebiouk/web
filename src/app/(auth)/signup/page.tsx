@@ -55,8 +55,9 @@ export default function SignupPage() {
       // Redirect to onboarding after successful signup
       router.push('/onboarding/pick-template');
       router.refresh();
-    } catch {
-      setError('An unexpected error occurred');
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
