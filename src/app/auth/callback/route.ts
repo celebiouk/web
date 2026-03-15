@@ -24,6 +24,10 @@ export async function GET(request: Request) {
     });
 
     if (!error) {
+      // Password reset - redirect to reset page
+      if (type === 'recovery') {
+        return NextResponse.redirect(`${origin}/reset-password`);
+      }
       // Email verified successfully, redirect to onboarding
       return NextResponse.redirect(`${origin}/onboarding/pick-template`);
     }

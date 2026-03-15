@@ -1,21 +1,94 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { Check, Eye, X, Sparkles } from 'lucide-react';
+import { TemplateRenderer } from '@/components/templates/TemplateRenderer';
 import type { Template } from '@/types/supabase';
+import type { CreatorPageData, TemplateSlug } from '@/types/creator-page';
 
 interface TemplateGridProps {
   templates: Template[];
   selectedTemplateId: string | null;
 }
 
+// Sample data for template previews
+const PREVIEW_DATA: CreatorPageData = {
+  profile: {
+    id: 'preview',
+    username: 'yourname',
+    full_name: 'Your Name',
+    bio: 'Creator, coach, and digital product maker helping you grow your business.',
+    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
+    social_links: [
+      { platform: 'instagram', url: '#' },
+      { platform: 'twitter', url: '#' },
+      { platform: 'youtube', url: '#' },
+    ],
+    subscription_tier: 'pro',
+  },
+  products: [
+    {
+      id: '1',
+      title: 'Ultimate Creator Guide',
+      description: 'Everything you need to start making money online',
+      price: 49,
+      type: 'digital',
+      cover_image_url: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=400&h=300&fit=crop',
+      is_published: true,
+    },
+    {
+      id: '2',
+      title: 'Video Editing Masterclass',
+      description: 'Learn professional video editing from scratch',
+      price: 99,
+      type: 'course',
+      cover_image_url: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=300&fit=crop',
+      is_published: true,
+    },
+  ],
+  coaching: {
+    id: 'coaching-1',
+    title: '1:1 Strategy Call',
+    description: 'Personal coaching session to accelerate your growth',
+    duration_minutes: 60,
+    price: 150,
+    is_published: true,
+  },
+  courses: [],
+  theme: {
+    primary_color: '#6366f1',
+    background_color: '#ffffff',
+    text_color: '#1f2937',
+    font_family: 'inter',
+    dark_mode: false,
+  },
+  social_proof: {
+    total_students: 1234,
+    product_count: 5,
+  },
+};
+
+// Map template DB slugs to component slugs
+const SLUG_MAP: Record<string, TemplateSlug> = {
+  'minimal-clean': 'minimal-clean',
+  'bold-creator': 'bold-creator',
+  'course-academy': 'course-academy',
+  'dark-premium': 'dark-premium',
+  'warm-approachable': 'warm-approachable',
+  'corporate-pro': 'corporate-pro',
+  'vibrant-social': 'vibrant-social',
+  'editorial': 'editorial',
+  'tech-vibe': 'tech-vibe',
+  'luxury': 'luxury',
+};
+
 /**
- * Template selection grid component
- * Shows all available templates with preview and selection
+ * Premium Template Selection Grid
+ * Shows real template previews in phone mockups
  */
 export function TemplateGrid({ templates, selectedTemplateId }: TemplateGridProps) {
   const router = useRouter();
@@ -44,7 +117,6 @@ export function TemplateGrid({ templates, selectedTemplateId }: TemplateGridProp
         return;
       }
 
-      // Save the selected template to the user's profile
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('profiles')
@@ -56,7 +128,6 @@ export function TemplateGrid({ templates, selectedTemplateId }: TemplateGridProp
         return;
       }
 
-      // Navigate to next step
       router.push('/onboarding/setup-profile');
     } catch (error) {
       console.error('Error:', error);
@@ -76,169 +147,266 @@ export function TemplateGrid({ templates, selectedTemplateId }: TemplateGridProp
   return (
     <>
       {/* Template Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {templates.map((template) => (
-          <div
-            key={template.id}
-            onClick={() => handleSelect(template.id)}
-            className={cn(
-              'group relative cursor-pointer overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200',
-              'hover:shadow-lg hover:-translate-y-1',
-              'dark:bg-gray-900',
-              selected === template.id
-                ? 'border-brand-500 shadow-lg shadow-brand-500/20'
-                : 'border-gray-200 dark:border-gray-800'
-            )}
-          >
-            {/* Template Preview Image */}
-            <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 dark:bg-gray-800">
-              {template.thumbnail_url ? (
-                <Image
-                  src={template.thumbnail_url}
-                  alt={template.name}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center">
-                  <span className="text-4xl">🎨</span>
-                </div>
-              )}
-
-              {/* Selection indicator */}
-              {selected === template.id && (
-                <div className="absolute inset-0 flex items-center justify-center bg-brand-500/20 backdrop-blur-[2px]">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-lg">
-                    <svg
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              )}
-
-              {/* Preview Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPreviewTemplate(template);
-                }}
-                className="absolute bottom-3 right-3 rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium text-gray-700 opacity-0 shadow-lg backdrop-blur-sm transition-opacity group-hover:opacity-100"
-              >
-                Preview
-              </button>
-
-              {/* Premium badge */}
-              {template.is_premium && (
-                <div className="absolute left-3 top-3">
-                  <Badge variant="pro" size="sm">
-                    PRO
-                  </Badge>
-                </div>
-              )}
-            </div>
-
-            {/* Template Info */}
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  {template.name}
-                </h3>
-                <Badge variant="default" size="sm">
-                  {categoryLabels[template.category] || template.category}
-                </Badge>
-              </div>
-              {template.description && (
-                <p className="mt-1 text-sm text-gray-500 line-clamp-2 dark:text-gray-400">
-                  {template.description}
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {templates.map((template) => {
+          const templateSlug = SLUG_MAP[template.slug] || 'minimal-clean';
+          
+          return (
+            <TemplateCard
+              key={template.id}
+              template={template}
+              templateSlug={templateSlug}
+              isSelected={selected === template.id}
+              categoryLabel={categoryLabels[template.category] || template.category}
+              onSelect={() => handleSelect(template.id)}
+              onPreview={() => setPreviewTemplate(template)}
+            />
+          );
+        })}
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white/90 backdrop-blur-sm safe-area-bottom dark:border-gray-800 dark:bg-gray-950/90">
+      <div className="fixed bottom-0 left-0 right-0 border-t border-zinc-800/60 bg-zinc-950/95 backdrop-blur-xl safe-area-bottom">
         <div className="container-page flex items-center justify-between py-4">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {selected ? '1 template selected' : 'Select a template to continue'}
+          <p className="text-sm text-zinc-400">
+            {selected ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-emerald-400" />
+                Template selected
+              </span>
+            ) : (
+              'Select a template to continue'
+            )}
           </p>
           <Button
             onClick={handleContinue}
             disabled={!selected}
             isLoading={isLoading}
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-6"
           >
             Continue
           </Button>
         </div>
       </div>
 
-      {/* Add bottom padding for sticky footer */}
+      {/* Bottom padding for sticky footer */}
       <div className="h-24" />
 
-      {/* Preview Modal */}
+      {/* Full Preview Modal */}
       {previewTemplate && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={() => setPreviewTemplate(null)}
+        <TemplatePreviewModal
+          template={previewTemplate}
+          templateSlug={SLUG_MAP[previewTemplate.slug] || 'minimal-clean'}
+          onClose={() => setPreviewTemplate(null)}
+          onSelect={() => {
+            handleSelect(previewTemplate.id);
+            setPreviewTemplate(null);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * Individual Template Card with Phone Mockup
+ */
+function TemplateCard({
+  template,
+  templateSlug,
+  isSelected,
+  categoryLabel,
+  onSelect,
+  onPreview,
+}: {
+  template: Template;
+  templateSlug: TemplateSlug;
+  isSelected: boolean;
+  categoryLabel: string;
+  onSelect: () => void;
+  onPreview: () => void;
+}) {
+  return (
+    <div
+      onClick={onSelect}
+      className={cn(
+        'group relative cursor-pointer transition-all duration-300',
+        'hover:-translate-y-2'
+      )}
+    >
+      {/* Phone Mockup Frame */}
+      <div
+        className={cn(
+          'relative overflow-hidden rounded-[2.5rem] border-[3px] bg-zinc-900 p-2 transition-all duration-300',
+          isSelected
+            ? 'border-indigo-500 shadow-[0_0_40px_-8px_rgba(99,102,241,0.5)]'
+            : 'border-zinc-700 hover:border-zinc-600'
+        )}
+      >
+        {/* Notch */}
+        <div className="absolute left-1/2 top-3 z-20 h-5 w-20 -translate-x-1/2 rounded-full bg-zinc-900" />
+        
+        {/* Screen Container */}
+        <div className="relative aspect-[9/19.5] overflow-hidden rounded-[2rem] bg-white">
+          {/* Scaled Template Preview */}
+          <div className="absolute inset-0 origin-top scale-[0.33] overflow-hidden" style={{ width: '300%', height: '300%' }}>
+            <TemplateRenderer
+              templateSlug={templateSlug}
+              data={PREVIEW_DATA}
+              isPreview={true}
+              showPoweredBy={false}
+            />
+          </div>
+          
+          {/* Gradient overlay for better visibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+        </div>
+
+        {/* Selection Checkmark */}
+        {isSelected && (
+          <div className="absolute -right-2 -top-2 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 shadow-lg ring-4 ring-zinc-950">
+            <Check className="h-4 w-4 text-white" strokeWidth={3} />
+          </div>
+        )}
+
+        {/* Preview Button - appears on hover */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPreview();
+          }}
+          className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-sm font-medium text-zinc-900 opacity-0 shadow-xl backdrop-blur-sm transition-all duration-200 group-hover:opacity-100 hover:bg-white"
         >
-          <div
-            className="animate-scale-in relative max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-900"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="relative aspect-[3/4]">
-              {previewTemplate.preview_image_url ? (
-                <Image
-                  src={previewTemplate.preview_image_url}
-                  alt={previewTemplate.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center bg-gray-100 dark:bg-gray-800">
-                  <span className="text-6xl">🎨</span>
+          <Eye className="h-4 w-4" />
+          Preview
+        </button>
+
+        {/* Premium Badge */}
+        {template.is_premium && (
+          <div className="absolute left-4 top-8 z-20">
+            <Badge variant="pro" size="sm" className="bg-gradient-to-r from-amber-500 to-orange-500 border-0">
+              <Sparkles className="h-3 w-3 mr-1" />
+              PRO
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      {/* Template Info */}
+      <div className="mt-4 px-1">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-white">{template.name}</h3>
+          <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-400">
+            {categoryLabel}
+          </span>
+        </div>
+        {template.description && (
+          <p className="mt-1.5 text-sm text-zinc-500 line-clamp-2">
+            {template.description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Full-screen Template Preview Modal
+ */
+function TemplatePreviewModal({
+  template,
+  templateSlug,
+  onClose,
+  onSelect,
+}: {
+  template: Template;
+  templateSlug: TemplateSlug;
+  onClose: () => void;
+  onSelect: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+      onClick={onClose}
+    >
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute right-6 top-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-zinc-800/80 text-zinc-400 backdrop-blur-sm transition-colors hover:bg-zinc-700 hover:text-white"
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+      <div
+        className="flex flex-col items-center gap-6 lg:flex-row lg:gap-12"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Phone Mockup Preview */}
+        <div className="relative">
+          {/* Phone Frame */}
+          <div className="relative overflow-hidden rounded-[3rem] border-[4px] border-zinc-700 bg-zinc-900 p-3 shadow-2xl">
+            {/* Notch */}
+            <div className="absolute left-1/2 top-4 z-20 h-6 w-24 -translate-x-1/2 rounded-full bg-zinc-900" />
+            
+            {/* Screen */}
+            <div className="relative h-[600px] w-[280px] overflow-hidden rounded-[2.25rem] bg-white md:h-[700px] md:w-[340px]">
+              {/* Scrollable Template */}
+              <div className="h-full overflow-y-auto no-scrollbar">
+                <div className="origin-top scale-[0.5]" style={{ width: '200%', transformOrigin: 'top left' }}>
+                  <TemplateRenderer
+                    templateSlug={templateSlug}
+                    data={PREVIEW_DATA}
+                    isPreview={true}
+                    showPoweredBy={false}
+                  />
                 </div>
-              )}
-            </div>
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                {previewTemplate.name}
-              </h3>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                {previewTemplate.description}
-              </p>
-              <div className="mt-4 flex gap-3">
-                <Button
-                  onClick={() => {
-                    handleSelect(previewTemplate.id);
-                    setPreviewTemplate(null);
-                  }}
-                  fullWidth
-                >
-                  Select This Template
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setPreviewTemplate(null)}
-                >
-                  Close
-                </Button>
               </div>
             </div>
           </div>
+          
+          {/* Reflection effect */}
+          <div className="absolute -bottom-8 left-1/2 h-16 w-3/4 -translate-x-1/2 rounded-full bg-indigo-500/20 blur-2xl" />
         </div>
-      )}
-    </>
+
+        {/* Template Info Panel */}
+        <div className="max-w-sm text-center lg:text-left">
+          <h2 className="text-3xl font-bold text-white">{template.name}</h2>
+          <p className="mt-3 text-lg text-zinc-400">{template.description}</p>
+          
+          {/* Features */}
+          <ul className="mt-6 space-y-3">
+            {[
+              'Fully responsive design',
+              'Optimized for conversions',
+              'Easy to customize',
+            ].map((feature) => (
+              <li key={feature} className="flex items-center gap-3 text-zinc-300">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20">
+                  <Check className="h-3 w-3 text-emerald-400" />
+                </div>
+                {feature}
+              </li>
+            ))}
+          </ul>
+
+          {/* CTA Buttons */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button
+              onClick={onSelect}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white px-8"
+            >
+              Select Template
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Back to Gallery
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -38,28 +38,28 @@ export default async function OnboardingLayout({
   }
 
   return (
-    <div className="gradient-bg min-h-screen">
+    <div className="min-h-screen bg-zinc-950">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/80">
+      <header className="border-b border-zinc-800/60 bg-zinc-950/95 backdrop-blur-xl">
         <div className="container-page flex items-center justify-between py-4">
           <Link
             href="/"
-            className="text-2xl font-bold text-gray-900 dark:text-white"
+            className="text-2xl font-bold text-white"
           >
-            cele<span className="text-brand-600">.bio</span>
+            cele<span className="text-indigo-400">.bio</span>
           </Link>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-sm text-zinc-500">
             Step-by-step setup
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="container-page py-8 md:py-12">{children}</main>
+      <main>{children}</main>
 
       {/* Decorative gradient orbs */}
-      <div className="pointer-events-none fixed -left-40 top-0 h-[500px] w-[500px] rounded-full bg-brand-400/20 blur-3xl" />
-      <div className="pointer-events-none fixed -right-40 bottom-0 h-[400px] w-[400px] rounded-full bg-accent-400/20 blur-3xl" />
+      <div className="pointer-events-none fixed -left-40 top-0 h-[500px] w-[500px] rounded-full bg-indigo-500/10 blur-3xl" />
+      <div className="pointer-events-none fixed -right-40 bottom-0 h-[400px] w-[400px] rounded-full bg-purple-500/10 blur-3xl" />
     </div>
   );
 }
