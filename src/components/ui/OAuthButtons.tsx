@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui';
+import type { Provider as SupabaseProvider } from '@supabase/supabase-js';
 
 type Provider = 'google' | 'tiktok';
 
@@ -25,7 +25,7 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
       const supabase = createClient();
       
       const { error } = await supabase.auth.signInWithOAuth({
-        provider,
+        provider: provider as SupabaseProvider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
           queryParams: provider === 'google' ? {

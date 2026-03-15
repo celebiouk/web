@@ -23,10 +23,10 @@ export async function GET(request: Request) {
           .from('profiles')
           .select('onboarding_completed, username')
           .eq('id', user.id)
-          .single();
+          .single<{ onboarding_completed: boolean | null; username: string | null }>();
 
         // If onboarding is complete, respect the original redirect or go to dashboard
-        if (profile?.onboarding_completed && profile?.username) {
+        if (profile && profile.onboarding_completed && profile.username) {
           // Don't redirect to onboarding if already completed
           const finalRedirect = next.startsWith('/onboarding') ? '/dashboard' : next;
           return NextResponse.redirect(`${origin}${finalRedirect}`);
