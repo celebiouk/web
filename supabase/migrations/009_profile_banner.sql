@@ -1,4 +1,4 @@
--- Migration: Add banner_url to profiles table
+-- Migration: Add banner_url, testimonials_enabled, and template_slug to profiles table
 -- This allows creators to upload a custom banner image for their landing page
 
 ALTER TABLE public.profiles
@@ -7,6 +7,10 @@ ADD COLUMN IF NOT EXISTS banner_url TEXT;
 -- Add testimonials_enabled flag to control whether testimonials are shown
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS testimonials_enabled BOOLEAN DEFAULT false;
+
+-- Add template_slug to store the selected template directly (not just UUID)
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS template_slug TEXT DEFAULT 'minimal-clean';
 
 -- Storage bucket for banners (run in Supabase Dashboard if not using migrations)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('banners', 'banners', true);

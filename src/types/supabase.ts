@@ -64,6 +64,7 @@ export interface Database {
           custom_domain: string | null;
           domain_verified: boolean;
           template_id: string | null;
+          template_slug: string | null;
           onboarding_completed: boolean;
           testimonials_enabled: boolean;
           created_at: string;
@@ -84,6 +85,7 @@ export interface Database {
           custom_domain?: string | null;
           domain_verified?: boolean;
           template_id?: string | null;
+          template_slug?: string | null;
           onboarding_completed?: boolean;
           testimonials_enabled?: boolean;
           created_at?: string;
@@ -104,6 +106,7 @@ export interface Database {
           custom_domain?: string | null;
           domain_verified?: boolean;
           template_id?: string | null;
+          template_slug?: string | null;
           onboarding_completed?: boolean;
           testimonials_enabled?: boolean;
           created_at?: string;

@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import type { Profile } from '@/types/supabase';
 import {
-  Eye,
   Palette,
   ExternalLink,
   ArrowRight,
@@ -57,13 +56,13 @@ export default async function MyPagePage() {
     {
       label: 'Brand identity (name + avatar + bio)',
       done: Boolean(profile?.full_name && profile?.bio && profile?.avatar_url),
-      href: '/dashboard/settings',
+      href: '/dashboard/page-editor',
       icon: User,
     },
     {
       label: 'Template and visual style',
       done: Boolean(profile?.template_id),
-      href: '/dashboard/preview',
+      href: '/dashboard/page-editor',
       icon: Palette,
     },
     {
@@ -98,18 +97,18 @@ export default async function MyPagePage() {
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/dashboard/preview"
+              href="/dashboard/page-editor"
               className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-400"
             >
-              <Eye className="h-4 w-4" strokeWidth={1.75} />
-              Live Preview
+              <Sparkles className="h-4 w-4" strokeWidth={1.75} />
+              Edit Page
             </Link>
             <Link
               href="/dashboard/customize"
               className="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[13px] font-medium text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800"
             >
               <Palette className="h-4 w-4" strokeWidth={1.75} />
-              Style Editor
+              Colors & Fonts
             </Link>
             {profile?.username && (
               <Link
@@ -118,7 +117,7 @@ export default async function MyPagePage() {
                 className="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[13px] font-medium text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800"
               >
                 <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
-                View Page
+                View Live
               </Link>
             )}
           </div>
