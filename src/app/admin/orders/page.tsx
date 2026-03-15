@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
-import { OrdersTable } from '@/components/admin/orders/OrdersTable';
-import { OrdersFilters } from '@/components/admin/orders/OrdersFilters';
-import { OrdersStats } from '@/components/admin/orders/OrdersStats';
+import { OrdersTable } from '../../../components/admin/orders/OrdersTable';
+import { OrdersFilters } from '../../../components/admin/orders/OrdersFilters';
+import { OrdersStats } from '../../../components/admin/orders/OrdersStats';
 import { Spinner } from '@/components/ui';
 
 interface PageProps {

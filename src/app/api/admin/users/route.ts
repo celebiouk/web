@@ -5,6 +5,7 @@ import { isInternalAdminEmail } from '@/lib/admin';
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
+    const adminSupabase = supabase as any;
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user || !isInternalAdminEmail(user.email)) {
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     // Log the admin action
-    await supabase.from('admin_audit_logs').insert({
+    await adminSupabase.from('admin_audit_logs').insert({
       admin_id: user.id,
       action,
       target_user_id: userId,
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
 
     switch (action) {
       case 'suspend': {
-        const { error } = await supabase
+        const { error } = await adminSupabase
           .from('profiles')
           .update({ is_suspended: true, suspended_at: new Date().toISOString() })
           .eq('id', userId);
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
       }
 
       case 'unsuspend': {
-        const { error } = await supabase
+        const { error } = await adminSupabase
           .from('profiles')
           .update({ is_suspended: false, suspended_at: null })
           .eq('id', userId);
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
 
       case 'upgrade_pro': {
         // Grant Pro access manually (comp account)
-        const { error } = await supabase
+        const { error } = await adminSupabase
           .from('profiles')
           .update({ subscription_tier: 'pro' })
           .eq('id', userId);
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
       }
 
       case 'downgrade_free': {
-        const { error } = await supabase
+        const { error } = await adminSupabase
           .from('profiles')
           .update({ subscription_tier: 'free' })
           .eq('id', userId);
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
 
       case 'delete': {
         // Soft delete - just mark as deleted
-        const { error } = await supabase
+        const { error } = await adminSupabase
           .from('profiles')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', userId);

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
-import { AdminStatsCards } from '@/components/admin/AdminStatsCards';
-import { AdminRecentActivity } from '@/components/admin/AdminRecentActivity';
-import { AdminQuickActions } from '@/components/admin/AdminQuickActions';
+import { AdminStatsCards } from '../../components/admin/AdminStatsCards';
+import { AdminRecentActivity } from '../../components/admin/AdminRecentActivity';
+import { AdminQuickActions } from '../../components/admin/AdminQuickActions';
 
 // Type definitions for admin queries
 type OrderWithProfile = {

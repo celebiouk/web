@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
-import { UsersTable } from '@/components/admin/users/UsersTable';
-import { UsersFilters } from '@/components/admin/users/UsersFilters';
+import { UsersTable } from '../../../components/admin/users/UsersTable';
+import { UsersFilters } from '../../../components/admin/users/UsersFilters';
 import { Spinner } from '@/components/ui';
 
 interface PageProps {
