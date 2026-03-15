@@ -1,0 +1,216 @@
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { createClient } from '@/lib/supabase/server';
+import { TemplateRenderer } from '@/components/templates/TemplateRenderer';
+import { PublicPageTracker } from '@/components/analytics/public-page-tracker';
+import { APP_URL } from '@/lib/constants';
+import type { Profile, Product } from '@/types/supabase';
+import type { CreatorPageData, PageTheme, TemplateSlug } from '@/types/creator-page';
+
+interface CreatorPageProps {
+  params: Promise<{ username: string }>;
+}
+
+/**
+ * Generate metadata for the creator's page (SEO)
+ */
+export async function generateMetadata({
+  params,
+}: CreatorPageProps): Promise<Metadata> {
+  const { username } = await params;
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, bio, avatar_url')
+    .eq('username', username.toLowerCase())
+    .single();
+
+  if (!profile) {
+    return {
+      title: 'Creator Not Found',
+    };
+  }
+
+  const typedProfile = profile as Pick<Profile, 'full_name' | 'bio' | 'avatar_url'>;
+
+  return {
+    title: typedProfile.full_name || username,
+    description: typedProfile.bio || `Check out ${typedProfile.full_name}'s page on Cele.bio`,
+    openGraph: {
+      title: typedProfile.full_name || username,
+      description: typedProfile.bio || `Check out ${typedProfile.full_name}'s page on Cele.bio`,
+      url: `${APP_URL}/${username}`,
+      images: typedProfile.avatar_url
+        ? [{ url: typedProfile.avatar_url, width: 400, height: 400 }]
+        : undefined,
+    },
+    twitter: {
+      card: 'summary',
+      title: typedProfile.full_name || username,
+      description: typedProfile.bio || `Check out ${typedProfile.full_name}'s page on Cele.bio`,
+    },
+  };
+}
+
+/**
+ * Creator's public page
+ * This is the main storefront at cele.bio/[username]
+ */
+export default async function CreatorPage({ params }: CreatorPageProps) {
+  const { username } = await params;
+  const supabase = await createClient();
+
+  // Fetch creator profile
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('username', username.toLowerCase())
+    .single();
+
+  // 404 if profile not found or onboarding not completed
+  if (error || !data) {
+    notFound();
+  }
+
+  const profile = data as Profile & {
+    page_theme?: PageTheme;
+    social_links?: CreatorPageData['profile']['social_links'];
+    template_slug?: string;
+    email_form_title?: string | null;
+    email_form_description?: string | null;
+  };
+
+  if (!profile.onboarding_completed) {
+    notFound();
+  }
+
+  // Fetch creator's published products
+  const { data: products } = await supabase
+    .from('products')
+    .select('*')
+    .eq('creator_id', profile.id)
+    .eq('is_published', true)
+    .order('sort_order', { ascending: true });
+
+  const allProducts = (products as (Product & { duration_minutes?: number })[]) || [];
+
+  // Separate coaching from other products
+  const coachingProduct = allProducts.find(p => p.type === 'coaching');
+  const digitalProducts = allProducts.filter(p => p.type !== 'coaching');
+
+  // Fetch creator's published courses (Phase 5)
+  const { data: coursesRaw } = await (supabase.from('courses') as any)
+    .select('id, title, slug, subtitle, cover_image_url, price_cents, student_count')
+    .eq('creator_id', profile.id)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false });
+
+  // Get lesson counts for each course
+  const courses = await Promise.all(
+    (coursesRaw || []).map(async (course: { id: string; title: string; slug: string; subtitle: string | null; cover_image_url: string | null; price_cents: number; student_count: number }) => {
+      const { count } = await (supabase.from('course_lessons') as any)
+        .select('id', { count: 'exact', head: true })
+        .eq('course_id', course.id);
+      return {
+        id: course.id,
+        title: course.title,
+        slug: course.slug,
+        subtitle: course.subtitle,
+        cover_image_url: course.cover_image_url,
+        price_cents: course.price_cents,
+        lesson_count: count || 0,
+        student_count: course.student_count || 0,
+        creator_username: profile.username || '',
+      };
+    })
+  );
+
+  // Build page data for template renderer
+  const { data: bundlesRaw } = await (supabase.from('bundles') as any)
+    .select('id,title,description,cover_image_url,price_cents,original_value_cents')
+    .eq('creator_id', profile.id)
+    .eq('is_published', true)
+    .eq('show_on_storefront', true)
+    .order('created_at', { ascending: false });
+
+  const bundleIds = (bundlesRaw || []).map((bundle: { id: string }) => bundle.id);
+  const { data: bundleProductsRaw } = bundleIds.length
+    ? await (supabase.from('bundle_products') as any)
+      .select('bundle_id,product_id,products(id,title)')
+      .in('bundle_id', bundleIds)
+      .order('position', { ascending: true })
+    : { data: [] as Array<{ bundle_id: string; product_id: string; products?: { id?: string; title?: string } }> };
+
+  const bundles = (bundlesRaw || []).map((bundle: { id: string; title: string; description: string | null; cover_image_url: string | null; price_cents: number; original_value_cents: number }) => ({
+    ...bundle,
+    products: (bundleProductsRaw || [])
+      .filter((row: { bundle_id: string }) => row.bundle_id === bundle.id)
+      .map((row: { product_id: string; products?: { id?: string; title?: string } }) => ({
+        id: row.products?.id || row.product_id,
+        title: row.products?.title || 'Product',
+      })),
+  }));
+
+  const totalStudents = courses.reduce((sum, course) => sum + (course.student_count || 0), 0);
+
+  const pageData: CreatorPageData = {
+    profile: {
+      id: profile.id,
+      full_name: profile.full_name || '',
+      username: profile.username || '',
+      bio: profile.bio,
+      avatar_url: profile.avatar_url,
+      subscription_tier: profile.subscription_tier,
+      social_links: profile.social_links || [],
+    },
+    products: digitalProducts.map(p => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      price: Number(p.price),
+      cover_image_url: p.cover_image_url,
+      type: p.type as 'digital' | 'course' | 'coaching',
+      is_published: p.is_published,
+    })),
+    coaching: coachingProduct ? {
+      id: coachingProduct.id,
+      title: coachingProduct.title,
+      description: coachingProduct.description,
+      price: Number(coachingProduct.price),
+      duration_minutes: coachingProduct.duration_minutes || 60,
+      is_published: coachingProduct.is_published,
+    } : null,
+    courses,
+    bundles,
+    email_form: {
+      title: profile.email_form_title || 'Get my free guide',
+      description: profile.email_form_description || 'Join my list for updates, tips, and offers.',
+    },
+    social_proof: {
+      total_students: totalStudents,
+      product_count: digitalProducts.length,
+    },
+    theme: profile.page_theme || {
+      primary_color: '#0D1B2A',
+      background_color: '#FFFFFF',
+      text_color: '#1F2937',
+      font_family: 'inter',
+    },
+  };
+
+  // Get template slug (default to minimal-clean)
+  const templateSlug = (profile.template_slug as TemplateSlug) || 'minimal-clean';
+
+  return (
+    <>
+      <TemplateRenderer
+        templateSlug={templateSlug}
+        data={pageData}
+        isPreview={false}
+        showPoweredBy={profile.subscription_tier !== 'pro'}
+      />
+      <PublicPageTracker creatorId={profile.id} />
+    </>
+  );
+}
