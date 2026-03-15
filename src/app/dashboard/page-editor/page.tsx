@@ -49,6 +49,7 @@ export default function PageEditorPage() {
   const [bio, setBio] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateSlug>('minimal-clean');
   const [testimonialsEnabled, setTestimonialsEnabled] = useState(false);
+  const [showAvatarOnBanner, setShowAvatarOnBanner] = useState(true);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   
@@ -89,6 +90,7 @@ export default function PageEditorPage() {
       setBio(prof.bio || '');
       setSelectedTemplate((prof as any).template_slug as TemplateSlug || 'minimal-clean');
       setTestimonialsEnabled((prof as any).testimonials_enabled ?? false);
+      setShowAvatarOnBanner((prof as any).show_avatar_on_banner ?? true);
       setAvatarPreview(prof.avatar_url);
       setBannerPreview((prof as any).banner_url);
 
@@ -132,6 +134,7 @@ export default function PageEditorPage() {
           bio: prof.bio,
           avatar_url: prof.avatar_url,
           banner_url: (prof as any).banner_url || null,
+          show_avatar_on_banner: (prof as any).show_avatar_on_banner ?? true,
           subscription_tier: prof.subscription_tier,
           social_links: (prof as any).social_links || [],
           testimonials_enabled: (prof as any).testimonials_enabled ?? false,
@@ -139,9 +142,11 @@ export default function PageEditorPage() {
         products: products.filter(p => p.type !== 'coaching').map(p => ({
           id: p.id,
           title: p.title,
+          subtitle: (p as any).subtitle || null,
           description: p.description,
           price: Number(p.price),
           cover_image_url: p.cover_image_url,
+          header_banner_url: (p as any).header_banner_url || null,
           type: p.type as 'digital' | 'course' | 'coaching',
           is_published: p.is_published,
         })),
@@ -178,6 +183,7 @@ export default function PageEditorPage() {
       bio: bio,
       avatar_url: avatarPreview,
       banner_url: bannerPreview,
+      show_avatar_on_banner: showAvatarOnBanner,
       testimonials_enabled: testimonialsEnabled,
     },
   } : null;
@@ -190,10 +196,11 @@ export default function PageEditorPage() {
       bio !== (profile.bio || '') ||
       selectedTemplate !== ((profile as any).template_slug || 'minimal-clean') ||
       testimonialsEnabled !== ((profile as any).testimonials_enabled ?? false) ||
+      showAvatarOnBanner !== ((profile as any).show_avatar_on_banner ?? true) ||
       avatarFile !== null ||
       bannerFile !== null;
     setHasChanges(changed);
-  }, [fullName, bio, selectedTemplate, testimonialsEnabled, avatarFile, bannerFile, profile]);
+  }, [fullName, bio, selectedTemplate, testimonialsEnabled, showAvatarOnBanner, avatarFile, bannerFile, profile]);
 
   // Handle avatar selection
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,6 +255,7 @@ export default function PageEditorPage() {
           banner_url: bannerUrl,
           template_slug: selectedTemplate,
           testimonials_enabled: testimonialsEnabled,
+          show_avatar_on_banner: showAvatarOnBanner,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -266,7 +274,7 @@ export default function PageEditorPage() {
     } finally {
       setSaving(false);
     }
-  }, [profile, avatarFile, bannerFile, fullName, bio, selectedTemplate, testimonialsEnabled, avatarPreview, bannerPreview, supabase]);
+  }, [profile, avatarFile, bannerFile, fullName, bio, selectedTemplate, testimonialsEnabled, showAvatarOnBanner, avatarPreview, bannerPreview, supabase]);
 
   if (loading) {
     return (
@@ -429,6 +437,9 @@ export default function PageEditorPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Banner Image
                 </label>
+                <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                  Standard header ratio is 16:9. Recommended size: 1920 × 1080.
+                </p>
                 <label className="group relative block cursor-pointer">
                   <div className={`relative h-20 w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
                     bannerPreview ? 'border-transparent' : 'border-gray-300 hover:border-gray-400 dark:border-gray-700'
@@ -493,6 +504,27 @@ export default function PageEditorPage() {
                       testimonialsEnabled ? 'translate-x-4.5' : 'translate-x-1'
                     }`}
                     style={{ transform: testimonialsEnabled ? 'translateX(18px)' : 'translateX(4px)' }}
+                  />
+                </button>
+              </div>
+
+              {/* Avatar on Header Banner Toggle */}
+              <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Avatar on Header Banner</p>
+                  <p className="text-xs text-gray-500">Place avatar at bottom-center of banner</p>
+                </div>
+                <button
+                  onClick={() => setShowAvatarOnBanner(!showAvatarOnBanner)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                    showAvatarOnBanner ? 'bg-brand-500' : 'bg-gray-200 dark:bg-gray-700'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      showAvatarOnBanner ? 'translate-x-4.5' : 'translate-x-1'
+                    }`}
+                    style={{ transform: showAvatarOnBanner ? 'translateX(18px)' : 'translateX(4px)' }}
                   />
                 </button>
               </div>

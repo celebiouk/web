@@ -37,9 +37,8 @@ export async function uploadFile(
     ? `${options.folder}/${fileName}` 
     : fileName;
 
-  // Upload with progress tracking using XMLHttpRequest
   if (options?.onProgress) {
-    return uploadWithProgress(bucket, filePath, file, options.onProgress);
+    options.onProgress({ loaded: 0, total: file.size, percentage: 0 });
   }
 
   // Simple upload without progress
@@ -54,6 +53,10 @@ export async function uploadFile(
     throw new Error(`Upload failed: ${error.message}`);
   }
 
+  if (options?.onProgress) {
+    options.onProgress({ loaded: file.size, total: file.size, percentage: 100 });
+  }
+
   // Get public URL for public buckets
   if (bucket === 'product-covers' || bucket === 'avatars' || bucket === 'banners') {
     const { data: { publicUrl } } = supabase.storage
@@ -64,68 +67,6 @@ export async function uploadFile(
   }
 
   return { path: filePath };
-}
-
-/**
- * Upload with progress tracking
- */
-async function uploadWithProgress(
-  bucket: string,
-  filePath: string,
-  file: File,
-  onProgress: (progress: UploadProgress) => void
-): Promise<UploadResult> {
-  const supabase = createClient();
-  
-  // Get session for auth header
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    throw new Error('Not authenticated');
-  }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const uploadUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${filePath}`;
-
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        onProgress({
-          loaded: event.loaded,
-          total: event.total,
-          percentage: Math.round((event.loaded / event.total) * 100),
-        });
-      }
-    });
-
-    xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        // Get public URL for public buckets
-        if (bucket === 'product-covers' || bucket === 'avatars' || bucket === 'banners') {
-          const { data: { publicUrl } } = supabase.storage
-            .from(bucket)
-            .getPublicUrl(filePath);
-          
-          resolve({ path: filePath, publicUrl });
-        } else {
-          resolve({ path: filePath });
-        }
-      } else {
-        reject(new Error(`Upload failed: ${xhr.statusText}`));
-      }
-    });
-
-    xhr.addEventListener('error', () => {
-      reject(new Error('Upload failed: Network error'));
-    });
-
-    xhr.open('POST', uploadUrl);
-    xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-    xhr.setRequestHeader('x-upsert', 'false');
-    xhr.send(file);
-  });
 }
 
 /**

@@ -35,11 +35,13 @@ export default function NewProductPage() {
   const router = useRouter();
   const supabase = createClient();
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const headerBannerInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [productType, setProductType] = useState<ProductType>('digital');
   const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [currency] = useState('usd');
@@ -47,6 +49,8 @@ export default function NewProductPage() {
   // File state
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [headerBannerFile, setHeaderBannerFile] = useState<File | null>(null);
+  const [headerBannerPreview, setHeaderBannerPreview] = useState<string | null>(null);
   const [productFile, setProductFile] = useState<File | null>(null);
   const [coverProgress, setCoverProgress] = useState<UploadProgress | null>(null);
   const [fileProgress, setFileProgress] = useState<UploadProgress | null>(null);
@@ -92,6 +96,25 @@ export default function NewProductPage() {
     setError(null);
   }
 
+  function handleHeaderBannerSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateFile(file, {
+      maxSize: 10 * 1024 * 1024, // 10MB
+      allowedTypes: FILE_TYPES.images,
+    });
+
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    setHeaderBannerFile(file);
+    setHeaderBannerPreview(URL.createObjectURL(file));
+    setError(null);
+  }
+
   function removeCover() {
     setCoverFile(null);
     if (coverPreview) URL.revokeObjectURL(coverPreview);
@@ -104,6 +127,13 @@ export default function NewProductPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
+  function removeHeaderBanner() {
+    setHeaderBannerFile(null);
+    if (headerBannerPreview) URL.revokeObjectURL(headerBannerPreview);
+    setHeaderBannerPreview(null);
+    if (headerBannerInputRef.current) headerBannerInputRef.current.value = '';
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -111,6 +141,16 @@ export default function NewProductPage() {
     // Validation
     if (!title.trim()) {
       setError('Title is required');
+      return;
+    }
+
+    if (!coverFile) {
+      setError('Product thumbnail is required');
+      return;
+    }
+
+    if (!headerBannerFile) {
+      setError('Product header banner is required (16:9, recommended 1920×1080)');
       return;
     }
 
@@ -136,6 +176,7 @@ export default function NewProductPage() {
       }
 
       let coverImageUrl: string | null = null;
+      let headerBannerUrl: string | null = null;
       let fileUrl: string | null = null;
 
       // Upload cover image
@@ -145,6 +186,14 @@ export default function NewProductPage() {
           onProgress: setCoverProgress,
         });
         coverImageUrl = result.publicUrl || null;
+      }
+
+      // Upload product header banner (stored in product-covers bucket under headers/)
+      if (headerBannerFile) {
+        const result = await uploadFile('product-covers', headerBannerFile, {
+          folder: `${user.id}/headers`,
+        });
+        headerBannerUrl = result.publicUrl || null;
       }
 
       // Upload product file
@@ -164,11 +213,13 @@ export default function NewProductPage() {
       const { error: insertError } = await (supabase as any).from('products').insert({
         creator_id: user.id,
         title: title.trim(),
+        subtitle: subtitle.trim() || null,
         description: description.trim() || null,
         price: priceInCents,
         currency,
         type: productType,
         cover_image_url: coverImageUrl,
+        header_banner_url: headerBannerUrl,
         file_url: fileUrl,
         is_published: false,
         metadata: {},
@@ -262,6 +313,18 @@ export default function NewProductPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Social Media Growth Guide"
                 maxLength={100}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Subtitle
+              </label>
+              <Input
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
+                placeholder="One short line that explains the core transformation"
+                maxLength={140}
               />
             </div>
 
@@ -365,6 +428,56 @@ export default function NewProductPage() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Header Banner Image */}
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
+              Product Header Banner *
+            </h2>
+            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              Standard ratio is 16:9. Recommended design size: 1920 × 1080.
+            </p>
+
+            {headerBannerPreview ? (
+              <div className="relative inline-block">
+                <Image
+                  src={headerBannerPreview}
+                  alt="Header banner preview"
+                  width={320}
+                  height={180}
+                  className="rounded-lg object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={removeHeaderBanner}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => headerBannerInputRef.current?.click()}
+                className="flex h-32 w-56 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:border-brand-500 dark:border-gray-600"
+              >
+                <span className="text-2xl">🖼️</span>
+                <span className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  Upload 16:9 Banner
+                </span>
+              </button>
+            )}
+
+            <input
+              ref={headerBannerInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleHeaderBannerSelect}
+              className="hidden"
+            />
           </CardContent>
         </Card>
 

@@ -67,6 +67,7 @@ export interface Database {
           template_slug: string | null;
           onboarding_completed: boolean;
           testimonials_enabled: boolean;
+          show_avatar_on_banner: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -88,6 +89,7 @@ export interface Database {
           template_slug?: string | null;
           onboarding_completed?: boolean;
           testimonials_enabled?: boolean;
+          show_avatar_on_banner?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -109,6 +111,7 @@ export interface Database {
           template_slug?: string | null;
           onboarding_completed?: boolean;
           testimonials_enabled?: boolean;
+          show_avatar_on_banner?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -161,11 +164,13 @@ export interface Database {
           id: string;
           creator_id: string;
           title: string;
+          subtitle: string | null;
           description: string | null;
           price: number;
           currency: string;
           type: ProductType;
           cover_image_url: string | null;
+          header_banner_url: string | null;
           file_url: string | null;
           is_published: boolean;
           sort_order: number;
@@ -177,11 +182,13 @@ export interface Database {
           id?: string;
           creator_id: string;
           title: string;
+          subtitle?: string | null;
           description?: string | null;
           price?: number;
           currency?: string;
           type: ProductType;
           cover_image_url?: string | null;
+          header_banner_url?: string | null;
           file_url?: string | null;
           is_published?: boolean;
           sort_order?: number;
@@ -193,11 +200,13 @@ export interface Database {
           id?: string;
           creator_id?: string;
           title?: string;
+          subtitle?: string | null;
           description?: string | null;
           price?: number;
           currency?: string;
           type?: ProductType;
           cover_image_url?: string | null;
+          header_banner_url?: string | null;
           file_url?: string | null;
           is_published?: boolean;
           sort_order?: number;

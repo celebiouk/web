@@ -26,6 +26,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
   const [bio, setBio] = useState(profile.bio || '');
   const [website, setWebsite] = useState(profile.website || '');
   const [testimonialsEnabled, setTestimonialsEnabled] = useState(profile.testimonials_enabled ?? false);
+  const [showAvatarOnBanner, setShowAvatarOnBanner] = useState((profile as any).show_avatar_on_banner ?? true);
 
   // Image state
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -123,6 +124,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
           avatar_url: avatarUrl,
           banner_url: bannerUrl,
           testimonials_enabled: testimonialsEnabled,
+          show_avatar_on_banner: showAvatarOnBanner,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -178,7 +180,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
                 <div className="flex h-full flex-col items-center justify-center text-gray-400">
                   <ImageIcon className="mb-2 h-8 w-8" />
                   <span className="text-sm">Click to upload banner</span>
-                  <span className="text-xs text-gray-400">1200 x 300 recommended</span>
+                  <span className="text-xs text-gray-400">16:9 recommended (1920 × 1080)</span>
                 </div>
               )}
             </div>
@@ -338,6 +340,29 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                 testimonialsEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Avatar on Banner Toggle */}
+        <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+          <div>
+            <p className="font-medium text-gray-900 dark:text-white">Avatar on Header Banner</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Show avatar at the bottom-center of your page header
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAvatarOnBanner(!showAvatarOnBanner)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              showAvatarOnBanner ? 'bg-brand-500' : 'bg-gray-200 dark:bg-gray-700'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                showAvatarOnBanner ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>

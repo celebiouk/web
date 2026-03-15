@@ -19,10 +19,12 @@ export type PageTheme = {
 export type CreatorProduct = {
   id: string;
   title: string;
+  subtitle?: string | null;
   description: string | null;
   price: number;
   type: 'digital' | 'course' | 'coaching';
   cover_image_url: string | null;
+  header_banner_url?: string | null;
   is_published: boolean;
   duration_minutes?: number | null;
 };
@@ -69,6 +71,7 @@ export type CreatorPageData = {
     bio: string | null;
     avatar_url: string | null;
     banner_url: string | null;
+    show_avatar_on_banner?: boolean;
     social_links: SocialLink[];
     subscription_tier: 'free' | 'pro';
     testimonials_enabled: boolean;
