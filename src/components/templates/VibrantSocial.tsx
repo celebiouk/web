@@ -72,14 +72,14 @@ export function VibrantSocial({
             />
 
             {/* Avatar with gradient border */}
-            <div className="relative mx-auto mb-4 w-fit">
-              <div
-                className="rounded-full p-1"
-                style={{
-                  background: `linear-gradient(135deg, ${vibrantPrimary}, ${vibrantSecondary}, ${vibrantAccent})`,
-                }}
-              >
-                {profile.avatar_url ? (
+            {profile.avatar_url ? (
+              <div className="relative mx-auto mb-4 w-fit">
+                <div
+                  className="rounded-full p-1"
+                  style={{
+                    background: `linear-gradient(135deg, ${vibrantPrimary}, ${vibrantSecondary}, ${vibrantAccent})`,
+                  }}
+                >
                   <Image
                     src={profile.avatar_url}
                     alt={profile.full_name}
@@ -87,17 +87,11 @@ export function VibrantSocial({
                     height={100}
                     className="rounded-full bg-white object-cover"
                   />
-                ) : (
-                  <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full bg-white text-3xl font-bold"
-                    style={{ color: vibrantPrimary }}
-                  >
-                    {profile.full_name?.charAt(0) || '?'}
-                  </div>
-                )}
+                </div>
+                {/* Online indicator */}
+                <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-3 border-white bg-green-400" />
               </div>
-              {/* Online indicator */}
-              <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-3 border-white bg-green-400" />
-            </div>
+            ) : null}
 
             {/* Name with gradient */}
             <h1

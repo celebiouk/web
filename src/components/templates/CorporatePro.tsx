@@ -80,14 +80,7 @@ export function CorporatePro({
                 height={120}
                 className="rounded-lg object-cover shadow-sm"
               />
-            ) : (
-              <div
-                className="flex h-[120px] w-[120px] items-center justify-center rounded-lg text-3xl font-semibold text-white"
-                style={{ backgroundColor: corpBlue }}
-              >
-                {profile.full_name?.charAt(0) || '?'}
-              </div>
-            )}
+            ) : null}
 
             <div className="flex-1 text-center md:text-left">
               <h1 className="mb-2 text-2xl font-bold text-slate-900">

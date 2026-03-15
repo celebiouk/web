@@ -64,8 +64,8 @@ export function WarmApproachable({
           </div>
 
           {/* Avatar */}
-          <div className="mb-6">
-            {profile.avatar_url ? (
+          {profile.avatar_url ? (
+            <div className="mb-6">
               <Image
                 src={profile.avatar_url}
                 alt={profile.full_name}
@@ -73,15 +73,8 @@ export function WarmApproachable({
                 height={110}
                 className="mx-auto rounded-[2rem] object-cover shadow-lg"
               />
-            ) : (
-              <div
-                className="mx-auto flex h-[110px] w-[110px] items-center justify-center rounded-[2rem] text-3xl font-medium text-white shadow-lg"
-                style={{ backgroundColor: warmAccent }}
-              >
-                {profile.full_name?.charAt(0) || '?'}
-              </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {/* Name */}
           <h1 className="mb-3 text-2xl font-semibold text-stone-800">

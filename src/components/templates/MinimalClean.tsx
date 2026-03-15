@@ -59,8 +59,8 @@ export function MinimalClean({
         
         <div className="relative mx-auto max-w-lg px-6 pb-12 pt-16 text-center">
           {/* Avatar */}
-          <div className="mb-6 inline-block">
-            {profile.avatar_url ? (
+          {profile.avatar_url ? (
+            <div className="mb-6 inline-block">
               <div className="relative">
                 <Image
                   src={profile.avatar_url}
@@ -79,15 +79,8 @@ export function MinimalClean({
                   </svg>
                 </div>
               </div>
-            ) : (
-              <div
-                className="flex h-[140px] w-[140px] items-center justify-center rounded-full text-4xl font-bold text-white shadow-2xl"
-                style={{ backgroundColor: theme.primary_color }}
-              >
-                {profile.full_name?.charAt(0) || '?'}
-              </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {/* Name */}
           <h1 className="mb-3 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">

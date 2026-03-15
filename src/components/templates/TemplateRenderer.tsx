@@ -68,8 +68,11 @@ export function TemplateRenderer({
   const hasHeaderBanner = Boolean(data.profile.banner_url);
   const showAvatarOnBanner = data.profile.show_avatar_on_banner ?? true;
 
+  // When a header banner exists, always strip the avatar from template data
+  // so the template's own hero section never renders a duplicate avatar.
+  // The avatar is shown exclusively on the banner overlay (when toggled ON).
   const dataForTemplate = useMemo(() => {
-    if (!hasHeaderBanner || !showAvatarOnBanner) return data;
+    if (!hasHeaderBanner) return data;
     return {
       ...data,
       profile: {
@@ -77,13 +80,14 @@ export function TemplateRenderer({
         avatar_url: null,
       },
     };
-  }, [data, hasHeaderBanner, showAvatarOnBanner]);
+  }, [data, hasHeaderBanner]);
 
   return (
     <>
       {hasHeaderBanner ? (
-        <section className="relative w-full overflow-hidden">
-          <div className="relative aspect-video w-full bg-gray-100 dark:bg-gray-900">
+        <section className="relative w-full">
+          {/* Banner image — overflow-hidden only here so avatar can hang below */}
+          <div className="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-900">
             <Image
               src={data.profile.banner_url as string}
               alt="Page header banner"
@@ -94,6 +98,7 @@ export function TemplateRenderer({
             />
           </div>
 
+          {/* Avatar overlay — fully visible, centered at the bottom edge of the banner */}
           {showAvatarOnBanner && data.profile.avatar_url ? (
             <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 -translate-x-1/2 translate-y-1/2">
               <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg dark:border-gray-950 dark:bg-gray-950">
@@ -110,6 +115,7 @@ export function TemplateRenderer({
         </section>
       ) : null}
 
+      {/* Add top padding only when avatar overlaps so content doesn't hide behind it */}
       <div className={hasHeaderBanner && showAvatarOnBanner && data.profile.avatar_url ? 'pt-14' : ''}>
         <TemplateComponent
           data={dataForTemplate}

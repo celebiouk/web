@@ -70,8 +70,8 @@ export function BoldCreator({
         {/* Content */}
         <div className="relative z-10 mx-auto max-w-md px-6 pb-12 pt-24 text-white md:max-w-lg">
           {/* Avatar */}
-          <div className="mb-6">
-            {profile.avatar_url ? (
+          {profile.avatar_url ? (
+            <div className="mb-6">
               <Image
                 src={profile.avatar_url}
                 alt={profile.full_name}
@@ -79,12 +79,8 @@ export function BoldCreator({
                 height={100}
                 className="rounded-2xl object-cover ring-4 ring-white/20"
               />
-            ) : (
-              <div className="flex h-[100px] w-[100px] items-center justify-center rounded-2xl bg-white/20 text-3xl font-bold">
-                {profile.full_name?.charAt(0) || '?'}
-              </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {/* Name */}
           <h1 className="mb-4 text-4xl font-black tracking-tight md:text-5xl">

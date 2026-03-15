@@ -66,10 +66,10 @@ export function Editorial({
           onEdit={() => onSectionClick?.('hero')}
           className="border-b border-black/10 px-6 py-10"
         >
-          <div className="grid gap-8 md:grid-cols-5">
+          <div className={`grid gap-8 ${profile.avatar_url ? 'md:grid-cols-5' : ''}`}>
             {/* Avatar Column */}
-            <div className="md:col-span-2">
-              {profile.avatar_url ? (
+            {profile.avatar_url ? (
+              <div className="md:col-span-2">
                 <Image
                   src={profile.avatar_url}
                   alt={profile.full_name}
@@ -77,18 +77,11 @@ export function Editorial({
                   height={400}
                   className="aspect-[3/4] w-full object-cover grayscale transition-all hover:grayscale-0"
                 />
-              ) : (
-                <div
-                  className="flex aspect-[3/4] w-full items-center justify-center bg-slate-100 text-5xl font-bold"
-                  style={{ color: editorialBlack }}
-                >
-                  {profile.full_name?.charAt(0) || '?'}
-                </div>
-              )}
-            </div>
+              </div>
+            ) : null}
 
             {/* Content Column */}
-            <div className="md:col-span-3">
+            <div className={profile.avatar_url ? 'md:col-span-3' : ''}>
               <p className="mb-4 text-xs uppercase tracking-[0.2em] text-slate-500"
                 style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
               >

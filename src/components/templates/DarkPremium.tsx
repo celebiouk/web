@@ -60,8 +60,8 @@ export function DarkPremium({
           </div>
 
           {/* Avatar */}
-          <div className="mb-8">
-            {profile.avatar_url ? (
+          {profile.avatar_url ? (
+            <div className="mb-8">
               <Image
                 src={profile.avatar_url}
                 alt={profile.full_name}
@@ -69,15 +69,8 @@ export function DarkPremium({
                 height={140}
                 className="mx-auto rounded-full object-cover ring-2 ring-zinc-800"
               />
-            ) : (
-              <div
-                className="mx-auto flex h-[140px] w-[140px] items-center justify-center rounded-full text-4xl font-light text-white ring-2 ring-zinc-800"
-                style={{ backgroundColor: 'transparent' }}
-              >
-                {profile.full_name?.charAt(0) || '?'}
-              </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {/* Name */}
           <h1 className="mb-4 text-4xl font-light tracking-wide text-white">

@@ -65,8 +65,8 @@ export function Luxury({
           </div>
 
           {/* Avatar */}
-          <div className="mb-8">
-            {profile.avatar_url ? (
+          {profile.avatar_url ? (
+            <div className="mb-8">
               <div className="relative mx-auto w-fit">
                 <div
                   className="absolute inset-0 rounded-full blur-lg opacity-20"
@@ -81,19 +81,8 @@ export function Luxury({
                   style={{ '--tw-ring-color': luxuryGold } as React.CSSProperties}
                 />
               </div>
-            ) : (
-              <div
-                className="mx-auto flex h-[140px] w-[140px] items-center justify-center rounded-full text-4xl ring-2"
-                style={{ 
-                  backgroundColor: `${luxuryGold}10`, 
-                  color: luxuryGold,
-                  '--tw-ring-color': luxuryGold,
-                } as React.CSSProperties}
-              >
-                {profile.full_name?.charAt(0) || '?'}
-              </div>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {/* Name */}
           <h1 className="mb-4 text-4xl font-light tracking-wide md:text-5xl"

@@ -65,12 +65,12 @@ export function TechVibe({
         >
           <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
             {/* Avatar with glowing border */}
-            <div className="relative">
-              <div
-                className="absolute inset-0 rounded-lg blur-md opacity-50"
-                style={{ backgroundColor: techGreen }}
-              />
-              {profile.avatar_url ? (
+            {profile.avatar_url ? (
+              <div className="relative">
+                <div
+                  className="absolute inset-0 rounded-lg blur-md opacity-50"
+                  style={{ backgroundColor: techGreen }}
+                />
                 <Image
                   src={profile.avatar_url}
                   alt={profile.full_name}
@@ -78,15 +78,8 @@ export function TechVibe({
                   height={100}
                   className="relative rounded-lg object-cover"
                 />
-              ) : (
-                <div
-                  className="relative flex h-[100px] w-[100px] items-center justify-center rounded-lg text-3xl font-bold"
-                  style={{ backgroundColor: techGray, color: techGreen }}
-                >
-                  {profile.full_name?.charAt(0) || '?'}
-                </div>
-              )}
-            </div>
+              </div>
+            ) : null}
 
             <div className="flex-1 text-center md:text-left">
               <h1 className="mb-2 text-2xl font-bold">

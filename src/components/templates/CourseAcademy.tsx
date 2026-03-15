@@ -56,14 +56,7 @@ export function CourseAcademy({
                 height={80}
                 className="rounded-2xl object-cover"
               />
-            ) : (
-              <div
-                className="flex h-[80px] w-[80px] items-center justify-center rounded-2xl text-2xl font-semibold text-white"
-                style={{ backgroundColor: theme.primary_color }}
-              >
-                {profile.full_name?.charAt(0) || '?'}
-              </div>
-            )}
+            ) : null}
             <div>
               <h1 className="text-2xl font-bold text-slate-900">
                 {profile.full_name || 'Your Name'}
