@@ -128,14 +128,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Apply updated_at trigger to relevant tables
+DROP TRIGGER IF EXISTS update_courses_updated_at ON public.courses;
 CREATE TRIGGER update_courses_updated_at
   BEFORE UPDATE ON public.courses
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_course_lessons_updated_at ON public.course_lessons;
 CREATE TRIGGER update_course_lessons_updated_at
   BEFORE UPDATE ON public.course_lessons
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_lesson_progress_updated_at ON public.lesson_progress;
 CREATE TRIGGER update_lesson_progress_updated_at
   BEFORE UPDATE ON public.lesson_progress
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -149,6 +153,22 @@ ALTER TABLE public.course_lessons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lesson_attachments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.enrollments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lesson_progress ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can manage own courses" ON public.courses;
+DROP POLICY IF EXISTS "Anyone can read published courses" ON public.courses;
+DROP POLICY IF EXISTS "Creators can manage own sections" ON public.course_sections;
+DROP POLICY IF EXISTS "Anyone can read sections of published courses" ON public.course_sections;
+DROP POLICY IF EXISTS "Creators can manage own lessons" ON public.course_lessons;
+DROP POLICY IF EXISTS "Anyone can read free preview lessons" ON public.course_lessons;
+DROP POLICY IF EXISTS "Enrolled students can read lessons" ON public.course_lessons;
+DROP POLICY IF EXISTS "Creators can manage own attachments" ON public.lesson_attachments;
+DROP POLICY IF EXISTS "Enrolled students can read attachments" ON public.lesson_attachments;
+DROP POLICY IF EXISTS "Creators can read enrollments for their courses" ON public.enrollments;
+DROP POLICY IF EXISTS "Students can read own enrollments" ON public.enrollments;
+DROP POLICY IF EXISTS "Service role can insert enrollments" ON public.enrollments;
+DROP POLICY IF EXISTS "Students can manage own progress" ON public.lesson_progress;
+DROP POLICY IF EXISTS "Creators can read progress for their courses" ON public.lesson_progress;
 
 -- COURSES: Creators manage own, anyone reads published
 CREATE POLICY "Creators can manage own courses"

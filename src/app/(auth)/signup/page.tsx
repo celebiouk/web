@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input } from '@/components/ui';
+import { OAuthButtons, OAuthDivider } from '@/components/ui/OAuthButtons';
 
 /**
  * Sign up page
@@ -81,6 +82,11 @@ export default function SignupPage() {
             Start monetizing your audience in minutes
           </p>
         </div>
+
+        {/* OAuth Buttons */}
+        <OAuthButtons redirectTo="/onboarding/pick-template" />
+
+        <OAuthDivider />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

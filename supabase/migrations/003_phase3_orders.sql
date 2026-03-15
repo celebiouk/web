@@ -47,6 +47,10 @@ CREATE INDEX IF NOT EXISTS idx_order_downloads_order_id ON public.order_download
 -- RLS Policies for orders
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can view own orders" ON public.orders;
+DROP POLICY IF EXISTS "Service role can manage orders" ON public.orders;
+
 -- Creators can view their own orders
 CREATE POLICY "Creators can view own orders" ON public.orders
   FOR SELECT USING (auth.uid() = creator_id);
@@ -57,6 +61,10 @@ CREATE POLICY "Service role can manage orders" ON public.orders
 
 -- RLS Policies for order_downloads
 ALTER TABLE public.order_downloads ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can view own order downloads" ON public.order_downloads;
+DROP POLICY IF EXISTS "Service role can manage order downloads" ON public.order_downloads;
 
 -- Creators can view downloads for their orders
 CREATE POLICY "Creators can view own order downloads" ON public.order_downloads
@@ -81,6 +89,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS orders_updated_at ON public.orders;
 CREATE TRIGGER orders_updated_at
   BEFORE UPDATE ON public.orders
   FOR EACH ROW

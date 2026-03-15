@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input, Spinner } from '@/components/ui';
+import { OAuthButtons, OAuthDivider } from '@/components/ui/OAuthButtons';
 
 /**
  * Login form component - uses useSearchParams
@@ -66,6 +67,11 @@ function LoginForm() {
             Log in to manage your page
           </p>
         </div>
+
+        {/* OAuth Buttons */}
+        <OAuthButtons redirectTo={redirectTo} />
+
+        <OAuthDivider />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

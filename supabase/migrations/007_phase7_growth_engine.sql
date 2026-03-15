@@ -24,6 +24,10 @@ CREATE INDEX IF NOT EXISTS idx_analytics_event_type
 
 ALTER TABLE public.analytics_events ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can view own analytics events" ON public.analytics_events;
+DROP POLICY IF EXISTS "Service role can manage analytics events" ON public.analytics_events;
+
 CREATE POLICY "Creators can view own analytics events" ON public.analytics_events
   FOR SELECT USING (creator_id = auth.uid());
 
@@ -119,6 +123,15 @@ ALTER TABLE public.email_sequences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_sequence_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_sequence_enrollments ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can manage own email broadcasts" ON public.email_broadcasts;
+DROP POLICY IF EXISTS "Creators can view own email sends" ON public.email_sends;
+DROP POLICY IF EXISTS "Service role can manage email sends" ON public.email_sends;
+DROP POLICY IF EXISTS "Creators can manage own email sequences" ON public.email_sequences;
+DROP POLICY IF EXISTS "Creators can manage own email sequence steps" ON public.email_sequence_steps;
+DROP POLICY IF EXISTS "Creators can view own email sequence enrollments" ON public.email_sequence_enrollments;
+DROP POLICY IF EXISTS "Service role can manage email sequence enrollments" ON public.email_sequence_enrollments;
+
 CREATE POLICY "Creators can manage own email broadcasts" ON public.email_broadcasts
   FOR ALL USING (creator_id = auth.uid())
   WITH CHECK (creator_id = auth.uid());
@@ -195,6 +208,13 @@ CREATE INDEX IF NOT EXISTS idx_bundle_products_bundle
 
 ALTER TABLE public.bundles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bundle_products ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Published bundles are viewable by everyone" ON public.bundles;
+DROP POLICY IF EXISTS "Creators can view own bundles" ON public.bundles;
+DROP POLICY IF EXISTS "Creators can manage own bundles" ON public.bundles;
+DROP POLICY IF EXISTS "Bundle products viewable when parent is viewable" ON public.bundle_products;
+DROP POLICY IF EXISTS "Creators can manage own bundle products" ON public.bundle_products;
 
 CREATE POLICY "Published bundles are viewable by everyone" ON public.bundles
   FOR SELECT USING (is_published = true);
@@ -277,6 +297,13 @@ CREATE INDEX IF NOT EXISTS idx_affiliate_conversions_pending_release
 ALTER TABLE public.affiliates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.affiliate_conversions ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can manage own affiliates" ON public.affiliates;
+DROP POLICY IF EXISTS "Public can apply as affiliate" ON public.affiliates;
+DROP POLICY IF EXISTS "Creators can view own affiliate conversions" ON public.affiliate_conversions;
+DROP POLICY IF EXISTS "Creators can update own affiliate conversions" ON public.affiliate_conversions;
+DROP POLICY IF EXISTS "Service role can manage affiliate conversions" ON public.affiliate_conversions;
+
 CREATE POLICY "Creators can manage own affiliates" ON public.affiliates
   FOR ALL USING (creator_id = auth.uid())
   WITH CHECK (creator_id = auth.uid());
@@ -328,6 +355,11 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_created
   ON public.notifications(user_id, created_at DESC);
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Users can view own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users can update own notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Service role can manage notifications" ON public.notifications;
 
 CREATE POLICY "Users can view own notifications" ON public.notifications
   FOR SELECT USING (user_id = auth.uid());

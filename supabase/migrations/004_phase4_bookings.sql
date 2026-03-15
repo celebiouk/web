@@ -117,6 +117,20 @@ ALTER TABLE availability_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blocked_dates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Users can read own availability" ON availability_schedules;
+DROP POLICY IF EXISTS "Users can insert own availability" ON availability_schedules;
+DROP POLICY IF EXISTS "Users can update own availability" ON availability_schedules;
+DROP POLICY IF EXISTS "Public can read availability for booking" ON availability_schedules;
+DROP POLICY IF EXISTS "Users can read own blocked dates" ON blocked_dates;
+DROP POLICY IF EXISTS "Users can insert own blocked dates" ON blocked_dates;
+DROP POLICY IF EXISTS "Users can delete own blocked dates" ON blocked_dates;
+DROP POLICY IF EXISTS "Public can read blocked dates for booking" ON blocked_dates;
+DROP POLICY IF EXISTS "Creators can read own bookings" ON bookings;
+DROP POLICY IF EXISTS "Creators can update own bookings" ON bookings;
+DROP POLICY IF EXISTS "Public can read bookings by cancellation token" ON bookings;
+DROP POLICY IF EXISTS "Service role can insert bookings" ON bookings;
+
 -- Availability Schedules: Creator can read/write own
 CREATE POLICY "Users can read own availability" ON availability_schedules
   FOR SELECT USING (creator_id = auth.uid());

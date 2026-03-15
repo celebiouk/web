@@ -170,6 +170,24 @@ ALTER TABLE public.commission_ledger ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.upgrade_nudges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_subscribers ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Active templates are viewable by everyone" ON public.templates;
+DROP POLICY IF EXISTS "Published products are viewable by everyone" ON public.products;
+DROP POLICY IF EXISTS "Creators can view own products" ON public.products;
+DROP POLICY IF EXISTS "Creators can insert own products" ON public.products;
+DROP POLICY IF EXISTS "Creators can update own products" ON public.products;
+DROP POLICY IF EXISTS "Creators can delete own products" ON public.products;
+DROP POLICY IF EXISTS "Users can view own subscriptions" ON public.subscriptions;
+DROP POLICY IF EXISTS "Creators can view own commission ledger" ON public.commission_ledger;
+DROP POLICY IF EXISTS "Users can view own nudges" ON public.upgrade_nudges;
+DROP POLICY IF EXISTS "Users can update own nudges" ON public.upgrade_nudges;
+DROP POLICY IF EXISTS "Creators can view own email subscribers" ON public.email_subscribers;
+DROP POLICY IF EXISTS "Creators can insert own email subscribers" ON public.email_subscribers;
+DROP POLICY IF EXISTS "Creators can update own email subscribers" ON public.email_subscribers;
+
 -- PROFILES POLICIES
 -- Users can read any profile (for public pages)
 CREATE POLICY "Public profiles are viewable by everyone"
@@ -272,16 +290,19 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Apply updated_at trigger to relevant tables
+DROP TRIGGER IF EXISTS set_profiles_updated_at ON public.profiles;
 CREATE TRIGGER set_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 
+DROP TRIGGER IF EXISTS set_products_updated_at ON public.products;
 CREATE TRIGGER set_products_updated_at
   BEFORE UPDATE ON public.products
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 
+DROP TRIGGER IF EXISTS set_subscriptions_updated_at ON public.subscriptions;
 CREATE TRIGGER set_subscriptions_updated_at
   BEFORE UPDATE ON public.subscriptions
   FOR EACH ROW
@@ -298,6 +319,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to auto-create profile on signup
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW

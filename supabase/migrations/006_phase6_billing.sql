@@ -48,6 +48,10 @@ CREATE INDEX IF NOT EXISTS idx_commission_ledger_sale_type ON public.commission_
 
 ALTER TABLE public.commission_ledger ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can view own commission ledger" ON public.commission_ledger;
+DROP POLICY IF EXISTS "Service role can manage commission ledger" ON public.commission_ledger;
+
 CREATE POLICY "Creators can view own commission ledger" ON public.commission_ledger
   FOR SELECT USING (creator_id = auth.uid());
 
@@ -84,6 +88,11 @@ CREATE INDEX IF NOT EXISTS idx_upgrade_nudges_user_shown_at
 
 ALTER TABLE public.upgrade_nudges ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Users can view own upgrade nudges" ON public.upgrade_nudges;
+DROP POLICY IF EXISTS "Users can update own upgrade nudges" ON public.upgrade_nudges;
+DROP POLICY IF EXISTS "Service role can manage upgrade nudges" ON public.upgrade_nudges;
+
 CREATE POLICY "Users can view own upgrade nudges" ON public.upgrade_nudges
   FOR SELECT USING (user_id = auth.uid());
 
@@ -112,6 +121,12 @@ CREATE INDEX IF NOT EXISTS idx_email_subscribers_creator_id
   ON public.email_subscribers(creator_id);
 
 ALTER TABLE public.email_subscribers ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist (for re-runnability)
+DROP POLICY IF EXISTS "Creators can view own email subscribers" ON public.email_subscribers;
+DROP POLICY IF EXISTS "Creators can insert own email subscribers" ON public.email_subscribers;
+DROP POLICY IF EXISTS "Creators can update own email subscribers" ON public.email_subscribers;
+DROP POLICY IF EXISTS "Service role can manage email subscribers" ON public.email_subscribers;
 
 CREATE POLICY "Creators can view own email subscribers" ON public.email_subscribers
   FOR SELECT USING (creator_id = auth.uid());
