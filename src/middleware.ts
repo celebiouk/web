@@ -8,13 +8,35 @@ import type { Database } from '@/types/supabase';
  * Runs on every request matching the config
  */
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user } = await updateSession(request);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const hasSupabaseEnv = Boolean(supabaseUrl && supabaseAnonKey);
+
+  let supabaseResponse = NextResponse.next();
+  let user: { id: string } | null = null;
+
+  if (hasSupabaseEnv) {
+    try {
+      const sessionResult = await updateSession(request);
+      supabaseResponse = sessionResult.supabaseResponse;
+      user = sessionResult.user;
+    } catch (error) {
+      console.error('Middleware session update failed:', error);
+    }
+  } else {
+    console.error('Middleware missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
 
   const { pathname } = request.nextUrl;
 
   // Custom domain routing: domain.com -> /username
   const host = (request.headers.get('host') || '').split(':')[0].toLowerCase();
-  const appHost = new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio').hostname.toLowerCase();
+  let appHost = 'cele.bio';
+  try {
+    appHost = new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio').hostname.toLowerCase();
+  } catch {
+    appHost = 'cele.bio';
+  }
 
   if (
     host &&
@@ -26,9 +48,13 @@ export async function middleware(request: NextRequest) {
     const normalizedHost = host.startsWith('www.') ? host.slice(4) : host;
 
     try {
+      if (!hasSupabaseEnv || !supabaseUrl || !supabaseAnonKey) {
+        return supabaseResponse;
+      }
+
       const supabase = createClient<Database>(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        supabaseUrl,
+        supabaseAnonKey
       );
 
       const { data: profile } = await (supabase.from('profiles') as any)
