@@ -1,6 +1,6 @@
-# CreatorCashCow.com – Project Rules & Architecture Guide
+# cele.bio – Project Rules & Architecture Guide
 
-This document defines how the AI should build and maintain CreatorCashCow.com.
+This document defines how the AI should build and maintain cele.bio.
 
 The goal is to build a premium digital monetization platform with:
 - Landing page
@@ -290,7 +290,7 @@ Build things.
 
 # FINAL PRINCIPLE
 
-CreatorCashCow.com must feel:
+Cele.bio must feel:
 
 Premium.
 Authoritative.
