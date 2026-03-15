@@ -72,7 +72,7 @@ export const TEMPLATE_CATEGORIES = [
 // Dashboard navigation
 export const DASHBOARD_NAV = [
   { label: 'Home', href: '/dashboard', icon: 'home' },
-  { label: 'My Page', href: '/dashboard/page', icon: 'layout' },
+  { label: 'Page Editor', href: '/dashboard/page-editor', icon: 'layout' },
   { label: 'Products', href: '/dashboard/products', icon: 'package' },
   { label: 'Email', href: '/dashboard/email', icon: 'mail' },
   { label: 'Bookings', href: '/dashboard/bookings', icon: 'calendar' },

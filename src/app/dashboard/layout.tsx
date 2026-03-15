@@ -88,11 +88,11 @@ function MobileNav({ username }: { username: string }) {
         <span className="text-[10px] font-medium">Home</span>
       </Link>
       <Link
-        href="/dashboard/page"
+        href="/dashboard/page-editor"
         className="flex flex-col items-center gap-1 px-4 py-2 text-zinc-400 transition-colors hover:text-zinc-200"
       >
         <LayoutGrid className="h-5 w-5" strokeWidth={1.75} />
-        <span className="text-[10px] font-medium">Page</span>
+        <span className="text-[10px] font-medium">Editor</span>
       </Link>
       <Link
         href="/dashboard/products"

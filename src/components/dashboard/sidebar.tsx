@@ -36,7 +36,7 @@ interface DashboardSidebarProps {
 // Navigation structure
 const NAV_ITEMS = [
   { label: 'Home', href: '/dashboard', icon: Home },
-  { label: 'My Page', href: '/dashboard/page', icon: LayoutGrid },
+  { label: 'Page Editor', href: '/dashboard/page-editor', icon: LayoutGrid },
   { label: 'Products', href: '/dashboard/products', icon: Package },
   { label: 'Email', href: '/dashboard/email', icon: Mail },
   { label: 'Bookings', href: '/dashboard/bookings', icon: Calendar },
