@@ -1,306 +1,119 @@
-# cele.bio – Project Rules & Architecture Guide
-
-This document defines how the AI should build and maintain cele.bio.
-
-The goal is to build a premium digital monetization platform with:
-- Landing page
-- 5 paid courses
-- PDF product sales
-- 2-hour mentorship booking
-- User dashboard
-- Admin dashboard
-- Link-in-bio generator
-- Stripe + PayPal payments
-
-The user is non-technical. Implement everything fully. Keep explanations simple.
-
----
-
-# STACK
-
-Frontend:
-- HTML5 / CSS3 / JavaScript
-- React (preferred)
-- TailwindCSS (web)
-- Nativewind (if React Native / Expo)
-
-Backend:
-- Node.js / Express
-- OR Serverless (Supabase / Firebase)
-
-Database:
-- PostgreSQL (Supabase) OR Firestore
-
-Payments:
-- Stripe (primary)
-- PayPal (secondary)
-
-Hosting:
-- Vercel / Netlify (frontend)
-- Supabase / Firebase (backend)
-- AWS optional for storage
-
-AI Assistance:
-- GitHub Copilot
-- ChatGPT for generation
-- AI APIs allowed but not required
-
-Design:
-- Figma / Canva
-- 3D book mockups
-- Unsplash images only
-
----
-
-# PROJECT STRUCTURE (Expo Router Example)
-
-src/app/            → File-based routes  
-src/components/     → Reusable UI components  
-src/lib/            → Utilities (cn.ts, helpers)  
-src/hooks/          → React Query / Zustand hooks  
-src/services/       → API layer (Stripe, courses, mentorship)  
-src/constants/      → Colors, typography, config  
-
-Never refactor or remove:
-src/app/_layout.tsx
-
----
-
-# ROUTING RULES
-
-- Only ONE route can map to "/"
-- Use Expo Router file-based routing
-- Dynamic params: use `useLocalSearchParams()`
-- Do not create nested stacks that cause double headers
-- For modals (like payment confirmation):
-  Add route in src/app/
-  Configure presentation: "modal"
-
-NO tabs unless there are at least two real sections.
-
-Primary screens:
-- /
-- /courses
-- /course/[id]
-- /dashboard
-- /mentorship
-- /pdf/[id]
-- /admin
-- /link-in-bio/[username]
-
----
-
-# TYPESCRIPT RULES (STRICT MODE)
-
-Always:
-
-- Explicit state types:
-  useState<Course[]>([])
-- Use optional chaining:
-  user?.name
-- Use nullish coalescing:
-  value ?? "N/A"
-- Include ALL required properties when creating objects
-- Never leave implicit any
-
-All interfaces must be fully defined.
-
----
-
-# STATE MANAGEMENT
-
-Server State:
-- Use React Query
-- Always use object syntax:
-  useQuery({ queryKey, queryFn })
-- Use useMutation for async actions
-- No manual loading flags
-
-Local UI State:
-- Use Zustand
-- Use selectors:
-  useStore(s => s.user)
-- Do not compute inside selectors
-
-Persist only essential auth/session data using AsyncStorage.
-
-Do NOT wrap RootLayoutNav.
-
-React Query Provider must be outermost provider.
-
----
-
-# CORE FEATURES TO IMPLEMENT
-
-## 1. Landing Page
-- Hero
-- 5 Course overview
-- Live discount section
-- Testimonials
-- FAQ
-- Footer
-
-## 2. Authentication
-- Register
-- Login
-- JWT or Supabase auth
-- Role-based access: user / admin
-
-## 3. Course System
-- Course list
-- Modules
-- Video player
-- Progress tracking
-- Enrollment after successful payment
-
-## 4. Payments
-- Stripe Checkout
-- Webhook verification
-- On success:
-  - Enroll user
-  - Unlock dashboard content
-- PayPal fallback supported
-
-## 5. User Dashboard
-- Enrolled courses
-- Progress bars
-- Upcoming live sessions
-- Mentorship bookings
-- PDF purchases
-- Notifications
-
-## 6. Mentorship Booking
-- 2-hour booking
-- Date/time picker
-- Stripe payment
-- Confirmation email
-- Booking status tracking
-
-## 7. PDF Sales
-- Dedicated sales page per PDF
-- Purchase button
-- Secure file delivery
-- Purchase history
-
-## 8. Admin Dashboard
-- Manage courses
-- Manage modules
-- Upload PDFs
-- View revenue analytics
-- Manage users
-- View bookings
-- Generate link-in-bio pages
-
-## 9. Link-in-Bio Generator
-- Create title
-- Add links (course, PDF, mentorship)
-- Public URL:
-  /link-in-bio/[username]
-
----
-
-# DESIGN RULES (MOBILE FIRST)
-
-Theme:
-
-Primary:
-- Deep Navy #0D1B2A
-Accent:
-- Gold #FFC857
-Secondary:
-- Teal #1CE7D0
-Neutral:
-- White, Cool Gray
-
-Avoid:
-- Purple gradients
-- Flat boring layouts
-- Web-like desktop-only layouts
-
-Do:
-- Strong CTA buttons
-- Depth via shadows
-- Premium spacing
-- Clear hierarchy
-- Smooth animations
-- Thumb-friendly spacing
-
-Use Pressable over TouchableOpacity.
-No Alert.alert() — use custom modals.
-
-Use SafeAreaView only when custom headers exist.
-Never import SafeAreaView from react-native — use react-native-safe-area-context.
-
----
-
-# DATA RULES
-
-When real API data unavailable:
-- Generate realistic mock data
-
-For images:
-- Use unsplash.com URLs only
-
-Never hardcode fake payment success.
-Use proper Stripe flow or mock test mode realistically.
-
----
-
-# SECURITY
-
-- Hash passwords (bcrypt)
-- Validate Stripe webhooks
-- Use HTTPS only
-- Protect admin routes
-- Validate all user input
-- Never expose secret keys in frontend
-
----
-
-# ENVIRONMENT VARIABLES
-
-If required, request user to add:
-
-- STRIPE_SECRET_KEY
-- STRIPE_PUBLIC_KEY
-- DATABASE_URL
-- JWT_SECRET
-- SUPABASE_URL
-- SUPABASE_ANON_KEY
-
-Explain clearly how to add them.
-Keep it simple.
-
----
-
-# USER COMMUNICATION RULE
-
-The project owner is likely non-technical.
-
-Always:
-- Explain simply
-- Avoid jargon
-- Scope down if feature is too ambitious
-- Do full implementation
-
-Do not give abstract advice.
-Build things.
-
----
-
-# FINAL PRINCIPLE
-
-Cele.bio must feel:
-
-Premium.
-Authoritative.
-Simple to use.
-High-converting.
-Scalable.
-Owned infrastructure.
-
-Everything must support:
-Courses + Mentorship + Digital Asset Ownership.
-
-<skills> You have access to a few skills in the .claude/skills folder. Use them to your advantage. - ai-apis-like-chatgpt: Use this skill when the user asks you to make an app that requires an AI API. - expo-docs: Use this skill when the user asks you to use an Expo SDK module or package that you might not know much about. - frontend-app-design: Use this skill when the user asks you to design a frontend app component or screen. </skills>
-
+# cele.bio — Creator Monetization Platform
+
+## Project Overview
+Cele.bio is a mobile-first creator monetization platform (Stan.store competitor). Creators get a beautiful storefront at cele.bio/username in under 5 minutes — pick a template, edit pre-filled content, connect Stripe, go live.
+
+## Target Users
+- Influencers & content creators
+- Coaches & educators
+
+## Tech Stack
+- **Frontend**: Next.js 14+ (App Router), TypeScript, Tailwind CSS
+- **Backend**: Supabase (Auth + Database + Storage)
+- **Payments**: Stripe Connect
+- **Deployment**: Vercel
+
+## Folder Structure
+```
+/app
+  /dashboard
+  /(auth)
+    /login
+    /signup
+  /(onboarding)
+    /pick-template
+    /setup-profile
+  /(creator)
+    /[username]
+/components
+  /ui
+  /templates
+  /onboarding
+  /dashboard
+/lib
+  /supabase
+  /stripe
+  /utils
+  /hooks
+/types
+```
+
+## Database Tables (Supabase)
+- **profiles**: id, username, full_name, bio, avatar_url, subscription_tier, stripe_account_id, template_id, created_at
+- **templates**: id, name, slug, category, preview_image_url, is_active
+- **products**: id, creator_id, title, description, price, type (digital/course/coaching), is_published, created_at
+- **subscriptions**: id, user_id, plan, status, stripe_subscription_id, current_period_end
+
+## Pricing Tiers
+- **Free**: Sell digital products + 1:1 coaching, 8% commission per sale + gateway fees, NO courses, max 500 email subscribers
+- **Pro Monthly**: $19.99/mo, 0% commission, courses unlocked, unlimited email, custom domain, advanced analytics
+- **Pro Yearly**: $167.90/yr (~$13.99/mo), same as Pro, 30% discount, marked "Most Popular"
+
+## Key Features by Phase
+- **Phase 1** ✅ Auth + onboarding + template picker
+- **Phase 2** — Template engine + pre-filled content system (10 templates)
+- **Phase 3** — Digital products + Stripe Connect
+- **Phase 4** — 1:1 bookings
+- **Phase 5** — Courses (Pro gated)
+- **Phase 6** — Billing system (commission tracking, subscriptions)
+- **Phase 7** — Analytics, email marketing, bundle builder
+
+## Template System
+10 world-class mobile-first templates, each pre-loaded with:
+- Hero section (photo, bio, CTA)
+- 2 placeholder digital products (ready to edit)
+- 1 coaching/1:1 booking section
+- Social links + email capture
+- Testimonials section
+
+### Template Categories
+| Slug | Name | Best For |
+|------|------|----------|
+| minimal-clean | Minimal Clean | Coaches, consultants |
+| bold-creator | Bold Creator | Influencers, personal brands |
+| course-academy | Course Academy | Educators, course sellers |
+| dark-premium | Dark Premium | Musicians, artists |
+| warm-approachable | Warm & Approachable | Lifestyle, wellness coaches |
+| corporate-pro | Corporate Pro | Business coaches, speakers |
+| vibrant-social | Vibrant Social | Gen-Z creators, TikTokers |
+| editorial | Editorial | Writers, newsletter creators |
+| tech-vibe | Tech/SaaS Vibe | Dev educators, tech creators |
+| luxury | Luxury | High-ticket coaches |
+
+## Onboarding Flow
+1. Sign up → /onboarding/pick-template
+2. Pick template (10 cards, preview available)
+3. Setup profile (name, username, bio, photo) — live cele.bio/username preview as they type
+4. Success screen with confetti → Dashboard or View Page
+
+## Feature Gating Rules
+- Courses → Pro only (show lock icon for free users)
+- Commission → 8% on free, 0% on Pro (Stripe Connect handles split)
+- Custom domain → Pro only
+- Email subscribers → 500 cap on free, unlimited on Pro
+
+## Reusable Hook Pattern
+Always use `useSubscription()` hook to check tier and gate features:
+```typescript
+const { tier, isPro } = useSubscription()
+if (!isPro) // show upgrade prompt
+```
+
+## Design Principles
+- Mobile-first in every component
+- Premium feel — smooth transitions, clean typography, generous whitespace
+- No blank pages — always show pre-filled placeholder content
+- Dark mode support throughout
+- Tailwind CSS only for styling
+
+## Code Standards
+- TypeScript strict mode — explicit types always
+- Supabase Row Level Security (RLS) on ALL tables
+- Modular, well-commented components built for reuse across phases
+- No inline logic — extract to hooks in /lib/hooks
+
+## Public Page
+- Route: /app/(creator)/[username]/page.tsx
+- Fetches profile + template from Supabase
+- Renders selected template with creator's info
+- Shows pre-filled placeholder products until creator edits them
