@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { APP_NAME, APP_DESCRIPTION, APP_URL } from '@/lib/constants';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -65,7 +66,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="min-h-screen bg-white font-sans antialiased dark:bg-gray-950">
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
