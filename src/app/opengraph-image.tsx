@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Cele.bio – Monetize Your Audience';
+export const alt = 'Cele.bio – Turn your knowledge into beautiful digital products';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -89,7 +89,7 @@ export default function OGImage() {
             lineHeight: 1.4,
           }}
         >
-          The simplest way to monetize your audience.
+          Turn your knowledge into beautiful digital products.
         </div>
 
         {/* Sub-tagline */}
@@ -102,7 +102,7 @@ export default function OGImage() {
             textAlign: 'center',
           }}
         >
-          Create your storefront in under 5 minutes.
+          Launch your creator storefront in under 5 minutes.
         </div>
 
         {/* Feature pills */}
