@@ -74,6 +74,7 @@ export const DASHBOARD_NAV = [
   { label: 'Home', href: '/dashboard', icon: 'home' },
   { label: 'Page Editor', href: '/dashboard/page-editor', icon: 'layout' },
   { label: 'Products', href: '/dashboard/products', icon: 'package' },
+  { label: 'Testimonials', href: '/dashboard/testimonials', icon: 'message-square' },
   { label: 'Email', href: '/dashboard/email', icon: 'mail' },
   { label: 'Bookings', href: '/dashboard/bookings', icon: 'calendar' },
   { label: 'Courses', href: '/dashboard/courses', icon: 'graduation-cap', requiresPro: true },

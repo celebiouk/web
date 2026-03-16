@@ -152,6 +152,20 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
 
   const totalStudents = courses.reduce((sum, course) => sum + (course.student_count || 0), 0);
 
+  const { data: testimonialsRaw } = await (supabase.from('testimonials') as any)
+    .select('buyer_name,buyer_avatar_url,content')
+    .eq('creator_id', profile.id)
+    .eq('is_published', true)
+    .order('created_at', { ascending: false })
+    .limit(12);
+
+  const testimonials = ((testimonialsRaw || []) as Array<{ buyer_name: string; buyer_avatar_url: string | null; content: string }>).map((row) => ({
+    name: row.buyer_name,
+    role: 'Verified Buyer',
+    avatar: row.buyer_avatar_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face',
+    text: row.content,
+  }));
+
   const pageData: CreatorPageData = {
     profile: {
       id: profile.id,
@@ -170,6 +184,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       title: p.title,
       subtitle: (p as any).subtitle || null,
       description: p.description,
+      description_html: (p as any).description_html || null,
       price: Number(p.price),
       cover_image_url: p.cover_image_url,
       header_banner_url: (p as any).header_banner_url || null,
@@ -186,6 +201,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
     } : null,
     courses,
     bundles,
+    testimonials,
     email_form: {
       title: profile.email_form_title || 'Get my free guide',
       description: profile.email_form_description || 'Join my list for updates, tips, and offers.',

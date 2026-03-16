@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, Button, Input, Badge, Spinner } from '@/components/ui';
+import { ProductRichTextEditor } from '@/components/dashboard/ProductRichTextEditor';
 import { createClient } from '@/lib/supabase/client';
 import { uploadFile, validateFile, FILE_TYPES, type UploadProgress } from '@/lib/utils/uploadFile';
 import { FileText, GraduationCap, Users, type LucideIcon } from 'lucide-react';
-import type { ProductType, ProductInsert } from '@/types/supabase';
+import type { ProductType } from '@/types/supabase';
 
 const PRODUCT_TYPES: { value: ProductType; label: string; icon: LucideIcon; description: string }[] = [
   {
@@ -43,6 +44,7 @@ export default function NewProductPage() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
+  const [descriptionHtml, setDescriptionHtml] = useState('<p></p>');
   const [price, setPrice] = useState('');
   const [currency] = useState('usd');
 
@@ -215,6 +217,7 @@ export default function NewProductPage() {
         title: title.trim(),
         subtitle: subtitle.trim() || null,
         description: description.trim() || null,
+        description_html: descriptionHtml.trim() || null,
         price: priceInCents,
         currency,
         type: productType,
@@ -332,13 +335,13 @@ export default function NewProductPage() {
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Description
               </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what's included in your product..."
-                rows={4}
-                maxLength={1000}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+              <ProductRichTextEditor
+                value={descriptionHtml}
+                onChange={(html, plainText) => {
+                  setDescriptionHtml(html);
+                  setDescription(plainText.slice(0, 5000));
+                }}
+                placeholder="Write your long-form sales copy with formatting, lists, images, and YouTube links."
               />
             </div>
 

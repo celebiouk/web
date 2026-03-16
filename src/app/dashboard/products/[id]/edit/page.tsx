@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, Button, Input, Badge, Spinner } from '@/components/ui';
+import { ProductRichTextEditor } from '@/components/dashboard/ProductRichTextEditor';
 import { createClient } from '@/lib/supabase/client';
 import { uploadFile, deleteFile, validateFile, FILE_TYPES, type UploadProgress } from '@/lib/utils/uploadFile';
 import { FileText, GraduationCap, Users, type LucideIcon } from 'lucide-react';
@@ -49,6 +50,7 @@ export default function EditProductPage() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
+  const [descriptionHtml, setDescriptionHtml] = useState('<p></p>');
   const [price, setPrice] = useState('');
   const [currency] = useState('usd');
   const [upsellEnabled, setUpsellEnabled] = useState(false);
@@ -102,6 +104,7 @@ export default function EditProductPage() {
       setTitle(product.title);
       setSubtitle((product as any).subtitle || '');
       setDescription(product.description || '');
+      setDescriptionHtml((product as any).description_html || (product.description ? `<p>${product.description}</p>` : '<p></p>'));
       setPrice((product.price / 100).toFixed(2));
       setExistingCoverUrl(product.cover_image_url);
       setExistingHeaderBannerUrl((product as any).header_banner_url || null);
@@ -316,6 +319,7 @@ export default function EditProductPage() {
           title: title.trim(),
           subtitle: subtitle.trim() || null,
           description: description.trim() || null,
+          description_html: descriptionHtml.trim() || null,
           price: priceInCents,
           type: productType,
           cover_image_url: coverImageUrl,
@@ -477,20 +481,6 @@ export default function EditProductPage() {
 
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Description
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe what's included..."
-                rows={4}
-                maxLength={1000}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Subtitle
               </label>
               <Input
@@ -498,6 +488,20 @@ export default function EditProductPage() {
                 onChange={(e) => setSubtitle(e.target.value)}
                 placeholder="One short line that explains the product promise"
                 maxLength={140}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Description
+              </label>
+              <ProductRichTextEditor
+                value={descriptionHtml}
+                onChange={(html, plainText) => {
+                  setDescriptionHtml(html);
+                  setDescription(plainText.slice(0, 5000));
+                }}
+                placeholder="Write your long-form sales copy with formatting, lists, images, and YouTube links."
               />
             </div>
 

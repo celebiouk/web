@@ -11,7 +11,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { Card, CardContent, Button, Input, Spinner } from '@/components/ui';
+import { Card, CardContent, Button, Input, Spinner, RichTextContent } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { trackEvent } from '@/lib/analytics/track';
 import type { Product, Profile } from '@/types/supabase';
@@ -179,8 +179,9 @@ export default function CheckoutPage() {
 
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Product Summary */}
-          <Card className="lg:col-span-2">
-            <CardContent className="p-4">
+          <div className="space-y-4 lg:col-span-2">
+            <Card>
+              <CardContent className="p-4">
               <div className="flex gap-4">
                 {product.cover_image_url ? (
                   <Image
@@ -211,8 +212,24 @@ export default function CheckoutPage() {
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {((product as any).description_html || product.description) ? (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    What You&apos;ll Get
+                  </h3>
+                  {(product as any).description_html ? (
+                    <RichTextContent html={(product as any).description_html} className="text-sm" />
+                  ) : (
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{product.description}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ) : null}
+          </div>
 
           {/* Payment Form */}
           <Card className="lg:col-span-3">

@@ -52,7 +52,11 @@ export const SOCIAL_ICONS: Record<string, string> = {
 };
 
 // Get testimonials for templates
-export function getTestimonials(): Testimonial[] {
+export function getTestimonials(customTestimonials?: Testimonial[]): Testimonial[] {
+  if (customTestimonials && customTestimonials.length > 0) {
+    return customTestimonials;
+  }
+
   return PLACEHOLDER_TESTIMONIALS;
 }
 

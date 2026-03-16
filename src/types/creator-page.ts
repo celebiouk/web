@@ -21,6 +21,7 @@ export type CreatorProduct = {
   title: string;
   subtitle?: string | null;
   description: string | null;
+  description_html?: string | null;
   price: number;
   type: 'digital' | 'course' | 'coaching';
   cover_image_url: string | null;
@@ -80,6 +81,7 @@ export type CreatorPageData = {
   coaching: CoachingSession | null;
   courses: CreatorCourse[];
   bundles?: CreatorBundle[];
+  testimonials?: Testimonial[];
   email_form?: {
     title: string;
     description: string;

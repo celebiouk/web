@@ -8,3 +8,4 @@ export { Badge } from './badge';
 export { Modal } from './modal';
 export { Spinner, LoadingScreen } from './spinner';
 export { UpgradePrompt } from './UpgradePrompt';
+export { RichTextContent } from './RichTextContent';

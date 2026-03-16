@@ -28,7 +28,7 @@ export function CorporatePro({
   showPoweredBy = true,
 }: TemplateProps) {
   const { profile, products, coaching, courses, theme } = data;
-  const testimonials = getTestimonials();
+  const testimonials = getTestimonials(data.testimonials);
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
   const primaryOffer = digitalProducts[0] || null;
   const heroProofItems = getSalesProofItems(data);

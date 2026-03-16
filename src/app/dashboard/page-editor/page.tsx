@@ -104,6 +104,20 @@ export default function PageEditorPage() {
       const products = (productsData || []) as Product[];
       const coachingProduct = products.find(p => p.type === 'coaching');
 
+      const { data: testimonialsRaw } = await (supabase.from('testimonials') as any)
+        .select('buyer_name,buyer_avatar_url,content')
+        .eq('creator_id', user.id)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false })
+        .limit(12);
+
+      const testimonials = ((testimonialsRaw || []) as Array<{ buyer_name: string; buyer_avatar_url: string | null; content: string }>).map((row) => ({
+        name: row.buyer_name,
+        role: 'Verified Buyer',
+        avatar: row.buyer_avatar_url || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face',
+        text: row.content,
+      }));
+
       // Fetch courses
       const { data: coursesData } = await (supabase.from('courses') as any)
         .select('id, title, slug, subtitle, cover_image_url, price_cents, student_count')
@@ -144,6 +158,7 @@ export default function PageEditorPage() {
           title: p.title,
           subtitle: (p as any).subtitle || null,
           description: p.description,
+          description_html: (p as any).description_html || null,
           price: Number(p.price),
           cover_image_url: p.cover_image_url,
           header_banner_url: (p as any).header_banner_url || null,
@@ -158,6 +173,7 @@ export default function PageEditorPage() {
           duration_minutes: (coachingProduct as any).duration_minutes || 60,
           is_published: coachingProduct.is_published,
         } : null,
+        testimonials,
         courses: coursesWithCounts,
         theme: ((prof as any).page_theme as PageTheme) || {
           primary_color: '#0D1B2A',
