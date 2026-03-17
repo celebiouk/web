@@ -1,6 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { TrendingUp, Users, ShoppingCart, DollarSign, Eye, BarChart3, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
+function getPercentChange(current: number, previous: number): number {
+  if (previous <= 0) {
+    return current > 0 ? 100 : 0;
+  }
+
+  return ((current - previous) / previous) * 100;
+}
+
 export default async function AdminAnalyticsPage() {
   const supabase = await createClient();
 
@@ -23,9 +31,99 @@ export default async function AdminAnalyticsPage() {
     .select('*', { count: 'exact', head: true })
     .gte('created_at', oneWeekAgo.toISOString());
 
-  // Get page views (placeholder for now)
-  const pageViews = 12450;
-  const conversionRate = 3.2;
+  const twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+  const [
+    { count: previousWeeklySignups },
+    { count: previousWeeklyOrders },
+    { count: pageViews },
+    { count: previousPageViews },
+    { data: recentOrders },
+  ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', twoWeeksAgo.toISOString())
+      .lt('created_at', oneWeekAgo.toISOString()),
+    supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', twoWeeksAgo.toISOString())
+      .lt('created_at', oneWeekAgo.toISOString()),
+    (supabase as any)
+      .from('analytics_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_type', 'page_view')
+      .gte('created_at', oneWeekAgo.toISOString()),
+    (supabase as any)
+      .from('analytics_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_type', 'page_view')
+      .gte('created_at', twoWeeksAgo.toISOString())
+      .lt('created_at', oneWeekAgo.toISOString()),
+    (supabase as any)
+      .from('orders')
+      .select('creator_id, product_id, amount')
+      .order('created_at', { ascending: false })
+      .limit(500),
+  ]);
+
+  const safePageViews = pageViews || 0;
+  const safeOrders = totalOrders || 0;
+  const conversionRate = safePageViews > 0 ? ((safeOrders / safePageViews) * 100).toFixed(2) : '0.00';
+
+  const usersChange = getPercentChange(weeklySignups || 0, previousWeeklySignups || 0);
+  const ordersChange = getPercentChange(weeklyOrders || 0, previousWeeklyOrders || 0);
+  const pageViewsChange = getPercentChange(pageViews || 0, previousPageViews || 0);
+
+  const orders = recentOrders || [];
+  const creatorTotals = new Map<string, number>();
+  const productSales = new Map<string, number>();
+  const creatorIds = new Set<string>();
+  const productIds = new Set<string>();
+
+  for (const order of orders) {
+    if (order.creator_id) {
+      creatorIds.add(order.creator_id);
+      creatorTotals.set(order.creator_id, (creatorTotals.get(order.creator_id) || 0) + (order.amount || 0));
+    }
+
+    if (order.product_id) {
+      productIds.add(order.product_id);
+      productSales.set(order.product_id, (productSales.get(order.product_id) || 0) + 1);
+    }
+  }
+
+  const [{ data: creators }, { data: products }] = await Promise.all([
+    creatorIds.size
+      ? supabase.from('profiles').select('id, username').in('id', Array.from(creatorIds))
+      : Promise.resolve({ data: [] as Array<{ id: string; username: string | null }> }),
+    productIds.size
+      ? supabase.from('products').select('id, title').in('id', Array.from(productIds))
+      : Promise.resolve({ data: [] as Array<{ id: string; title: string }> }),
+  ]);
+
+  const creatorNameMap = new Map((creators || []).map((creator) => [creator.id, creator.username || 'Unknown creator']));
+  const productNameMap = new Map((products || []).map((product) => [product.id, product.title]));
+
+  const topCreators = Array.from(creatorTotals.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([creatorId, revenue], index) => ({
+      rank: index + 1,
+      name: creatorNameMap.get(creatorId) || 'Unknown creator',
+      revenue,
+    }));
+
+  const topProducts = Array.from(productSales.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([productId, sales], index) => ({
+      rank: index + 1,
+      name: productNameMap.get(productId) || 'Unknown product',
+      sales,
+    }));
 
   return (
     <div className="space-y-6">
@@ -46,8 +144,8 @@ export default async function AdminAnalyticsPage() {
               <Users className="h-6 w-6 text-brand-600 dark:text-brand-400" />
             </div>
             <span className="flex items-center text-sm font-medium text-green-600">
-              <ArrowUpRight className="mr-1 h-4 w-4" />
-              12%
+              {usersChange >= 0 ? <ArrowUpRight className="mr-1 h-4 w-4" /> : <ArrowDownRight className="mr-1 h-4 w-4" />}
+              {Math.abs(usersChange).toFixed(1)}%
             </span>
           </div>
           <p className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{totalUsers || 0}</p>
@@ -61,8 +159,8 @@ export default async function AdminAnalyticsPage() {
               <ShoppingCart className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <span className="flex items-center text-sm font-medium text-green-600">
-              <ArrowUpRight className="mr-1 h-4 w-4" />
-              8%
+              {ordersChange >= 0 ? <ArrowUpRight className="mr-1 h-4 w-4" /> : <ArrowDownRight className="mr-1 h-4 w-4" />}
+              {Math.abs(ordersChange).toFixed(1)}%
             </span>
           </div>
           <p className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{totalOrders || 0}</p>
@@ -76,11 +174,11 @@ export default async function AdminAnalyticsPage() {
               <Eye className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <span className="flex items-center text-sm font-medium text-green-600">
-              <ArrowUpRight className="mr-1 h-4 w-4" />
-              23%
+              {pageViewsChange >= 0 ? <ArrowUpRight className="mr-1 h-4 w-4" /> : <ArrowDownRight className="mr-1 h-4 w-4" />}
+              {Math.abs(pageViewsChange).toFixed(1)}%
             </span>
           </div>
-          <p className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{pageViews.toLocaleString()}</p>
+          <p className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{safePageViews.toLocaleString()}</p>
           <p className="text-sm text-gray-500">Page Views</p>
           <p className="mt-1 text-xs text-gray-400">Last 7 days</p>
         </div>
@@ -90,10 +188,7 @@ export default async function AdminAnalyticsPage() {
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 dark:bg-green-500/10">
               <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
-            <span className="flex items-center text-sm font-medium text-red-600">
-              <ArrowDownRight className="mr-1 h-4 w-4" />
-              0.3%
-            </span>
+            <span className="flex items-center text-sm font-medium text-gray-500">real-time</span>
           </div>
           <p className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{conversionRate}%</p>
           <p className="text-sm text-gray-500">Conversion Rate</p>
@@ -101,40 +196,43 @@ export default async function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* Charts Placeholder */}
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900 dark:text-white">User Growth</h3>
-            <select className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option>Last 30 days</option>
-              <option>Last 90 days</option>
-              <option>Last year</option>
-            </select>
+            <h3 className="font-semibold text-gray-900 dark:text-white">User Growth Snapshot</h3>
           </div>
-          <div className="flex h-64 items-center justify-center rounded-lg bg-gray-50 dark:bg-gray-800">
-            <div className="text-center text-gray-500">
-              <BarChart3 className="mx-auto h-12 w-12 opacity-50" />
-              <p className="mt-2">Chart visualization</p>
-              <p className="text-sm">Integrate charting library</p>
+          <div className="rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-800">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-500">New users (7d)</span>
+              <span className="font-medium text-gray-900 dark:text-white">{weeklySignups || 0}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-500">Previous 7d</span>
+              <span className="font-medium text-gray-900 dark:text-white">{previousWeeklySignups || 0}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-500">Total users</span>
+              <span className="font-medium text-gray-900 dark:text-white">{totalUsers || 0}</span>
             </div>
           </div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Revenue Trend</h3>
-            <select className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-              <option>Last 30 days</option>
-              <option>Last 90 days</option>
-              <option>Last year</option>
-            </select>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Traffic Snapshot</h3>
           </div>
-          <div className="flex h-64 items-center justify-center rounded-lg bg-gray-50 dark:bg-gray-800">
-            <div className="text-center text-gray-500">
-              <DollarSign className="mx-auto h-12 w-12 opacity-50" />
-              <p className="mt-2">Revenue chart</p>
-              <p className="text-sm">Daily/weekly breakdown</p>
+          <div className="rounded-lg bg-gray-50 p-4 text-sm dark:bg-gray-800">
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-500">Page views (7d)</span>
+              <span className="font-medium text-gray-900 dark:text-white">{safePageViews.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-500">Previous 7d</span>
+              <span className="font-medium text-gray-900 dark:text-white">{(previousPageViews || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-gray-500">Conversion rate</span>
+              <span className="font-medium text-gray-900 dark:text-white">{conversionRate}%</span>
             </div>
           </div>
         </div>
@@ -145,39 +243,41 @@ export default async function AdminAnalyticsPage() {
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <h3 className="mb-4 font-semibold text-gray-900 dark:text-white">Top Creators</h3>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center justify-between">
+            {topCreators.map((creator) => (
+              <div key={`${creator.rank}-${creator.name}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                    {i}
+                    {creator.rank}
                   </span>
                   <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand-400 to-brand-600" />
-                  <span className="text-gray-900 dark:text-white">Creator {i}</span>
+                  <span className="text-gray-900 dark:text-white">{creator.name}</span>
                 </div>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  ${(1000 - i * 150).toLocaleString()}
+                  ${(creator.revenue / 100).toLocaleString()}
                 </span>
               </div>
             ))}
+            {topCreators.length === 0 && <p className="text-sm text-gray-500">No creator revenue data yet.</p>}
           </div>
         </div>
 
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <h3 className="mb-4 font-semibold text-gray-900 dark:text-white">Top Products</h3>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center justify-between">
+            {topProducts.map((product) => (
+              <div key={`${product.rank}-${product.name}`} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                    {i}
+                    {product.rank}
                   </span>
-                  <span className="text-gray-900 dark:text-white">Product {i}</span>
+                  <span className="text-gray-900 dark:text-white">{product.name}</span>
                 </div>
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {100 - i * 15} sales
+                  {product.sales} sales
                 </span>
               </div>
             ))}
+            {topProducts.length === 0 && <p className="text-sm text-gray-500">No product sales data yet.</p>}
           </div>
         </div>
       </div>

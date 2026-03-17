@@ -1,27 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Mail, Send, Users, FileText, Eye, Search, Plus, Settings, X } from 'lucide-react';
 
-const emailTemplates = [
-  { id: 'welcome', name: 'Welcome Email', description: 'Sent to new users after signup', category: 'Onboarding' },
-  { id: 'product-upload', name: 'Product Upload Success', description: 'Confirms product was published', category: 'Products' },
-  { id: 'sale-notification', name: 'Sale Notification', description: 'Notifies creator of new sale', category: 'Sales' },
-  { id: 'order-received', name: 'Order Received', description: 'Sent to buyer after purchase', category: 'Orders' },
-  { id: 'payment-successful', name: 'Payment Successful', description: 'Payment processed successfully', category: 'Payments' },
-  { id: 'payment-failed', name: 'Payment Failed', description: 'Payment could not be processed', category: 'Payments' },
-  { id: 'pro-welcome', name: 'Pro Subscription Activated', description: 'Welcome to Pro tier', category: 'Subscriptions' },
-  { id: 'pro-cancelled', name: 'Pro Subscription Cancelled', description: 'Subscription cancellation confirmation', category: 'Subscriptions' },
-  { id: 'renewal-reminder', name: 'Subscription Renewal Reminder', description: 'Upcoming renewal notification', category: 'Subscriptions' },
-  { id: 'password-reset', name: 'Password Reset', description: 'Password reset link', category: 'Auth' },
-  { id: 'email-verification', name: 'Email Verification', description: 'Verify email address', category: 'Auth' },
-  { id: 'booking-confirmation', name: 'Booking Confirmation', description: 'Booking details and calendar invite', category: 'Bookings' },
-  { id: 'booking-reminder', name: 'Booking Reminder', description: '24h before booking reminder', category: 'Bookings' },
-  { id: 'booking-cancelled', name: 'Booking Cancelled', description: 'Booking cancellation notice', category: 'Bookings' },
-  { id: 'course-enrollment', name: 'Course Enrollment', description: 'Course access confirmation', category: 'Courses' },
-  { id: 'course-completion', name: 'Course Completion', description: 'Certificate of completion', category: 'Courses' },
-  { id: 'affiliate-welcome', name: 'Affiliate Welcome', description: 'Welcome to affiliate program', category: 'Affiliates' },
-  { id: 'affiliate-payout', name: 'Affiliate Commission Paid', description: 'Commission payout notification', category: 'Affiliates' },
+type TemplateCatalog = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  defaultSubject: string;
+  defaultHtml: string;
+};
+
+type Broadcast = {
+  id: string;
+  subject: string;
+  preview_text: string | null;
+  body_html: string;
+  status: 'draft' | 'scheduled' | 'sending' | 'sent';
+  segment: { type: 'all' | 'tag' | 'product' | 'course_students' | 'buyers'; value?: string };
+  recipient_count: number;
+  sent_at: string | null;
+  scheduled_at: string | null;
+  created_at: string;
+};
+
+type Subscriber = {
+  id: string;
+  email: string;
+};
+
+const templateCatalog: TemplateCatalog[] = [
+  { id: 'welcome', name: 'Welcome Email', description: 'Sent to new users after signup', category: 'Onboarding', defaultSubject: 'Welcome to cele.bio!', defaultHtml: '<p>Hey {{first_name}}, welcome to cele.bio.</p>' },
+  { id: 'product-upload', name: 'Product Upload Success', description: 'Confirms product was published', category: 'Products', defaultSubject: 'Your product is now live', defaultHtml: '<p>Your product has been published successfully.</p>' },
+  { id: 'sale-notification', name: 'Sale Notification', description: 'Notifies creator of new sale', category: 'Sales', defaultSubject: 'You made a new sale 🎉', defaultHtml: '<p>Congrats — you just made a sale.</p>' },
+  { id: 'order-received', name: 'Order Received', description: 'Sent to buyer after purchase', category: 'Orders', defaultSubject: 'Your order is confirmed', defaultHtml: '<p>Thanks for your purchase.</p>' },
+  { id: 'payment-successful', name: 'Payment Successful', description: 'Payment processed successfully', category: 'Payments', defaultSubject: 'Payment successful', defaultHtml: '<p>Your payment has been processed successfully.</p>' },
+  { id: 'payment-failed', name: 'Payment Failed', description: 'Payment could not be processed', category: 'Payments', defaultSubject: 'Payment failed', defaultHtml: '<p>We could not process your payment.</p>' },
+  { id: 'pro-welcome', name: 'Pro Subscription Activated', description: 'Welcome to Pro tier', category: 'Subscriptions', defaultSubject: 'Welcome to Pro', defaultHtml: '<p>Your Pro subscription is now active.</p>' },
+  { id: 'pro-cancelled', name: 'Pro Subscription Cancelled', description: 'Subscription cancellation confirmation', category: 'Subscriptions', defaultSubject: 'Subscription cancelled', defaultHtml: '<p>Your subscription has been cancelled.</p>' },
+  { id: 'renewal-reminder', name: 'Subscription Renewal Reminder', description: 'Upcoming renewal notification', category: 'Subscriptions', defaultSubject: 'Renewal reminder', defaultHtml: '<p>Your subscription renews soon.</p>' },
+  { id: 'password-reset', name: 'Password Reset', description: 'Password reset link', category: 'Auth', defaultSubject: 'Reset your password', defaultHtml: '<p>Use your secure link to reset your password.</p>' },
+  { id: 'email-verification', name: 'Email Verification', description: 'Verify email address', category: 'Auth', defaultSubject: 'Verify your email', defaultHtml: '<p>Please verify your email address.</p>' },
+  { id: 'booking-confirmation', name: 'Booking Confirmation', description: 'Booking details and calendar invite', category: 'Bookings', defaultSubject: 'Booking confirmed', defaultHtml: '<p>Your booking is confirmed.</p>' },
+  { id: 'booking-reminder', name: 'Booking Reminder', description: '24h before booking reminder', category: 'Bookings', defaultSubject: 'Booking reminder', defaultHtml: '<p>This is a reminder for your upcoming booking.</p>' },
+  { id: 'booking-cancelled', name: 'Booking Cancelled', description: 'Booking cancellation notice', category: 'Bookings', defaultSubject: 'Booking cancelled', defaultHtml: '<p>Your booking has been cancelled.</p>' },
+  { id: 'course-enrollment', name: 'Course Enrollment', description: 'Course access confirmation', category: 'Courses', defaultSubject: 'Course enrollment confirmed', defaultHtml: '<p>You are now enrolled in the course.</p>' },
+  { id: 'course-completion', name: 'Course Completion', description: 'Certificate of completion', category: 'Courses', defaultSubject: 'Course completed', defaultHtml: '<p>Congratulations on completing your course.</p>' },
+  { id: 'affiliate-welcome', name: 'Affiliate Welcome', description: 'Welcome to affiliate program', category: 'Affiliates', defaultSubject: 'Welcome affiliate partner', defaultHtml: '<p>Welcome to the affiliate program.</p>' },
+  { id: 'affiliate-payout', name: 'Affiliate Commission Paid', description: 'Commission payout notification', category: 'Affiliates', defaultSubject: 'Affiliate payout sent', defaultHtml: '<p>Your commission payout is on the way.</p>' },
 ];
 
 const categories = ['All', 'Onboarding', 'Products', 'Sales', 'Orders', 'Payments', 'Subscriptions', 'Auth', 'Bookings', 'Courses', 'Affiliates'];
@@ -31,82 +58,226 @@ export default function AdminEmailPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [previewTemplateId, setPreviewTemplateId] = useState<string | null>(null);
-  const [composeData, setComposeData] = useState({
-    to: 'all',
-    subject: '',
-    template: '',
-    customContent: '',
-  });
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
-  const filteredTemplates = emailTemplates.filter(t => {
-    const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory;
-    const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         t.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+
+  const [composeData, setComposeData] = useState({
+    segmentType: 'all' as 'all' | 'tag' | 'product' | 'course_students' | 'buyers',
+    segmentValue: '',
+    subject: '',
+    previewText: '',
+    bodyHtml: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const filteredTemplates = useMemo(() => {
+    return templateCatalog.filter((template) => {
+      const matchesCategory = selectedCategory === 'All' || template.category === selectedCategory;
+      const matchesSearch =
+        template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        template.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [searchQuery, selectedCategory]);
 
   const previewTemplate = previewTemplateId
-    ? emailTemplates.find((template) => template.id === previewTemplateId) || null
+    ? templateCatalog.find((template) => template.id === previewTemplateId) || null
     : null;
+
+  useEffect(() => {
+    void loadEmailData();
+  }, []);
+
+  async function loadEmailData() {
+    setIsLoadingData(true);
+    setActionMessage(null);
+    try {
+      const [broadcastsRes, subscribersRes] = await Promise.all([
+        fetch('/api/email/broadcasts', { cache: 'no-store' }),
+        fetch('/api/email/subscribers', { cache: 'no-store' }),
+      ]);
+
+      if (broadcastsRes.ok) {
+        const broadcastsJson = await broadcastsRes.json();
+        setBroadcasts((broadcastsJson.broadcasts || []) as Broadcast[]);
+      }
+
+      if (subscribersRes.ok) {
+        const subscribersJson = await subscribersRes.json();
+        setSubscribers((subscribersJson.subscribers || []) as Subscriber[]);
+      }
+    } catch {
+      setActionMessage('Failed to load email data.');
+    } finally {
+      setIsLoadingData(false);
+    }
+  }
+
+  function useTemplate(template: TemplateCatalog) {
+    setComposeData((prev) => ({
+      ...prev,
+      subject: template.defaultSubject,
+      bodyHtml: template.defaultHtml,
+      previewText: template.description,
+    }));
+    setActiveTab('compose');
+    setActionMessage(`Loaded template: ${template.name}`);
+  }
+
+  async function saveDraft() {
+    if (!composeData.subject.trim() || !composeData.bodyHtml.trim()) {
+      setActionMessage('Subject and content are required to save a draft.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionMessage(null);
+    try {
+      const response = await fetch('/api/email/broadcasts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: composeData.subject,
+          preview_text: composeData.previewText || undefined,
+          body_html: composeData.bodyHtml,
+          segment: {
+            type: composeData.segmentType,
+            value: composeData.segmentValue || undefined,
+          },
+          status: 'draft',
+        }),
+      });
+
+      if (!response.ok) {
+        const json = await response.json();
+        setActionMessage(json.error || 'Failed to save draft.');
+        return;
+      }
+
+      setActionMessage('Draft saved successfully.');
+      setActiveTab('history');
+      await loadEmailData();
+    } catch {
+      setActionMessage('Failed to save draft.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function sendBroadcast(testOnly: boolean) {
+    if (!composeData.subject.trim() || !composeData.bodyHtml.trim()) {
+      setActionMessage('Subject and content are required before sending.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionMessage(null);
+
+    try {
+      const testEmail = testOnly ? window.prompt('Enter test email address') || undefined : undefined;
+      if (testOnly && !testEmail) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      const response = await fetch('/api/email/broadcast/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: composeData.subject,
+          preview_text: composeData.previewText || undefined,
+          body_html: composeData.bodyHtml,
+          segment: {
+            type: composeData.segmentType,
+            value: composeData.segmentValue || undefined,
+          },
+          sendNow: true,
+          testEmail,
+        }),
+      });
+
+      const json = await response.json();
+      if (!response.ok) {
+        setActionMessage(json.error || 'Failed to send email.');
+        return;
+      }
+
+      setActionMessage(testOnly ? 'Test email sent.' : `Broadcast sent to ${json.sent ?? 0} recipients.`);
+      setActiveTab('history');
+      await loadEmailData();
+    } catch {
+      setActionMessage('Failed to send email.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const sentTodayCount = broadcasts
+    .filter((broadcast) => broadcast.sent_at && broadcast.sent_at.startsWith(todayIso))
+    .reduce((total, broadcast) => total + (broadcast.recipient_count || 0), 0);
+
+  const draftsCount = broadcasts.filter((broadcast) => broadcast.status === 'draft').length;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Email Management
-          </h1>
-          <p className="mt-1 text-gray-500 dark:text-gray-400">
-            Send emails and manage templates
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Email Management</h1>
+          <p className="mt-1 text-gray-500 dark:text-gray-400">Create, send, and track real campaigns through platform APIs.</p>
         </div>
-        <button className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 font-medium text-white transition-colors hover:bg-brand-600">
+        <button
+          onClick={() => {
+            setActiveTab('compose');
+            setComposeData((prev) => ({ ...prev, subject: '', previewText: '', bodyHtml: '' }));
+          }}
+          className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 font-medium text-white transition-colors hover:bg-brand-600"
+        >
           <Plus className="h-4 w-4" />
           New Template
         </button>
       </div>
 
-      {/* Stats */}
+      {actionMessage && (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+          {actionMessage}
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-500 text-white">
-            <Mail className="h-6 w-6" />
-          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-500 text-white"><Users className="h-6 w-6" /></div>
           <div>
-            <p className="text-sm text-gray-500">Emails Sent Today</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">1,247</p>
+            <p className="text-sm text-gray-500">Active Subscribers</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{subscribers.length}</p>
           </div>
         </div>
         <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white">
-            <Send className="h-6 w-6" />
-          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500 text-white"><Mail className="h-6 w-6" /></div>
           <div>
-            <p className="text-sm text-gray-500">Delivery Rate</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">99.2%</p>
+            <p className="text-sm text-gray-500">Broadcasts</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{broadcasts.length}</p>
           </div>
         </div>
         <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500 text-white">
-            <Eye className="h-6 w-6" />
-          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500 text-white"><Send className="h-6 w-6" /></div>
           <div>
-            <p className="text-sm text-gray-500">Open Rate</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">45.8%</p>
+            <p className="text-sm text-gray-500">Recipients Sent Today</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{sentTodayCount}</p>
           </div>
         </div>
         <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500 text-white">
-            <FileText className="h-6 w-6" />
-          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500 text-white"><FileText className="h-6 w-6" /></div>
           <div>
-            <p className="text-sm text-gray-500">Templates</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">{emailTemplates.length}</p>
+            <p className="text-sm text-gray-500">Drafts</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{draftsCount}</p>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-800">
         <nav className="flex gap-4">
           {[
@@ -130,12 +301,10 @@ export default function AdminEmailPage() {
         </nav>
       </div>
 
-      {/* Templates Tab */}
       {activeTab === 'templates' && (
         <div className="space-y-4">
-          {/* Filters */}
           <div className="flex flex-wrap items-center gap-4">
-            <div className="relative flex-1 min-w-[200px]">
+            <div className="relative min-w-[200px] flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
@@ -162,7 +331,6 @@ export default function AdminEmailPage() {
             </div>
           </div>
 
-          {/* Templates Grid */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredTemplates.map((template) => (
               <div
@@ -173,16 +341,10 @@ export default function AdminEmailPage() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-500/10">
                     <Mail className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                   </div>
-                  <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                    {template.category}
-                  </span>
+                  <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">{template.category}</span>
                 </div>
-                <h3 className="mt-3 font-semibold text-gray-900 dark:text-white">
-                  {template.name}
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {template.description}
-                </p>
+                <h3 className="mt-3 font-semibold text-gray-900 dark:text-white">{template.name}</h3>
+                <p className="mt-1 text-sm text-gray-500">{template.description}</p>
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => setPreviewTemplateId(template.id)}
@@ -191,7 +353,11 @@ export default function AdminEmailPage() {
                     <Eye className="h-4 w-4" />
                     Preview
                   </button>
-                  <button className="flex items-center justify-center rounded-lg bg-gray-100 p-2 text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700">
+                  <button
+                    onClick={() => useTemplate(template)}
+                    className="flex items-center justify-center rounded-lg bg-gray-100 p-2 text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                    title="Use as compose base"
+                  >
                     <Settings className="h-4 w-4" />
                   </button>
                 </div>
@@ -201,47 +367,37 @@ export default function AdminEmailPage() {
         </div>
       )}
 
-      {/* Compose Tab */}
       {activeTab === 'compose' && (
         <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Recipients
-              </label>
-              <select
-                value={composeData.to}
-                onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="all">All Users</option>
-                <option value="pro">Pro Subscribers Only</option>
-                <option value="free">Free Users Only</option>
-                <option value="creators">Creators Only</option>
-                <option value="custom">Custom List...</option>
-              </select>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Segment type</label>
+                <select
+                  value={composeData.segmentType}
+                  onChange={(e) => setComposeData({ ...composeData, segmentType: e.target.value as typeof composeData.segmentType })}
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                >
+                  <option value="all">All subscribers</option>
+                  <option value="tag">By tag</option>
+                  <option value="buyers">Buyers of product</option>
+                  <option value="course_students">Course students</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Segment value (optional)</label>
+                <input
+                  type="text"
+                  value={composeData.segmentValue}
+                  onChange={(e) => setComposeData({ ...composeData, segmentValue: e.target.value })}
+                  placeholder="Tag or product/course ID"
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Template (Optional)
-              </label>
-              <select
-                value={composeData.template}
-                onChange={(e) => setComposeData({ ...composeData, template: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="">No template (custom email)</option>
-                {emailTemplates.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Subject
-              </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
               <input
                 type="text"
                 value={composeData.subject}
@@ -252,26 +408,53 @@ export default function AdminEmailPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Content
-              </label>
-              <textarea
-                value={composeData.customContent}
-                onChange={(e) => setComposeData({ ...composeData, customContent: e.target.value })}
-                placeholder="Enter email content..."
-                rows={8}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Preview text</label>
+              <input
+                type="text"
+                value={composeData.previewText}
+                onChange={(e) => setComposeData({ ...composeData, previewText: e.target.value })}
+                placeholder="Inbox preview line..."
                 className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">HTML Content</label>
+              <textarea
+                value={composeData.bodyHtml}
+                onChange={(e) => setComposeData({ ...composeData, bodyHtml: e.target.value })}
+                placeholder="Enter HTML email content..."
+                rows={10}
+                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 font-mono text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+
             <div className="flex justify-end gap-3">
-              <button className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
-                Save as Draft
-              </button>
-              <button className="rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+              <button
+                onClick={() => setPreviewTemplateId('')}
+                className="rounded-lg bg-gray-100 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
                 Preview
               </button>
-              <button className="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 font-medium text-white transition-colors hover:bg-brand-600">
+              <button
+                onClick={() => void saveDraft()}
+                disabled={isSubmitting}
+                className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Save Draft
+              </button>
+              <button
+                onClick={() => void sendBroadcast(true)}
+                disabled={isSubmitting}
+                className="rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Send Test
+              </button>
+              <button
+                onClick={() => void sendBroadcast(false)}
+                disabled={isSubmitting}
+                className="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
+              >
                 <Send className="h-4 w-4" />
                 Send Email
               </button>
@@ -280,60 +463,47 @@ export default function AdminEmailPage() {
         </div>
       )}
 
-      {/* History Tab */}
       {activeTab === 'history' && (
         <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full">
             <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-800">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Subject</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Recipients</th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Created</th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Sent</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Opens</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Clicks</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-              {[
-                { subject: 'New feature announcement', recipients: 2450, sent: '2h ago', opens: '45%', clicks: '12%' },
-                { subject: 'Weekly digest', recipients: 3200, sent: '1 day ago', opens: '38%', clicks: '8%' },
-                { subject: 'System maintenance notice', recipients: 5100, sent: '3 days ago', opens: '62%', clicks: '5%' },
-              ].map((email, i) => (
-                <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                    {email.subject}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">
-                    {email.recipients.toLocaleString()} users
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{email.sent}</td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{email.opens}</td>
-                  <td className="px-6 py-4 text-gray-900 dark:text-white">{email.clicks}</td>
+              {broadcasts.map((broadcast) => (
+                <tr key={broadcast.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{broadcast.subject}</td>
+                  <td className="px-6 py-4 text-gray-500">{broadcast.status}</td>
+                  <td className="px-6 py-4 text-gray-500">{broadcast.recipient_count || 0}</td>
+                  <td className="px-6 py-4 text-gray-500">{new Date(broadcast.created_at).toLocaleString()}</td>
+                  <td className="px-6 py-4 text-gray-500">{broadcast.sent_at ? new Date(broadcast.sent_at).toLocaleString() : '—'}</td>
                 </tr>
               ))}
+              {!broadcasts.length && !isLoadingData && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-gray-500">No broadcasts yet.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       )}
 
-      {previewTemplate && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={() => setPreviewTemplateId(null)}
-        >
-          <div
-            className="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {(previewTemplate || previewTemplateId === '') && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => setPreviewTemplateId(null)}>
+          <div className="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{previewTemplate.name}</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{previewTemplate.category}</p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{previewTemplate ? previewTemplate.name : 'Compose Preview'}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{previewTemplate ? previewTemplate.category : 'Current draft'}</p>
               </div>
-              <button
-                onClick={() => setPreviewTemplateId(null)}
-                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-              >
+              <button onClick={() => setPreviewTemplateId(null)} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-300">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -341,25 +511,16 @@ export default function AdminEmailPage() {
             <div className="space-y-4 p-5">
               <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
                 <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Subject</p>
-                <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">{previewTemplate.name}</p>
+                <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">{previewTemplate ? previewTemplate.defaultSubject : composeData.subject || 'No subject'}</p>
               </div>
 
               <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Preview</p>
-                <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                  <p>Hi there,</p>
-                  <p>{previewTemplate.description}</p>
-                  <p>This is a sample preview from the Admin Email Manager.</p>
-                </div>
+                <div className="prose max-w-none text-sm dark:prose-invert" dangerouslySetInnerHTML={{ __html: previewTemplate ? previewTemplate.defaultHtml : (composeData.bodyHtml || '<p>No content.</p>') }} />
               </div>
 
               <div className="flex justify-end">
-                <button
-                  onClick={() => setPreviewTemplateId(null)}
-                  className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600"
-                >
-                  Close Preview
-                </button>
+                <button onClick={() => setPreviewTemplateId(null)} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600">Close Preview</button>
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { applyEmailTokens, buildBroadcastHtml, sendMarketingEmail } from '@/lib/email-marketing';
+import { isInternalAdminEmail } from '@/lib/admin';
 
 const sendSchema = z.object({
   broadcastId: z.string().uuid().optional(),
@@ -131,13 +132,48 @@ export async function POST(request: Request) {
     }
 
     const { data: creatorProfile } = await (serviceSupabase.from('profiles') as any)
-      .select('full_name')
+      .select('full_name,subscription_tier')
       .eq('id', user.id)
       .maybeSingle();
 
     const recipients = body.testEmail
       ? [{ id: null, email: body.testEmail, first_name: 'Test' }]
       : await resolveRecipients(serviceSupabase as any, user.id, broadcast.segment || { type: 'all' });
+
+    const isProUser = (creatorProfile?.subscription_tier || 'free') === 'pro' || isInternalAdminEmail(user.email);
+    const isTestEmail = Boolean(body.testEmail);
+    const FREE_MONTHLY_EMAIL_RECIPIENT_LIMIT = 20;
+
+    if (!isProUser && !isTestEmail) {
+      const now = new Date();
+      const startOfMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const startOfNextMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+      const { data: monthlyBroadcasts, error: monthlyUsageError } = await (serviceSupabase.from('email_broadcasts') as any)
+        .select('recipient_count')
+        .eq('creator_id', user.id)
+        .eq('status', 'sent')
+        .gte('sent_at', startOfMonthUtc.toISOString())
+        .lt('sent_at', startOfNextMonthUtc.toISOString());
+
+      if (monthlyUsageError) {
+        console.error('Monthly email usage lookup error:', monthlyUsageError);
+        return NextResponse.json({ error: 'Failed to validate email quota' }, { status: 500 });
+      }
+
+      const recipientsUsedThisMonth = (monthlyBroadcasts || []).reduce(
+        (total: number, row: { recipient_count: number | null }) => total + (row.recipient_count || 0),
+        0
+      );
+
+      const wouldExceedLimit = recipientsUsedThisMonth + recipients.length > FREE_MONTHLY_EMAIL_RECIPIENT_LIMIT;
+      if (wouldExceedLimit) {
+        return NextResponse.json(
+          { error: 'You have used up your free email campaigns for this month. Upgrade to Pro to keep sending.' },
+          { status: 403 }
+        );
+      }
+    }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
 

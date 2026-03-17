@@ -1,33 +1,92 @@
 'use client';
 
-import { useState } from 'react';
-import { Save, Globe, DollarSign, Mail, Shield, Bell, Database } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Save, Globe, DollarSign, Mail, Shield, Database } from 'lucide-react';
+
+type AdminSettings = {
+  siteName: string;
+  siteUrl: string;
+  supportEmail: string;
+  commissionRate: number;
+  proMonthlyPrice: number;
+  proYearlyPrice: number;
+  maxFreeSubscribers: number;
+  enableNewSignups: boolean;
+  enableStripeConnect: boolean;
+  requireEmailVerification: boolean;
+  maintenanceMode: boolean;
+};
+
+const defaultSettings: AdminSettings = {
+  siteName: 'cele.bio',
+  siteUrl: 'https://cele.bio',
+  supportEmail: 'support@cele.bio',
+  commissionRate: 8,
+  proMonthlyPrice: 19.99,
+  proYearlyPrice: 167.90,
+  maxFreeSubscribers: 500,
+  enableNewSignups: true,
+  enableStripeConnect: true,
+  requireEmailVerification: true,
+  maintenanceMode: false,
+};
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState({
-    siteName: 'cele.bio',
-    siteUrl: 'https://cele.bio',
-    supportEmail: 'support@cele.bio',
-    commissionRate: 8,
-    proMonthlyPrice: 19.99,
-    proYearlyPrice: 167.90,
-    maxFreeSubscribers: 500,
-    enableNewSignups: true,
-    enableStripeConnect: true,
-    requireEmailVerification: true,
-    maintenanceMode: false,
-  });
+  const [settings, setSettings] = useState<AdminSettings>(defaultSettings);
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadSettings() {
+      setLoading(true);
+      setErrorMessage(null);
+      try {
+        const response = await fetch('/api/admin/settings', { cache: 'no-store' });
+        const json = await response.json();
+
+        if (!response.ok) {
+          setErrorMessage(json.error || 'Failed to load settings.');
+          return;
+        }
+
+        setSettings(json.settings || defaultSettings);
+      } catch {
+        setErrorMessage('Failed to load settings.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadSettings();
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
-    // Simulate save
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setErrorMessage(null);
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+
+      const json = await response.json();
+      if (!response.ok) {
+        setErrorMessage(json.error || 'Failed to save settings.');
+        return;
+      }
+
+      setSettings(json.settings || settings);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      setErrorMessage('Failed to save settings.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -43,13 +102,19 @@ export default function AdminSettingsPage() {
         </div>
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || loading}
           className="flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2 font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
         >
           <Save className="h-4 w-4" />
-          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
+          {loading ? 'Loading...' : saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
         </button>
       </div>
+
+      {errorMessage && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/10 dark:text-red-400">
+          {errorMessage}
+        </div>
+      )}
 
       {/* General Settings */}
       <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
@@ -180,28 +245,32 @@ export default function AdminSettingsPage() {
             { key: 'enableStripeConnect', label: 'Enable Stripe Connect', description: 'Allow creators to connect Stripe accounts' },
             { key: 'requireEmailVerification', label: 'Require Email Verification', description: 'Users must verify email before accessing platform' },
             { key: 'maintenanceMode', label: 'Maintenance Mode', description: 'Show maintenance page to non-admin users' },
-          ].map((toggle) => (
+          ].map((toggle) => {
+            const isEnabled = settings[toggle.key as keyof Pick<AdminSettings, 'enableNewSignups' | 'enableStripeConnect' | 'requireEmailVerification' | 'maintenanceMode'>];
+
+            return (
             <div key={toggle.key} className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{toggle.label}</p>
                 <p className="text-sm text-gray-500">{toggle.description}</p>
               </div>
               <button
-                onClick={() => setSettings({ ...settings, [toggle.key]: !settings[toggle.key as keyof typeof settings] })}
+                onClick={() => setSettings({ ...settings, [toggle.key]: !isEnabled })}
                 className={`relative h-6 w-11 rounded-full transition-colors ${
-                  settings[toggle.key as keyof typeof settings]
+                  isEnabled
                     ? 'bg-brand-500'
                     : 'bg-gray-300 dark:bg-gray-700'
                 }`}
               >
                 <span
                   className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                    settings[toggle.key as keyof typeof settings] ? 'translate-x-5' : ''
+                    isEnabled ? 'translate-x-5' : ''
                   }`}
                 />
               </button>
             </div>
-          ))}
+          );
+          })}
         </div>
       </div>
 

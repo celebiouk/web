@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { applyEmailTokens, sendMarketingEmail } from '@/lib/email-marketing';
+import { applyEmailTokens, buildCampaignEmailHtml, sendMarketingEmail } from '@/lib/email-marketing';
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization') || '';
@@ -51,9 +51,17 @@ export async function GET(request: Request) {
         .eq('id', sequence.creator_id)
         .maybeSingle();
 
-      const html = applyEmailTokens(step.body_html, {
+      const htmlBody = applyEmailTokens(step.body_html, {
         firstName: subscriber.first_name,
         creatorName: creator?.full_name || 'Creator',
+      });
+
+      const html = buildCampaignEmailHtml({
+        bodyHtml: htmlBody,
+        previewText: applyEmailTokens(step.subject, {
+          firstName: subscriber.first_name,
+          creatorName: creator?.full_name || 'Creator',
+        }),
       });
 
       await sendMarketingEmail({

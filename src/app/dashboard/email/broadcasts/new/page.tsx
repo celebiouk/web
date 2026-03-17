@@ -16,6 +16,7 @@ export default function NewBroadcastPage() {
   const [segmentValue, setSegmentValue] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [StarterKit, Link, Image],
@@ -25,7 +26,8 @@ export default function NewBroadcastPage() {
   const bodyHtml = useMemo(() => editor?.getHTML() || '<p></p>', [editor]);
 
   async function saveDraft() {
-    await fetch('/api/email/broadcasts', {
+    setStatusMessage(null);
+    const response = await fetch('/api/email/broadcasts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -36,12 +38,16 @@ export default function NewBroadcastPage() {
         status: 'draft',
       }),
     });
+
+    const json = await response.json();
+    setStatusMessage(response.ok ? 'Draft saved.' : (json.error || 'Failed to save draft.'));
   }
 
   async function sendNow(test = false) {
     setIsSending(true);
+    setStatusMessage(null);
 
-    await fetch('/api/email/broadcast/send', {
+    const response = await fetch('/api/email/broadcast/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -54,11 +60,15 @@ export default function NewBroadcastPage() {
       }),
     });
 
+    const json = await response.json();
+    setStatusMessage(response.ok ? (test ? 'Test email sent.' : 'Broadcast sent.') : (json.error || 'Failed to send broadcast.'));
+
     setIsSending(false);
   }
 
   async function scheduleLater() {
-    await fetch('/api/email/broadcast/send', {
+    setStatusMessage(null);
+    const response = await fetch('/api/email/broadcast/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -70,6 +80,9 @@ export default function NewBroadcastPage() {
         scheduledAt,
       }),
     });
+
+    const json = await response.json();
+    setStatusMessage(response.ok ? 'Broadcast scheduled.' : (json.error || 'Failed to schedule broadcast.'));
   }
 
   return (
@@ -78,6 +91,12 @@ export default function NewBroadcastPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">New Broadcast</h1>
         <p className="text-gray-600 dark:text-gray-400">Compose and send a campaign to your selected audience.</p>
       </div>
+
+      {statusMessage && (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+          {statusMessage}
+        </div>
+      )}
 
       <Card>
         <CardHeader><CardTitle>Audience</CardTitle></CardHeader>

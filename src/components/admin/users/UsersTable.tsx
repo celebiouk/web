@@ -9,7 +9,7 @@ import {
   Ban,
   UserCheck,
   CreditCard,
-  Mail,
+  User,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -207,18 +207,20 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
                               )}
                             </button>
                             <button
-                              onClick={() => handleAction(user.id, 'upgrade_pro')}
+                              onClick={() => handleAction(user.id, (user.subscription_tier === 'pro' || user.subscriptions?.[0]?.status === 'active') ? 'downgrade_free' : 'upgrade_pro')}
                               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                             >
-                              <CreditCard className="h-4 w-4" />
-                              Grant Pro Access
-                            </button>
-                            <button
-                              onClick={() => handleAction(user.id, 'send_email')}
-                              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                            >
-                              <Mail className="h-4 w-4" />
-                              Send Email
+                              {(user.subscription_tier === 'pro' || user.subscriptions?.[0]?.status === 'active') ? (
+                                <>
+                                  <User className="h-4 w-4" />
+                                  Set To Free
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="h-4 w-4" />
+                                  Grant Pro Access
+                                </>
+                              )}
                             </button>
                           </div>
                         </>
