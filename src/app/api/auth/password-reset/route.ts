@@ -1,7 +1,6 @@
 /**
  * Custom Password Reset API
- * Sends beautiful branded password reset emails via Resend
- * Falls back to Supabase default email if Resend is not configured
+ * Sends beautiful branded password reset emails via Resend only
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -33,17 +32,14 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = getSupabaseAdmin();
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
     const finalRedirectTo = redirectTo || `${appUrl}/reset-password`;
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'cele.bio <noreply@cele.bio>';
 
-    // If Resend is not configured, use Supabase default email
     if (!resendApiKey) {
-      console.log('RESEND_API_KEY not configured, using Supabase default email');
-      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: finalRedirectTo,
-      });
-      if (error) {
-        console.error('Supabase reset email error:', error);
-      }
-      return NextResponse.json({ success: true });
+      console.error('RESEND_API_KEY not configured');
+      return NextResponse.json(
+        { error: 'Email service is not configured' },
+        { status: 500 }
+      );
     }
 
     // Generate the password recovery link using Supabase Admin API
@@ -57,19 +53,12 @@ export async function POST(request: NextRequest) {
 
     if (linkError) {
       console.error('Generate link error:', linkError);
-      // Fall back to Supabase default email
-      await supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: finalRedirectTo,
-      });
+      // Keep success response to avoid user enumeration in auth flows
       return NextResponse.json({ success: true });
     }
 
     if (!data?.properties?.action_link) {
       console.error('No action link generated');
-      // Fall back to Supabase default email
-      await supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: finalRedirectTo,
-      });
       return NextResponse.json({ success: true });
     }
 
@@ -106,7 +95,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'cele.bio <noreply@cele.bio>',
+        from: fromEmail,
         to: email,
         subject: 'Reset your cele.bio password',
         html: emailHtml,
@@ -116,20 +105,19 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Resend API error:', errorData);
-      // Fall back to Supabase default email
-      await supabaseAdmin.auth.resetPasswordForEmail(email, {
-        redirectTo: finalRedirectTo,
-      });
-      return NextResponse.json({ success: true });
+      return NextResponse.json(
+        { error: 'Unable to send reset email right now' },
+        { status: 502 }
+      );
     }
 
     console.log('Password reset email sent successfully via Resend to:', email);
     return NextResponse.json({ success: true });
-
-    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Password reset error:', error);
-    // Always return success to prevent email enumeration
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { error: 'Failed to process password reset request' },
+      { status: 500 }
+    );
   }
 }
