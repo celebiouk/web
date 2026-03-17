@@ -446,14 +446,18 @@ export default function EditProductPage() {
       router.push('/dashboard/products');
 
     } catch (err: any) {
+      // Log the full error object for debugging
+      // eslint-disable-next-line no-console
       console.error('Update error:', err);
+      let errorMsg = 'Failed to update product. Please try again.';
       if (err?.message) {
-        setError(`Failed to update product: ${err.message}`);
+        errorMsg = `Failed to update product: ${err.message}`;
       } else if (typeof err === 'string') {
-        setError(`Failed to update product: ${err}`);
-      } else {
-        setError('Failed to update product. Please try again.');
+        errorMsg = `Failed to update product: ${err}`;
+      } else if (err) {
+        errorMsg = `Failed to update product: ${JSON.stringify(err)}`;
       }
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
       setCoverProgress(null);
