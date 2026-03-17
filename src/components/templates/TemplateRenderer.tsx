@@ -115,13 +115,7 @@ export function TemplateRenderer({
         </section>
       ) : null}
 
-      {/* Add top padding only when avatar overlaps so content doesn't hide behind it */}
-      <div
-        className={hasHeaderBanner && showAvatarOnBanner && data.profile.avatar_url ? 'pt-14' : ''}
-        style={{
-          backgroundColor: dataForTemplate.theme?.background_color || '#ffffff',
-        }}
-      >
+      <div>
         <TemplateComponent
           data={dataForTemplate}
           isPreview={isPreview}
