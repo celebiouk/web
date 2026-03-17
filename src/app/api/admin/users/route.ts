@@ -5,9 +5,14 @@ import { isInternalAdminEmail } from '@/lib/admin';
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const adminSupabase = (process.env.SUPABASE_SERVICE_ROLE_KEY
-      ? await createServiceClient()
-      : supabase) as any;
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json(
+        { error: 'Admin actions are not configured correctly (missing service role key).' },
+        { status: 500 }
+      );
+    }
+
+    const adminSupabase = await createServiceClient() as any;
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user || !isInternalAdminEmail(user.email)) {
@@ -34,20 +39,30 @@ export async function POST(request: Request) {
 
     switch (action) {
       case 'suspend': {
-        const { error } = await adminSupabase
+        const { data: updatedProfile, error } = await adminSupabase
           .from('profiles')
           .update({ is_suspended: true, suspended_at: new Date().toISOString() })
-          .eq('id', userId);
+          .eq('id', userId)
+          .select('id')
+          .maybeSingle();
         if (error) throw error;
+        if (!updatedProfile) {
+          return NextResponse.json({ error: 'Could not suspend user profile' }, { status: 400 });
+        }
         break;
       }
 
       case 'unsuspend': {
-        const { error } = await adminSupabase
+        const { data: updatedProfile, error } = await adminSupabase
           .from('profiles')
           .update({ is_suspended: false, suspended_at: null })
-          .eq('id', userId);
+          .eq('id', userId)
+          .select('id')
+          .maybeSingle();
         if (error) throw error;
+        if (!updatedProfile) {
+          return NextResponse.json({ error: 'Could not unsuspend user profile' }, { status: 400 });
+        }
         break;
       }
 
@@ -60,31 +75,46 @@ export async function POST(request: Request) {
         }
 
         // Grant Pro access manually (paid or admin-approved comp)
-        const { error } = await adminSupabase
+        const { data: updatedProfile, error } = await adminSupabase
           .from('profiles')
           .update({ subscription_tier: 'pro' })
-          .eq('id', userId);
+          .eq('id', userId)
+          .select('id, subscription_tier')
+          .maybeSingle();
         if (error) throw error;
+        if (!updatedProfile) {
+          return NextResponse.json({ error: 'Could not grant Pro access for this user' }, { status: 400 });
+        }
 
         break;
       }
 
       case 'downgrade_free': {
-        const { error } = await adminSupabase
+        const { data: updatedProfile, error } = await adminSupabase
           .from('profiles')
           .update({ subscription_tier: 'free' })
-          .eq('id', userId);
+          .eq('id', userId)
+          .select('id, subscription_tier')
+          .maybeSingle();
         if (error) throw error;
+        if (!updatedProfile) {
+          return NextResponse.json({ error: 'Could not set user to Free tier' }, { status: 400 });
+        }
         break;
       }
 
       case 'delete': {
         // Soft delete - just mark as deleted
-        const { error } = await adminSupabase
+        const { data: updatedProfile, error } = await adminSupabase
           .from('profiles')
           .update({ deleted_at: new Date().toISOString() })
-          .eq('id', userId);
+          .eq('id', userId)
+          .select('id')
+          .maybeSingle();
         if (error) throw error;
+        if (!updatedProfile) {
+          return NextResponse.json({ error: 'Could not delete user profile' }, { status: 400 });
+        }
         break;
       }
 
