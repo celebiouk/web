@@ -125,7 +125,7 @@ export default function AdminEmailPage() {
     try {
       const [broadcastsRes, subscribersRes] = await Promise.all([
         fetch('/api/email/broadcasts', { cache: 'no-store' }),
-        fetch('/api/email/subscribers', { cache: 'no-store' }),
+        fetch('/api/email/subscribers?scope=platform', { cache: 'no-store' }),
       ]);
 
       if (broadcastsRes.ok) {

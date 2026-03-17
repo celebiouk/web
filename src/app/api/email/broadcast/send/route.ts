@@ -78,32 +78,52 @@ async function resolvePlatformRecipients(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
   segmentType: 'platform_users' | 'platform_pro' | 'platform_free'
 ) {
-  let query = (supabase.from('profiles') as any)
-    .select('id,email,full_name,subscription_tier')
+  const { data: authUsers } = await ((supabase as any).schema('auth').from('users') as any)
+    .select('id,email')
     .not('email', 'is', null);
 
-  if (segmentType === 'platform_pro') {
-    query = query.eq('subscription_tier', 'pro');
-  }
+  const authRows = Array.isArray(authUsers) ? authUsers : [];
+  let allowedUserIds: Set<string> | null = null;
 
-  if (segmentType === 'platform_free') {
-    query = query.or('subscription_tier.is.null,subscription_tier.eq.free');
-  }
+  if (segmentType === 'platform_pro' || segmentType === 'platform_free') {
+    let tierQuery = (supabase.from('profiles') as any)
+      .select('id,subscription_tier');
 
-  const { data } = await query;
-  const rows = Array.isArray(data) ? data : [];
+    if (segmentType === 'platform_pro') {
+      tierQuery = tierQuery.eq('subscription_tier', 'pro');
+    } else {
+      tierQuery = tierQuery.or('subscription_tier.is.null,subscription_tier.eq.free');
+    }
+
+    const { data: tierRows } = await tierQuery;
+    const ids = Array.isArray(tierRows) ? tierRows.map((row: { id: string }) => row.id) : [];
+    allowedUserIds = new Set(ids);
+  }
 
   const deduped = new Map<string, { id: string; email: string; first_name?: string }>();
-  for (const row of rows) {
+  for (const row of authRows) {
+    if (allowedUserIds && !allowedUserIds.has(String(row.id))) {
+      continue;
+    }
+
     const email = String(row.email || '').trim().toLowerCase();
     if (!email) {
       continue;
     }
 
+    const localPart = email.split('@')[0] || '';
+    const inferredName = localPart
+      .replace(/[._-]+/g, ' ')
+      .trim()
+      .split(' ')
+      .filter(Boolean)
+      .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+      .join(' ');
+
     deduped.set(email, {
-      id: row.id,
+      id: String(row.id),
       email,
-      first_name: typeof row.full_name === 'string' ? row.full_name.split(' ')[0] : undefined,
+      first_name: inferredName || undefined,
     });
   }
 

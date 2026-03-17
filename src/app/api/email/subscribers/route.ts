@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { isInternalAdminEmail } from '@/lib/admin';
 
 const createSubscriberSchema = z.object({
   email: z.string().email(),
@@ -25,9 +26,39 @@ export async function GET(request: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const url = new URL(request.url);
+    const scope = (url.searchParams.get('scope') || '').trim();
     const search = (url.searchParams.get('search') || '').trim();
     const tag = (url.searchParams.get('tag') || '').trim();
     const source = (url.searchParams.get('source') || '').trim();
+
+    if (scope === 'platform') {
+      if (!isInternalAdminEmail(user.email)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
+      const serviceSupabase = await createServiceClient();
+      let authUsersQuery = ((serviceSupabase as any).schema('auth').from('users') as any)
+        .select('id,email')
+        .not('email', 'is', null);
+
+      if (search) {
+        authUsersQuery = authUsersQuery.ilike('email', `%${search}%`);
+      }
+
+      const { data: authUsers, error: authUsersError } = await authUsersQuery;
+      if (authUsersError) {
+        return NextResponse.json({ error: 'Failed to load platform users' }, { status: 500 });
+      }
+
+      const deduped = new Map<string, { id: string; email: string }>();
+      for (const row of authUsers || []) {
+        const email = String((row as { email?: string }).email || '').trim().toLowerCase();
+        if (!email) continue;
+        deduped.set(email, { id: String((row as { id: string }).id), email });
+      }
+
+      return NextResponse.json({ subscribers: Array.from(deduped.values()) });
+    }
 
     let query = (supabase.from('email_subscribers') as any)
       .select('*')
