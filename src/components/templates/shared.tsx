@@ -604,15 +604,19 @@ export function PoweredByFooter({
           backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.72)',
         }}
       >
-        <Image
-          src={logoImage}
-          alt="Cele.bio logo"
-          width={16}
-          height={16}
-          className="rounded"
-        />
         <span>
-          This page was built with <span className="font-medium">cele.bio</span> — Build your own for free.
+          This page was built with{' '}
+          <span className="relative inline-flex items-center font-medium">
+            <Image
+              src={logoImage}
+              alt="Cele.bio logo"
+              width={16}
+              height={16}
+              className="absolute left-0 top-1/2 -z-10 -translate-y-1/2 rounded opacity-70"
+            />
+            <span className="relative pl-0.5">cele.bio</span>
+          </span>{' '}
+          — Build your own for free.
         </span>
       </a>
     </div>
