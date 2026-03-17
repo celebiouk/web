@@ -135,7 +135,7 @@ export function EmailShell({
 
 // Base styles
 const body: React.CSSProperties = {
-  backgroundColor: colors.gray100,
+  backgroundColor: '#EEF2F7',
   fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif",
   margin: 0,
   padding: 0,
@@ -143,15 +143,16 @@ const body: React.CSSProperties = {
 
 const container: React.CSSProperties = {
   margin: '0 auto',
-  maxWidth: '600px',
-  padding: '40px 16px',
+  maxWidth: '640px',
+  padding: '28px 12px 36px',
 };
 
 const header: React.CSSProperties = {
-  backgroundColor: colors.dark,
-  borderRadius: '24px 24px 0 0',
-  padding: '28px 40px',
+  background: `radial-gradient(circle at 82% 18%, rgba(28, 231, 208, 0.28) 0%, rgba(28, 231, 208, 0) 42%), linear-gradient(135deg, ${colors.dark} 0%, #1E3A8A 55%, #0F766E 100%)`,
+  borderRadius: '26px 26px 0 0',
+  padding: '24px 34px',
   textAlign: 'center' as const,
+  boxShadow: '0 12px 34px rgba(13, 27, 42, 0.2)',
 };
 
 const logoLink: React.CSSProperties = {
@@ -160,7 +161,7 @@ const logoLink: React.CSSProperties = {
 
 const logoText: React.CSSProperties = {
   color: colors.white,
-  fontSize: '26px',
+  fontSize: '28px',
   fontWeight: 800,
   letterSpacing: '-0.02em',
   margin: 0,
@@ -172,8 +173,9 @@ const logoDot: React.CSSProperties = {
 
 const card: React.CSSProperties = {
   backgroundColor: colors.white,
-  borderRadius: '0 0 24px 24px',
-  boxShadow: '0 20px 60px rgba(13, 27, 42, 0.12), 0 8px 24px rgba(13, 27, 42, 0.08)',
+  border: `1px solid ${colors.gray200}`,
+  borderRadius: '0 0 26px 26px',
+  boxShadow: '0 18px 44px rgba(13, 27, 42, 0.1), 0 8px 20px rgba(13, 27, 42, 0.07)',
   overflow: 'hidden',
 };
 
@@ -184,7 +186,7 @@ const accentBar: React.CSSProperties = {
 };
 
 const cardContent: React.CSSProperties = {
-  padding: '36px 40px 40px',
+  padding: '34px 34px 36px',
 };
 
 const eyebrowStyle: React.CSSProperties = {
@@ -198,15 +200,15 @@ const eyebrowStyle: React.CSSProperties = {
 
 const heading: React.CSSProperties = {
   color: colors.dark,
-  fontSize: '26px',
-  fontWeight: 700,
+  fontSize: '30px',
+  fontWeight: 800,
   letterSpacing: '-0.02em',
-  lineHeight: '34px',
+  lineHeight: '38px',
   margin: '0 0 24px 0',
 };
 
 const footer: React.CSSProperties = {
-  padding: '28px 20px',
+  padding: '24px 20px 10px',
   textAlign: 'center' as const,
 };
 

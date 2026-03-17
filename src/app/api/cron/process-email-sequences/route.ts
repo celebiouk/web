@@ -62,6 +62,10 @@ export async function GET(request: Request) {
           firstName: subscriber.first_name,
           creatorName: creator?.full_name || 'Creator',
         }),
+        subject: applyEmailTokens(step.subject, {
+          firstName: subscriber.first_name,
+          creatorName: creator?.full_name || 'Creator',
+        }),
       });
 
       await sendMarketingEmail({

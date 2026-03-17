@@ -206,6 +206,7 @@ export async function POST(request: Request) {
         const html = buildBroadcastHtml({
           bodyHtml: htmlWithTokens,
           previewText: broadcast?.preview_text || '',
+          subject: broadcast?.subject || 'New update for you',
           openTrackingUrl,
           clickTrackingPrefix,
         });
