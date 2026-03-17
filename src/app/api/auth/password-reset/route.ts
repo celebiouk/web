@@ -19,7 +19,7 @@ function getSupabaseAdmin() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, redirectTo } = await request.json();
+    const { email } = await request.json();
 
     if (!email) {
       return NextResponse.json(
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const resendApiKey = process.env.RESEND_API_KEY;
     const supabaseAdmin = getSupabaseAdmin();
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
-    const finalRedirectTo = redirectTo || `${appUrl}/reset-password`;
+    const finalRedirectTo = new URL('/reset-password', appUrl).toString();
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'cele.bio <noreply@cele.bio>';
 
     if (!resendApiKey) {
