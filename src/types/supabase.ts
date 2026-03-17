@@ -11,6 +11,7 @@ export type ProductType = 'digital' | 'course' | 'coaching';
 export type TemplateCategory = 'minimal' | 'bold' | 'elegant' | 'creative' | 'professional';
 export type OrderStatus = 'pending' | 'completed' | 'failed' | 'refunded';
 export type StripeAccountStatus = 'not_connected' | 'pending' | 'complete';
+export type PayPalAccountStatus = 'not_connected' | 'pending' | 'connected';
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled_by_creator' | 'cancelled_by_buyer' | 'completed' | 'no_show';
 export type CancellationPolicy = 'full_refund' | 'no_refund' | 'refund_if_24hrs';
 export type VideoPlatform = 'whereby' | 'zoom' | 'google_meet' | 'custom';
@@ -62,6 +63,9 @@ export interface Database {
           subscription_tier: SubscriptionTier;
           stripe_account_id: string | null;
           stripe_account_status: StripeAccountStatus | null;
+          paypal_account_id: string | null;
+          paypal_account_status: PayPalAccountStatus;
+          paypal_email: string | null;
           stripe_customer_id: string | null;
           custom_domain: string | null;
           domain_verified: boolean;
@@ -86,6 +90,9 @@ export interface Database {
           subscription_tier?: SubscriptionTier;
           stripe_account_id?: string | null;
           stripe_account_status?: StripeAccountStatus | null;
+          paypal_account_id?: string | null;
+          paypal_account_status?: PayPalAccountStatus;
+          paypal_email?: string | null;
           stripe_customer_id?: string | null;
           custom_domain?: string | null;
           domain_verified?: boolean;
@@ -110,6 +117,9 @@ export interface Database {
           subscription_tier?: SubscriptionTier;
           stripe_account_id?: string | null;
           stripe_account_status?: StripeAccountStatus | null;
+          paypal_account_id?: string | null;
+          paypal_account_status?: PayPalAccountStatus;
+          paypal_email?: string | null;
           stripe_customer_id?: string | null;
           custom_domain?: string | null;
           domain_verified?: boolean;

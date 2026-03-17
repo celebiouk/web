@@ -19,6 +19,13 @@ This file lists all environment variables currently used by cele.bio for product
 - `STRIPE_PRO_YEARLY_PRICE_ID`
 - `STRIPE_CUSTOMER_PORTAL_RETURN_URL` (recommended explicit value)
 
+## PayPal (optional, if enabling PayPal connect)
+
+- `PAYPAL_CLIENT_ID`
+- `PAYPAL_CLIENT_SECRET`
+- `PAYPAL_REDIRECT_URI` (example: `https://cele.bio/api/paypal/connect/callback`)
+- `PAYPAL_MODE` (`live` or `sandbox`)
+
 ## Email (required for email flows)
 
 - `RESEND_API_KEY`
@@ -60,6 +67,11 @@ STRIPE_CONNECT_CLIENT_ID=
 STRIPE_PRO_MONTHLY_PRICE_ID=
 STRIPE_PRO_YEARLY_PRICE_ID=
 STRIPE_CUSTOMER_PORTAL_RETURN_URL=https://cele.bio/dashboard/settings/billing
+
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+PAYPAL_REDIRECT_URI=https://cele.bio/api/paypal/connect/callback
+PAYPAL_MODE=live
 
 RESEND_API_KEY=
 
