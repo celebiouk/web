@@ -245,6 +245,23 @@ export function ProductCardHorizontal({
   const checkoutUrl = product.type === 'coaching' 
     ? `/book/${username}/${product.id}`
     : `/checkout/${product.id}`;
+  const offerLimitType = product.offer_limit_type || 'none';
+  const offerClaimsLeft = offerLimitType === 'claims'
+    ? Math.max(0, Number(product.offer_max_claims || 0) - Number(product.offer_claims_used || 0))
+    : null;
+  const offerExpiresAtMs = product.offer_expires_at ? new Date(product.offer_expires_at).getTime() : null;
+  const offerExpired = offerLimitType === 'time' && offerExpiresAtMs !== null && Date.now() >= offerExpiresAtMs;
+  const offerActive = Boolean(
+    product.offer_enabled
+      && typeof product.offer_discount_price_cents === 'number'
+      && product.offer_discount_price_cents >= 0
+      && product.offer_discount_price_cents < product.price
+      && !offerExpired
+      && (offerLimitType !== 'claims' || (offerClaimsLeft !== null && offerClaimsLeft > 0))
+  );
+  const currentPrice = offerActive && typeof product.offer_discount_price_cents === 'number'
+    ? product.offer_discount_price_cents
+    : product.price;
   
   const typeLabels = {
     digital: 'Digital Product',
@@ -277,6 +294,11 @@ export function ProductCardHorizontal({
               {product.type === 'digital' ? 'PDF' : product.type === 'course' ? 'Course' : '1:1'}
             </div>
           )}
+          {offerActive && (
+            <div className="absolute bottom-1 left-1 rounded-md bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              Offer
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -291,11 +313,26 @@ export function ProductCardHorizontal({
           )}
           <div className="flex items-center gap-2">
             <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {formatPriceClean(product.price)}
+              {formatPrice(currentPrice)}
             </span>
+            {offerActive && (
+              <span className={`text-xs line-through ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                {formatPrice(product.price)}
+              </span>
+            )}
             {/* Optional: Show original price for discount */}
             {/* <span className="text-sm text-gray-400 line-through">$99.99</span> */}
           </div>
+          {offerActive && offerLimitType === 'claims' && offerClaimsLeft !== null && (
+            <p className={`mt-1 text-xs font-medium ${isDark ? 'text-rose-300' : 'text-rose-600'}`}>
+              {offerClaimsLeft} spot{offerClaimsLeft === 1 ? '' : 's'} left at this price
+            </p>
+          )}
+          {offerActive && product.offer_bonus_product_title && (
+            <p className={`mt-1 text-xs ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+              Bonus: {product.offer_bonus_product_title}
+            </p>
+          )}
         </div>
       </div>
 
@@ -334,6 +371,23 @@ export function ProductCardVertical({
   const checkoutUrl = product.type === 'coaching' 
     ? `/book/${username}/${product.id}`
     : `/checkout/${product.id}`;
+  const offerLimitType = product.offer_limit_type || 'none';
+  const offerClaimsLeft = offerLimitType === 'claims'
+    ? Math.max(0, Number(product.offer_max_claims || 0) - Number(product.offer_claims_used || 0))
+    : null;
+  const offerExpiresAtMs = product.offer_expires_at ? new Date(product.offer_expires_at).getTime() : null;
+  const offerExpired = offerLimitType === 'time' && offerExpiresAtMs !== null && Date.now() >= offerExpiresAtMs;
+  const offerActive = Boolean(
+    product.offer_enabled
+      && typeof product.offer_discount_price_cents === 'number'
+      && product.offer_discount_price_cents >= 0
+      && product.offer_discount_price_cents < product.price
+      && !offerExpired
+      && (offerLimitType !== 'claims' || (offerClaimsLeft !== null && offerClaimsLeft > 0))
+  );
+  const currentPrice = offerActive && typeof product.offer_discount_price_cents === 'number'
+    ? product.offer_discount_price_cents
+    : product.price;
 
   return (
     <Link
@@ -362,6 +416,11 @@ export function ProductCardVertical({
         >
           {product.type === 'digital' ? 'Digital' : product.type === 'course' ? 'Course' : '1:1'}
         </div>
+        {offerActive && (
+          <div className="absolute right-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+            Limited Offer
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -377,9 +436,16 @@ export function ProductCardVertical({
         
         {/* Price and CTA */}
         <div className="flex items-center justify-between">
-          <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {formatPriceClean(product.price)}
-          </span>
+          <div>
+            <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {formatPrice(currentPrice)}
+            </span>
+            {offerActive && (
+              <p className={`text-xs line-through ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                {formatPrice(product.price)}
+              </p>
+            )}
+          </div>
           <span 
             className="flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold text-white transition-all group-hover:gap-2"
             style={{ backgroundColor: primaryColor }}
@@ -388,6 +454,16 @@ export function ProductCardVertical({
             <ChevronRight className="h-4 w-4" />
           </span>
         </div>
+        {offerActive && offerLimitType === 'claims' && offerClaimsLeft !== null && (
+          <p className={`mt-2 text-xs font-medium ${isDark ? 'text-rose-300' : 'text-rose-600'}`}>
+            {offerClaimsLeft} spot{offerClaimsLeft === 1 ? '' : 's'} left at this price
+          </p>
+        )}
+        {offerActive && product.offer_bonus_product_title && (
+          <p className={`mt-1 text-xs ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+            Bonus included: {product.offer_bonus_product_title}
+          </p>
+        )}
       </div>
     </Link>
   );

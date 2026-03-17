@@ -555,12 +555,19 @@ export default function CourseEditPage() {
       .from('course-covers')
       .upload(filePath, file, { upsert: true });
 
-    if (!error) {
-      const { data: { publicUrl } } = supabase.storage
-        .from('course-covers')
-        .getPublicUrl(filePath);
-      setEditCoverImage(publicUrl);
+    if (error) {
+      if (error.message.toLowerCase().includes('bucket')) {
+        alert('Course storage is not set up yet. Please run the latest Supabase migrations and try again.');
+      } else {
+        alert(error.message);
+      }
+      return;
     }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('course-covers')
+      .getPublicUrl(filePath);
+    setEditCoverImage(publicUrl);
   }
 
   if (loading) {

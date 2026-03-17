@@ -10,7 +10,7 @@ const sendSchema = z.object({
   preview_text: z.string().max(300).optional(),
   body_html: z.string().min(1).optional(),
   segment: z.object({
-    type: z.enum(['all', 'tag', 'product', 'course_students', 'buyers']),
+    type: z.enum(['all', 'tag', 'product', 'course_students', 'buyers', 'platform_users', 'platform_pro', 'platform_free']),
     value: z.string().optional(),
   }).optional(),
   sendNow: z.boolean().default(true),
@@ -74,6 +74,42 @@ async function resolveRecipients(supabase: Awaited<ReturnType<typeof createServi
   return [];
 }
 
+async function resolvePlatformRecipients(
+  supabase: Awaited<ReturnType<typeof createServiceClient>>,
+  segmentType: 'platform_users' | 'platform_pro' | 'platform_free'
+) {
+  let query = (supabase.from('profiles') as any)
+    .select('id,email,full_name,subscription_tier')
+    .not('email', 'is', null);
+
+  if (segmentType === 'platform_pro') {
+    query = query.eq('subscription_tier', 'pro');
+  }
+
+  if (segmentType === 'platform_free') {
+    query = query.or('subscription_tier.is.null,subscription_tier.eq.free');
+  }
+
+  const { data } = await query;
+  const rows = Array.isArray(data) ? data : [];
+
+  const deduped = new Map<string, { id: string; email: string; first_name?: string }>();
+  for (const row of rows) {
+    const email = String(row.email || '').trim().toLowerCase();
+    if (!email) {
+      continue;
+    }
+
+    deduped.set(email, {
+      id: row.id,
+      email,
+      first_name: typeof row.full_name === 'string' ? row.full_name.split(' ')[0] : undefined,
+    });
+  }
+
+  return Array.from(deduped.values());
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -88,6 +124,7 @@ export async function POST(request: Request) {
     }
 
     const body = sendSchema.parse(await request.json());
+    const isAdminSender = isInternalAdminEmail(user.email);
 
     let broadcast: {
       id: string;
@@ -136,9 +173,21 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .maybeSingle();
 
-    const recipients = body.testEmail
-      ? [{ id: null, email: body.testEmail, first_name: 'Test' }]
-      : await resolveRecipients(serviceSupabase as any, user.id, broadcast.segment || { type: 'all' });
+    const segmentType = (broadcast.segment?.type || 'all') as string;
+
+    let recipients: { id: string | null; email: string; first_name?: string }[] = [];
+
+    if (body.testEmail) {
+      recipients = [{ id: null, email: body.testEmail, first_name: 'Test' }];
+    } else if (segmentType === 'platform_users' || segmentType === 'platform_pro' || segmentType === 'platform_free') {
+      if (!isAdminSender) {
+        return NextResponse.json({ error: 'Only internal admins can send platform-wide broadcasts.' }, { status: 403 });
+      }
+
+      recipients = await resolvePlatformRecipients(serviceSupabase as any, segmentType);
+    } else {
+      recipients = await resolveRecipients(serviceSupabase as any, user.id, broadcast.segment || { type: 'all' });
+    }
 
     const isProUser = (creatorProfile?.subscription_tier || 'free') === 'pro' || isInternalAdminEmail(user.email);
     const isTestEmail = Boolean(body.testEmail);

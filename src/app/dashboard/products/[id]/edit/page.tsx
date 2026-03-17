@@ -57,6 +57,15 @@ export default function EditProductPage() {
   const [upsellProductId, setUpsellProductId] = useState('');
   const [upsellPrice, setUpsellPrice] = useState('');
   const [upsellOptions, setUpsellOptions] = useState<Array<{ id: string; title: string; price: number }>>([]);
+  const [offerEnabled, setOfferEnabled] = useState(false);
+  const [offerDiscountPrice, setOfferDiscountPrice] = useState('');
+  const [offerLimitType, setOfferLimitType] = useState<'none' | 'time' | 'claims'>('none');
+  const [offerHours, setOfferHours] = useState('00');
+  const [offerMinutes, setOfferMinutes] = useState('00');
+  const [offerSeconds, setOfferSeconds] = useState('00');
+  const [offerMaxClaims, setOfferMaxClaims] = useState('10');
+  const [offerBonusProductId, setOfferBonusProductId] = useState('');
+  const [bonusProductOptions, setBonusProductOptions] = useState<Array<{ id: string; title: string; price: number }>>([]);
 
   // File state
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -118,6 +127,37 @@ export default function EditProductPage() {
       setUpsellProductId(productWithUpsell.upsell_product_id || '');
       setUpsellPrice(productWithUpsell.upsell_price_cents ? (productWithUpsell.upsell_price_cents / 100).toFixed(2) : '');
 
+      const productWithOffer = product as Product & {
+        offer_enabled?: boolean;
+        offer_discount_price_cents?: number | null;
+        offer_limit_type?: 'none' | 'time' | 'claims';
+        offer_expires_at?: string | null;
+        offer_max_claims?: number | null;
+        offer_bonus_product_id?: string | null;
+      };
+
+      setOfferEnabled(Boolean(productWithOffer.offer_enabled));
+      setOfferDiscountPrice(
+        typeof productWithOffer.offer_discount_price_cents === 'number'
+          ? (productWithOffer.offer_discount_price_cents / 100).toFixed(2)
+          : ''
+      );
+      setOfferLimitType(productWithOffer.offer_limit_type || 'none');
+      setOfferMaxClaims(String(productWithOffer.offer_max_claims || 10));
+      setOfferBonusProductId(productWithOffer.offer_bonus_product_id || '');
+
+      if (productWithOffer.offer_expires_at) {
+        const nowMs = Date.now();
+        const expiresMs = new Date(productWithOffer.offer_expires_at).getTime();
+        const diffSeconds = Math.max(0, Math.floor((expiresMs - nowMs) / 1000));
+        const hours = Math.floor(diffSeconds / 3600);
+        const minutes = Math.floor((diffSeconds % 3600) / 60);
+        const seconds = diffSeconds % 60;
+        setOfferHours(String(hours).padStart(2, '0'));
+        setOfferMinutes(String(minutes).padStart(2, '0'));
+        setOfferSeconds(String(seconds).padStart(2, '0'));
+      }
+
       const { data: options } = await supabase
         .from('products')
         .select('id,title,price')
@@ -127,6 +167,15 @@ export default function EditProductPage() {
         .order('created_at', { ascending: false });
 
       setUpsellOptions((options || []) as Array<{ id: string; title: string; price: number }>);
+
+      const { data: bonusOptions } = await supabase
+        .from('products')
+        .select('id,title,price')
+        .eq('creator_id', user.id)
+        .neq('id', productId)
+        .order('created_at', { ascending: false });
+
+      setBonusProductOptions((bonusOptions || []) as Array<{ id: string; title: string; price: number }>);
     } catch (err) {
       console.error('Load error:', err);
       setError('Failed to load product');
@@ -296,6 +345,54 @@ export default function EditProductPage() {
       const priceInCents = Math.round(priceValue * 100);
       const upsellPriceValue = parseFloat(upsellPrice || '0');
       const upsellPriceCents = upsellEnabled && upsellPriceValue > 0 ? Math.round(upsellPriceValue * 100) : null;
+      const offerDiscountValue = parseFloat(offerDiscountPrice || '0');
+
+      let offerDiscountPriceCents: number | null = null;
+      let offerExpiresAt: string | null = null;
+      let offerMaxClaimsValue: number | null = null;
+      let offerClaimsUsedValue = ((originalProduct as Product & { offer_claims_used?: number })?.offer_claims_used || 0);
+
+      if (offerEnabled) {
+        if (Number.isNaN(offerDiscountValue) || offerDiscountValue < 0) {
+          setError('Offer discount price must be a valid amount.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        offerDiscountPriceCents = Math.round(offerDiscountValue * 100);
+        if (offerDiscountPriceCents >= priceInCents) {
+          setError('Offer price must be lower than your regular price.');
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (offerLimitType === 'time') {
+          const hours = Math.max(0, Number.parseInt(offerHours || '0', 10));
+          const minutes = Math.max(0, Number.parseInt(offerMinutes || '0', 10));
+          const seconds = Math.max(0, Number.parseInt(offerSeconds || '0', 10));
+          const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+
+          if (totalSeconds <= 0) {
+            setError('Set a timer greater than 00:00:00 for time-limited offers.');
+            setIsSubmitting(false);
+            return;
+          }
+
+          offerExpiresAt = new Date(Date.now() + (totalSeconds * 1000)).toISOString();
+        }
+
+        if (offerLimitType === 'claims') {
+          const parsedClaims = Number.parseInt(offerMaxClaims || '0', 10);
+          if (Number.isNaN(parsedClaims) || parsedClaims < 1 || parsedClaims > 1000) {
+            setError('Claim limit must be between 1 and 1000.');
+            setIsSubmitting(false);
+            return;
+          }
+
+          offerMaxClaimsValue = parsedClaims;
+          offerClaimsUsedValue = 0;
+        }
+      }
 
       if (upsellEnabled && !upsellProductId) {
         setError('Select an upsell product');
@@ -328,6 +425,13 @@ export default function EditProductPage() {
           upsell_enabled: upsellEnabled,
           upsell_product_id: upsellEnabled ? upsellProductId || null : null,
           upsell_price_cents: upsellEnabled ? upsellPriceCents : null,
+          offer_enabled: offerEnabled,
+          offer_discount_price_cents: offerEnabled ? offerDiscountPriceCents : null,
+          offer_limit_type: offerEnabled ? offerLimitType : 'none',
+          offer_expires_at: offerEnabled ? offerExpiresAt : null,
+          offer_max_claims: offerEnabled && offerLimitType === 'claims' ? offerMaxClaimsValue : null,
+          offer_claims_used: offerEnabled && offerLimitType === 'claims' ? offerClaimsUsedValue : 0,
+          offer_bonus_product_id: offerEnabled ? offerBonusProductId || null : null,
         })
         .eq('id', productId);
 
@@ -454,6 +558,132 @@ export default function EditProductPage() {
                     onChange={(event) => setUpsellPrice(event.target.value)}
                     placeholder="e.g. 9.99"
                   />
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="space-y-4 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Limited-Time Offer
+            </h2>
+
+            <label className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Enable discount offer on this product
+              </span>
+              <input
+                type="checkbox"
+                checked={offerEnabled}
+                onChange={(event) => setOfferEnabled(event.target.checked)}
+              />
+            </label>
+
+            {offerEnabled && (
+              <>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Offer price (USD)
+                  </label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={offerDiscountPrice}
+                    onChange={(event) => setOfferDiscountPrice(event.target.value)}
+                    placeholder="e.g. 19.99"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">This is the discounted checkout price.</p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Offer limit type
+                  </label>
+                  <select
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    value={offerLimitType}
+                    onChange={(event) => setOfferLimitType(event.target.value as 'none' | 'time' | 'claims')}
+                  >
+                    <option value="none">Permanent discount</option>
+                    <option value="time">Countdown timer (HH:MM:SS)</option>
+                    <option value="claims">First N people</option>
+                  </select>
+                </div>
+
+                {offerLimitType === 'time' && (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Countdown timer (Hours:Minutes:Seconds)
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={offerHours}
+                        onChange={(event) => setOfferHours(event.target.value)}
+                        placeholder="00"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={offerMinutes}
+                        onChange={(event) => setOfferMinutes(event.target.value)}
+                        placeholder="00"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={offerSeconds}
+                        onChange={(event) => setOfferSeconds(event.target.value)}
+                        placeholder="00"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {offerLimitType === 'claims' && (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Number of buyers allowed (1-1000)
+                    </label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={offerMaxClaims}
+                      onChange={(event) => setOfferMaxClaims(event.target.value)}
+                      placeholder="10"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Bonus product (optional)
+                  </label>
+                  <select
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    value={offerBonusProductId}
+                    onChange={(event) => setOfferBonusProductId(event.target.value)}
+                  >
+                    <option value="">No bonus product</option>
+                    {bonusProductOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.title} — ${(option.price / 100).toFixed(2)}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Need a new bonus? Create it first, then come back and select it here.
+                  </p>
+                  <Link href="/dashboard/products/new" className="mt-2 inline-flex text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400">
+                    Create bonus product
+                  </Link>
                 </div>
               </>
             )}

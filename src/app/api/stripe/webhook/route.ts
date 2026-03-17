@@ -82,9 +82,46 @@ async function handlePaymentSucceeded(supabaseAdmin: SupabaseClient<Database>, p
     .eq('stripe_payment_intent_id', paymentIntent.id);
 
   const { data: completedOrder } = await (supabaseAdmin.from('orders') as any)
-    .select('id, creator_id, product_id')
+    .select('id, creator_id, product_id, buyer_email, offer_applied, offer_bonus_product_id, products(offer_limit_type, offer_claims_used, offer_max_claims)')
     .eq('stripe_payment_intent_id', paymentIntent.id)
     .maybeSingle();
+
+  const orderWithOffer = completedOrder as {
+    id: string;
+    creator_id: string;
+    product_id: string;
+    buyer_email: string;
+    offer_applied?: boolean;
+    offer_bonus_product_id?: string | null;
+    products?: { offer_limit_type?: 'none' | 'time' | 'claims'; offer_claims_used?: number; offer_max_claims?: number };
+  } | null;
+
+  if (orderWithOffer?.offer_applied && orderWithOffer.products?.offer_limit_type === 'claims') {
+    await (supabaseAdmin.from('products') as any)
+      .update({ offer_claims_used: Number(orderWithOffer.products.offer_claims_used || 0) + 1 })
+      .eq('id', orderWithOffer.product_id)
+      .lt('offer_claims_used', Number(orderWithOffer.products.offer_max_claims || 1000));
+  }
+
+  if (orderWithOffer?.offer_bonus_product_id && orderWithOffer?.buyer_email) {
+    const { data: existingBonus } = await (supabaseAdmin.from('orders') as any)
+      .select('id')
+      .eq('bonus_from_order_id', orderWithOffer.id)
+      .maybeSingle();
+
+    if (!existingBonus?.id) {
+      await (supabaseAdmin.from('orders') as any).insert({
+        product_id: orderWithOffer.offer_bonus_product_id,
+        creator_id: orderWithOffer.creator_id,
+        buyer_email: orderWithOffer.buyer_email,
+        amount_cents: 0,
+        platform_fee_cents: 0,
+        status: 'completed',
+        delivery_sent_at: new Date().toISOString(),
+        bonus_from_order_id: orderWithOffer.id,
+      });
+    }
+  }
 
   if (completedOrder?.creator_id) {
     await (supabaseAdmin.from('analytics_events') as any).insert({

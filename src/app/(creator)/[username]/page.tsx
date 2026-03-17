@@ -93,6 +93,23 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
 
   const allProducts = (products as (Product & { duration_minutes?: number })[]) || [];
 
+  const offerBonusProductIds = Array.from(
+    new Set(
+      allProducts
+        .map((product) => (product as Product & { offer_bonus_product_id?: string | null }).offer_bonus_product_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+
+  const { data: offerBonusProducts } = offerBonusProductIds.length
+    ? await supabase
+      .from('products')
+      .select('id,title')
+      .in('id', offerBonusProductIds)
+    : { data: [] as Array<{ id: string; title: string }> };
+
+  const offerBonusTitleMap = new Map((offerBonusProducts || []).map((row) => [row.id, row.title]));
+
   // Separate coaching from other products
   const coachingProduct = allProducts.find(p => p.type === 'coaching');
   const digitalProducts = allProducts.filter(p => p.type !== 'coaching');
@@ -192,6 +209,16 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       header_banner_url: (p as any).header_banner_url || null,
       type: p.type as 'digital' | 'course' | 'coaching',
       is_published: p.is_published,
+      offer_enabled: Boolean((p as any).offer_enabled),
+      offer_discount_price_cents: (p as any).offer_discount_price_cents ?? null,
+      offer_limit_type: ((p as any).offer_limit_type || 'none') as 'none' | 'time' | 'claims',
+      offer_expires_at: (p as any).offer_expires_at || null,
+      offer_max_claims: (p as any).offer_max_claims ?? null,
+      offer_claims_used: (p as any).offer_claims_used ?? 0,
+      offer_bonus_product_id: (p as any).offer_bonus_product_id || null,
+      offer_bonus_product_title: (p as any).offer_bonus_product_id
+        ? offerBonusTitleMap.get((p as any).offer_bonus_product_id) || null
+        : null,
     })),
     coaching: coachingProduct ? {
       id: coachingProduct.id,

@@ -92,7 +92,13 @@ export default function NewCoursePage() {
         .from('course-covers')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        if (uploadError.message.toLowerCase().includes('bucket')) {
+          throw new Error('Course storage is not set up yet. Please run the latest Supabase migrations and try again.');
+        }
+
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('course-covers')
@@ -100,7 +106,8 @@ export default function NewCoursePage() {
 
       setCoverImage(publicUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      const message = err instanceof Error ? err.message : 'Upload failed';
+      setError(message);
     } finally {
       setUploading(false);
     }

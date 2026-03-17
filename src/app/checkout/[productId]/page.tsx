@@ -33,6 +33,8 @@ export default function CheckoutPage() {
   const [buyerEmail, setBuyerEmail] = useState('');
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [checkoutAmount, setCheckoutAmount] = useState<number | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +42,29 @@ export default function CheckoutPage() {
   useEffect(() => {
     loadProduct();
   }, [productId]);
+
+  useEffect(() => {
+    if (secondsRemaining === null) {
+      return;
+    }
+
+    if (secondsRemaining <= 0) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setSecondsRemaining((previous) => {
+        if (previous === null || previous <= 1) {
+          window.clearInterval(interval);
+          return 0;
+        }
+
+        return previous - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [secondsRemaining]);
 
   async function loadProduct() {
     try {
@@ -57,14 +82,60 @@ export default function CheckoutPage() {
 
       const product = productData as Product;
 
+      const productOffer = product as Product & {
+        offer_enabled?: boolean;
+        offer_discount_price_cents?: number | null;
+        offer_limit_type?: 'none' | 'time' | 'claims';
+        offer_expires_at?: string | null;
+        offer_max_claims?: number | null;
+        offer_claims_used?: number | null;
+        offer_bonus_product_id?: string | null;
+        offer_bonus_product_title?: string | null;
+      };
+
+      if (productOffer.offer_bonus_product_id) {
+        const { data: bonusProduct } = await supabase
+          .from('products')
+          .select('title')
+          .eq('id', productOffer.offer_bonus_product_id)
+          .maybeSingle();
+
+        const typedBonusProduct = bonusProduct as { title?: string } | null;
+        productOffer.offer_bonus_product_title = typedBonusProduct?.title || null;
+      }
+
       const { data: creatorData } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', product.creator_id)
         .single();
 
-      setProduct(product);
+      setProduct(productOffer);
       setCreator(creatorData as Profile | null);
+
+      const expiresAt = productOffer.offer_expires_at ? new Date(productOffer.offer_expires_at).getTime() : null;
+      const limitType = productOffer.offer_limit_type || 'none';
+      const hasTimeExpired = limitType === 'time' && expiresAt !== null && Date.now() >= expiresAt;
+      const claimsLeft = limitType === 'claims'
+        ? Math.max(0, Number(productOffer.offer_max_claims || 0) - Number(productOffer.offer_claims_used || 0))
+        : null;
+
+      const offerIsActive = Boolean(
+        productOffer.offer_enabled
+          && typeof productOffer.offer_discount_price_cents === 'number'
+          && productOffer.offer_discount_price_cents >= 0
+          && productOffer.offer_discount_price_cents < productOffer.price
+          && !hasTimeExpired
+          && (limitType !== 'claims' || (claimsLeft !== null && claimsLeft > 0))
+      );
+
+      setCheckoutAmount(offerIsActive ? Number(productOffer.offer_discount_price_cents) : productOffer.price);
+
+      if (offerIsActive && limitType === 'time' && expiresAt) {
+        setSecondsRemaining(Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)));
+      } else {
+        setSecondsRemaining(null);
+      }
 
       if (product.creator_id) {
         const params = new URLSearchParams(window.location.search);
@@ -118,6 +189,9 @@ export default function CheckoutPage() {
 
       setClientSecret(data.clientSecret);
       setOrderId(data.orderId);
+      if (typeof data.amountCents === 'number') {
+        setCheckoutAmount(data.amountCents);
+      }
     } catch (err) {
       console.error('Payment error:', err);
       setError(err instanceof Error ? err.message : 'Failed to create payment');
@@ -164,6 +238,39 @@ export default function CheckoutPage() {
 
   if (!product) return null;
 
+  const productOffer = product as Product & {
+    offer_enabled?: boolean;
+    offer_discount_price_cents?: number | null;
+    offer_limit_type?: 'none' | 'time' | 'claims';
+    offer_expires_at?: string | null;
+    offer_max_claims?: number | null;
+    offer_claims_used?: number | null;
+    offer_bonus_product_id?: string | null;
+    offer_bonus_product_title?: string | null;
+  };
+
+  const regularPrice = product.price;
+  const discountedPrice = typeof productOffer.offer_discount_price_cents === 'number'
+    ? productOffer.offer_discount_price_cents
+    : regularPrice;
+  const offerLimitType = productOffer.offer_limit_type || 'none';
+  const offerClaimsLeft = offerLimitType === 'claims'
+    ? Math.max(0, Number(productOffer.offer_max_claims || 0) - Number(productOffer.offer_claims_used || 0))
+    : null;
+  const offerActive = Boolean(
+    productOffer.offer_enabled
+      && discountedPrice >= 0
+      && discountedPrice < regularPrice
+      && (offerLimitType !== 'time' || (secondsRemaining !== null && secondsRemaining > 0))
+      && (offerLimitType !== 'claims' || (offerClaimsLeft !== null && offerClaimsLeft > 0))
+  );
+
+  const displayedAmount = checkoutAmount ?? (offerActive ? discountedPrice : regularPrice);
+  const offerSavings = Math.max(0, regularPrice - discountedPrice);
+  const hours = secondsRemaining !== null ? String(Math.floor(secondsRemaining / 3600)).padStart(2, '0') : '00';
+  const minutes = secondsRemaining !== null ? String(Math.floor((secondsRemaining % 3600) / 60)).padStart(2, '0') : '00';
+  const seconds = secondsRemaining !== null ? String(secondsRemaining % 60).padStart(2, '0') : '00';
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 dark:bg-gray-900">
       <div className="mx-auto max-w-2xl px-4">
@@ -206,14 +313,52 @@ export default function CheckoutPage() {
                     </p>
                   )}
                   <p className="mt-2 text-lg font-bold text-brand-600 dark:text-brand-400">
-                    {product.price === 0
+                    {displayedAmount === 0
                       ? 'Free'
-                      : formatPrice(product.price, product.currency)}
+                      : formatPrice(displayedAmount, product.currency)}
                   </p>
+                  {offerActive && regularPrice > displayedAmount && (
+                    <p className="mt-1 text-xs text-gray-500 line-through">
+                      {formatPrice(regularPrice, product.currency)}
+                    </p>
+                  )}
                 </div>
               </div>
               </CardContent>
             </Card>
+
+            {offerActive && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-500/30 dark:bg-brand-500/10">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">Limited Offer Active</p>
+                    <h3 className="mt-1 text-base font-semibold text-gray-900 dark:text-white">Save {formatPrice(offerSavings, product.currency)} when you buy now</h3>
+
+                    {offerLimitType === 'time' && (
+                      <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 font-mono text-lg font-bold text-gray-900 shadow-sm dark:bg-gray-900 dark:text-white">
+                        <span>{hours}</span>
+                        <span>:</span>
+                        <span>{minutes}</span>
+                        <span>:</span>
+                        <span>{seconds}</span>
+                      </div>
+                    )}
+
+                    {offerLimitType === 'claims' && offerClaimsLeft !== null && (
+                      <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {offerClaimsLeft} discounted spot{offerClaimsLeft === 1 ? '' : 's'} left
+                      </p>
+                    )}
+
+                    {productOffer.offer_bonus_product_title && (
+                      <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">
+                        🎁 Bonus included: <span className="font-semibold">{productOffer.offer_bonus_product_title}</span>
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {((product as any).description_html || product.description) ? (
               <Card>
@@ -266,10 +411,10 @@ export default function CheckoutPage() {
                         <Spinner size="sm" className="mr-2" />
                         Processing...
                       </>
-                    ) : product.price === 0 ? (
+                    ) : displayedAmount === 0 ? (
                       'Get Free Download'
                     ) : (
-                      `Pay ${formatPrice(product.price, product.currency)}`
+                      `Pay ${formatPrice(displayedAmount, product.currency)}`
                     )}
                   </Button>
                 </div>
@@ -289,7 +434,7 @@ export default function CheckoutPage() {
                 >
                   <PaymentForm
                     orderId={orderId}
-                    amount={product.price}
+                    amount={displayedAmount}
                     currency={product.currency}
                   />
                 </Elements>

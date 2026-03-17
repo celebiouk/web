@@ -18,7 +18,7 @@ type Broadcast = {
   preview_text: string | null;
   body_html: string;
   status: 'draft' | 'scheduled' | 'sending' | 'sent';
-  segment: { type: 'all' | 'tag' | 'product' | 'course_students' | 'buyers'; value?: string };
+  segment: { type: 'all' | 'tag' | 'product' | 'course_students' | 'buyers' | 'platform_users' | 'platform_pro' | 'platform_free'; value?: string };
   recipient_count: number;
   sent_at: string | null;
   scheduled_at: string | null;
@@ -53,6 +53,34 @@ const templateCatalog: TemplateCatalog[] = [
 
 const categories = ['All', 'Onboarding', 'Products', 'Sales', 'Orders', 'Payments', 'Subscriptions', 'Auth', 'Bookings', 'Courses', 'Affiliates'];
 
+function buildWebsiteTemplateHtml(template: TemplateCatalog): string {
+  return `
+<h1 style="margin:0 0 14px;font-size:30px;line-height:1.15;">${template.name}</h1>
+<p style="margin:0 0 18px;color:#334155;font-size:16px;line-height:1.7;">${template.description}</p>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;border-collapse:separate;border-spacing:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">
+  <tr>
+    <td style="padding:16px 18px;">
+      <h3 style="margin:0 0 8px;font-size:18px;">What this update includes</h3>
+      <ul style="margin:0;padding-left:18px;color:#334155;line-height:1.7;">
+        <li>Short and clear summary for the recipient</li>
+        <li>One primary call-to-action button</li>
+        <li>Space for details, links, and next steps</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0 0 18px;color:#0f172a;">Hi {{first_name}}, this message is from {{creator_name}} on cele.bio.</p>
+
+<p style="margin:0 0 24px;">
+  <a href="https://cele.bio/dashboard" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:10px;">Open Dashboard</a>
+</p>
+
+<p style="margin:0;color:#64748b;font-size:14px;">Need help? Reply to this email and our team will assist you.</p>
+`.trim();
+}
+
 export default function AdminEmailPage() {
   const [activeTab, setActiveTab] = useState<'compose' | 'templates' | 'history'>('templates');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -65,7 +93,7 @@ export default function AdminEmailPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
 
   const [composeData, setComposeData] = useState({
-    segmentType: 'all' as 'all' | 'tag' | 'product' | 'course_students' | 'buyers',
+    segmentType: 'all' as 'all' | 'tag' | 'product' | 'course_students' | 'buyers' | 'platform_users' | 'platform_pro' | 'platform_free',
     segmentValue: '',
     subject: '',
     previewText: '',
@@ -120,7 +148,7 @@ export default function AdminEmailPage() {
     setComposeData((prev) => ({
       ...prev,
       subject: template.defaultSubject,
-      bodyHtml: template.defaultHtml,
+      bodyHtml: buildWebsiteTemplateHtml(template),
       previewText: template.description,
     }));
     setActiveTab('compose');
@@ -379,6 +407,9 @@ export default function AdminEmailPage() {
                   className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
                   <option value="all">All subscribers</option>
+                  <option value="platform_users">All platform users (admin)</option>
+                  <option value="platform_pro">Platform Pro users (admin)</option>
+                  <option value="platform_free">Platform Free users (admin)</option>
                   <option value="tag">By tag</option>
                   <option value="buyers">Buyers of product</option>
                   <option value="course_students">Course students</option>
@@ -391,6 +422,7 @@ export default function AdminEmailPage() {
                   value={composeData.segmentValue}
                   onChange={(e) => setComposeData({ ...composeData, segmentValue: e.target.value })}
                   placeholder="Tag or product/course ID"
+                  disabled={composeData.segmentType === 'all' || composeData.segmentType === 'platform_users' || composeData.segmentType === 'platform_pro' || composeData.segmentType === 'platform_free'}
                   className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>
@@ -516,7 +548,7 @@ export default function AdminEmailPage() {
 
               <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Preview</p>
-                <div className="prose max-w-none text-sm dark:prose-invert" dangerouslySetInnerHTML={{ __html: previewTemplate ? previewTemplate.defaultHtml : (composeData.bodyHtml || '<p>No content.</p>') }} />
+                <div className="prose max-w-none text-sm dark:prose-invert" dangerouslySetInnerHTML={{ __html: previewTemplate ? buildWebsiteTemplateHtml(previewTemplate) : (composeData.bodyHtml || '<p>No content.</p>') }} />
               </div>
 
               <div className="flex justify-end">

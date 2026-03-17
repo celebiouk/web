@@ -28,6 +28,14 @@ export type CreatorProduct = {
   header_banner_url?: string | null;
   is_published: boolean;
   duration_minutes?: number | null;
+  offer_enabled?: boolean;
+  offer_discount_price_cents?: number | null;
+  offer_limit_type?: 'none' | 'time' | 'claims';
+  offer_expires_at?: string | null;
+  offer_max_claims?: number | null;
+  offer_claims_used?: number;
+  offer_bonus_product_id?: string | null;
+  offer_bonus_product_title?: string | null;
 };
 
 export type CoachingSession = {

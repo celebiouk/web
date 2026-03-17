@@ -19,6 +19,61 @@ function getSupabaseAdmin() {
   );
 }
 
+type ProductOffer = {
+  enabled: boolean;
+  discountedPriceCents: number;
+  discountCents: number;
+  bonusProductId: string | null;
+};
+
+function getActiveOffer(product: {
+  price: number;
+  offer_enabled?: boolean | null;
+  offer_discount_price_cents?: number | null;
+  offer_limit_type?: 'none' | 'time' | 'claims' | null;
+  offer_expires_at?: string | null;
+  offer_max_claims?: number | null;
+  offer_claims_used?: number | null;
+  offer_bonus_product_id?: string | null;
+}): ProductOffer {
+  if (!product.offer_enabled) {
+    return { enabled: false, discountedPriceCents: product.price, discountCents: 0, bonusProductId: null };
+  }
+
+  const discounted = typeof product.offer_discount_price_cents === 'number'
+    ? product.offer_discount_price_cents
+    : product.price;
+
+  if (discounted < 0 || discounted >= product.price) {
+    return { enabled: false, discountedPriceCents: product.price, discountCents: 0, bonusProductId: null };
+  }
+
+  const limitType = product.offer_limit_type || 'none';
+
+  if (limitType === 'time' && product.offer_expires_at) {
+    const expiresAtMs = new Date(product.offer_expires_at).getTime();
+    if (Number.isFinite(expiresAtMs) && Date.now() >= expiresAtMs) {
+      return { enabled: false, discountedPriceCents: product.price, discountCents: 0, bonusProductId: null };
+    }
+  }
+
+  if (limitType === 'claims') {
+    const maxClaims = Number(product.offer_max_claims || 0);
+    const usedClaims = Number(product.offer_claims_used || 0);
+
+    if (!maxClaims || usedClaims >= maxClaims) {
+      return { enabled: false, discountedPriceCents: product.price, discountCents: 0, bonusProductId: null };
+    }
+  }
+
+  return {
+    enabled: true,
+    discountedPriceCents: discounted,
+    discountCents: Math.max(0, product.price - discounted),
+    bonusProductId: product.offer_bonus_product_id || null,
+  };
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -76,8 +131,32 @@ export async function POST(request: Request) {
       );
     }
 
+    const activeOffer = getActiveOffer(product as {
+      price: number;
+      offer_enabled?: boolean | null;
+      offer_discount_price_cents?: number | null;
+      offer_limit_type?: 'none' | 'time' | 'claims' | null;
+      offer_expires_at?: string | null;
+      offer_max_claims?: number | null;
+      offer_claims_used?: number | null;
+      offer_bonus_product_id?: string | null;
+    });
+
+    const chargeAmountCents = activeOffer.discountedPriceCents;
+
+    let resolvedBonusProductId: string | null = null;
+    if (activeOffer.bonusProductId) {
+      const { data: bonusProduct } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .eq('id', activeOffer.bonusProductId)
+        .eq('creator_id', product.creator_id)
+        .maybeSingle();
+      resolvedBonusProductId = bonusProduct?.id || null;
+    }
+
     // Handle free products
-    if (product.price === 0) {
+    if (chargeAmountCents === 0) {
       // Create order directly for free products
       const { data: order, error: orderError } = await supabaseAdmin
         .from('orders')
@@ -87,6 +166,9 @@ export async function POST(request: Request) {
           buyer_email: buyerEmail,
           amount_cents: 0,
           platform_fee_cents: 0,
+          offer_applied: activeOffer.enabled,
+          offer_discount_cents: activeOffer.discountCents,
+          offer_bonus_product_id: resolvedBonusProductId,
           status: 'completed',
         })
         .select()
@@ -100,14 +182,38 @@ export async function POST(request: Request) {
         );
       }
 
+      const offerLimitType = (product.offer_limit_type || 'none') as 'none' | 'time' | 'claims';
+      if (activeOffer.enabled && offerLimitType === 'claims') {
+        await supabaseAdmin
+          .from('products')
+          .update({ offer_claims_used: Number(product.offer_claims_used || 0) + 1 })
+          .eq('id', productId)
+          .lt('offer_claims_used', Number(product.offer_max_claims || 1000));
+      }
+
+      if (order?.id && resolvedBonusProductId) {
+        await supabaseAdmin.from('orders').insert({
+          product_id: resolvedBonusProductId,
+          creator_id: product.creator_id,
+          buyer_email: buyerEmail,
+          amount_cents: 0,
+          platform_fee_cents: 0,
+          status: 'completed',
+          delivery_sent_at: new Date().toISOString(),
+          bonus_from_order_id: order.id,
+        });
+      }
+
       return NextResponse.json({
         orderId: order.id,
         free: true,
+        amountCents: chargeAmountCents,
+        offerApplied: activeOffer.enabled,
       });
     }
 
     // Calculate platform fee
-    const platformFee = calculatePlatformFee(product.price, creator.subscription_tier);
+    const platformFee = calculatePlatformFee(chargeAmountCents, creator.subscription_tier);
 
     const existingCustomers = await stripe.customers.list({
       email: buyerEmail,
@@ -123,7 +229,7 @@ export async function POST(request: Request) {
 
     // Create Payment Intent with Connect
     const paymentIntent = await createConnectPaymentIntent({
-      amountCents: product.price,
+      amountCents: chargeAmountCents,
       creatorStripeAccountId: creator.stripe_account_id,
       platformFeeCents: platformFee,
       customerId: resolvedCustomerId,
@@ -143,9 +249,12 @@ export async function POST(request: Request) {
         product_id: productId,
         creator_id: product.creator_id,
         buyer_email: buyerEmail,
-        amount_cents: product.price,
+        amount_cents: chargeAmountCents,
         platform_fee_cents: platformFee,
         stripe_payment_intent_id: paymentIntent.id,
+        offer_applied: activeOffer.enabled,
+        offer_discount_cents: activeOffer.discountCents,
+        offer_bonus_product_id: resolvedBonusProductId,
         status: 'pending',
       })
       .select()
@@ -160,6 +269,8 @@ export async function POST(request: Request) {
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       orderId: order?.id,
+      amountCents: chargeAmountCents,
+      offerApplied: activeOffer.enabled,
     });
 
   } catch (error) {
