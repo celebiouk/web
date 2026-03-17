@@ -1,6 +1,7 @@
 /**
  * Custom Password Reset API
- * Sends beautiful branded password reset emails via Resend instead of Supabase default
+ * Sends beautiful branded password reset emails via Resend
+ * Falls back to Supabase default email if Resend is not configured
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -29,17 +30,21 @@ export async function POST(request: NextRequest) {
     }
 
     const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.error('RESEND_API_KEY not configured');
-      return NextResponse.json(
-        { error: 'Email service not configured' },
-        { status: 500 }
-      );
-    }
-
     const supabaseAdmin = getSupabaseAdmin();
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
     const finalRedirectTo = redirectTo || `${appUrl}/reset-password`;
+
+    // If Resend is not configured, use Supabase default email
+    if (!resendApiKey) {
+      console.log('RESEND_API_KEY not configured, using Supabase default email');
+      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: finalRedirectTo,
+      });
+      if (error) {
+        console.error('Supabase reset email error:', error);
+      }
+      return NextResponse.json({ success: true });
+    }
 
     // Generate the password recovery link using Supabase Admin API
     const { data, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -52,12 +57,19 @@ export async function POST(request: NextRequest) {
 
     if (linkError) {
       console.error('Generate link error:', linkError);
-      // Don't reveal if user exists or not for security
+      // Fall back to Supabase default email
+      await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: finalRedirectTo,
+      });
       return NextResponse.json({ success: true });
     }
 
     if (!data?.properties?.action_link) {
       console.error('No action link generated');
+      // Fall back to Supabase default email
+      await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: finalRedirectTo,
+      });
       return NextResponse.json({ success: true });
     }
 
@@ -104,9 +116,15 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Resend API error:', errorData);
-      // Still return success to not reveal info
+      // Fall back to Supabase default email
+      await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: finalRedirectTo,
+      });
       return NextResponse.json({ success: true });
     }
+
+    console.log('Password reset email sent successfully via Resend to:', email);
+    return NextResponse.json({ success: true });
 
     return NextResponse.json({ success: true });
   } catch (error) {
