@@ -57,10 +57,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    if (!data?.properties?.action_link) {
-      console.error('No action link generated');
+    const tokenHash =
+      data?.properties?.hashed_token ||
+      (data?.properties as { token_hash?: string } | undefined)?.token_hash;
+
+    if (!tokenHash) {
+      console.error('No token hash generated');
       return NextResponse.json({ success: true });
     }
+
+    const resetUrl = new URL('/reset-password/verify', appUrl);
+    resetUrl.searchParams.set('token_hash', tokenHash);
+    resetUrl.searchParams.set('type', 'recovery');
 
     // Try to get the user's name for personalization
     let userName = 'there';
@@ -82,8 +90,8 @@ export async function POST(request: NextRequest) {
     const emailHtml = await render(
       PasswordReset({
         userName,
-        resetUrl: data.properties.action_link,
-        expiresIn: '1 hour',
+        resetUrl: resetUrl.toString(),
+        expiresIn: '30 minutes',
       })
     );
 
