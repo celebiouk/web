@@ -269,14 +269,15 @@ export default function EditProductPage() {
     e.preventDefault();
     setError(null);
 
+
     if (!title.trim()) {
       setError('Title is required');
       return;
     }
 
     const priceValue = parseFloat(price);
-    if (isNaN(priceValue) || priceValue < 0) {
-      setError('Please enter a valid price');
+    if (isNaN(priceValue) || priceValue < 0.01) {
+      setError('Please enter a valid price (minimum $0.01)');
       return;
     }
 
@@ -355,15 +356,16 @@ export default function EditProductPage() {
       const hasClaimsLimit = offerLimitType === 'claims' || offerLimitType === 'both';
 
       if (offerEnabled) {
-        if (Number.isNaN(offerDiscountValue) || offerDiscountValue < 0) {
-          setError('Offer discount price must be a valid amount.');
+
+        if (Number.isNaN(offerDiscountValue) || offerDiscountValue < 0.01) {
+          setError('Discount price must be at least $0.01');
           setIsSubmitting(false);
           return;
         }
 
         offerDiscountPriceCents = Math.round(offerDiscountValue * 100);
         if (offerDiscountPriceCents >= priceInCents) {
-          setError('Offer price must be lower than your regular price.');
+          setError('Discount price must be lower than your regular price.');
           setIsSubmitting(false);
           return;
         }
@@ -443,9 +445,15 @@ export default function EditProductPage() {
 
       router.push('/dashboard/products');
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Update error:', err);
-      setError('Failed to update product. Please try again.');
+      if (err?.message) {
+        setError(`Failed to update product: ${err.message}`);
+      } else if (typeof err === 'string') {
+        setError(`Failed to update product: ${err}`);
+      } else {
+        setError('Failed to update product. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
       setCoverProgress(null);
