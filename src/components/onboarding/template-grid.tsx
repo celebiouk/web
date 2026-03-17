@@ -251,7 +251,7 @@ function TemplateCard({
         {/* Screen Container */}
         <div className="relative aspect-[9/19.5] overflow-hidden rounded-[2rem] bg-white">
           {/* Scaled Template Preview */}
-          <div className="absolute inset-0 origin-top scale-[0.33] overflow-hidden" style={{ width: '300%', height: '300%' }}>
+          <div className="absolute inset-0 origin-top-left scale-[0.33] overflow-hidden" style={{ width: '300%', height: '300%', transformOrigin: 'top left' }}>
             <TemplateRenderer
               templateSlug={templateSlug}
               data={PREVIEW_DATA}
@@ -328,7 +328,7 @@ function TemplatePreviewModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+      className="fixed inset-0 z-50 bg-black/80 p-4 backdrop-blur-md"
       onClick={onClose}
     >
       {/* Close button */}
@@ -339,63 +339,16 @@ function TemplatePreviewModal({
         <X className="h-5 w-5" />
       </button>
 
-      <div
-        className="flex flex-col items-center gap-6 lg:flex-row lg:gap-12"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Phone Mockup Preview */}
-        <div className="relative">
-          {/* Phone Frame */}
-          <div className="relative overflow-hidden rounded-[3rem] border-[4px] border-zinc-700 bg-zinc-900 p-3 shadow-2xl">
-            {/* Notch */}
-            <div className="absolute left-1/2 top-4 z-20 h-6 w-24 -translate-x-1/2 rounded-full bg-zinc-900" />
-            
-            {/* Screen */}
-            <div className="relative h-[600px] w-[280px] overflow-hidden rounded-[2.25rem] bg-white md:h-[700px] md:w-[340px]">
-              {/* Scrollable Template */}
-              <div className="h-full overflow-y-auto no-scrollbar">
-                <div className="origin-top scale-[0.5]" style={{ width: '200%', transformOrigin: 'top left' }}>
-                  <TemplateRenderer
-                    templateSlug={templateSlug}
-                    data={PREVIEW_DATA}
-                    isPreview={true}
-                    showPoweredBy={false}
-                  />
-                </div>
-              </div>
-            </div>
+      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-4 pt-12" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/90 px-4 py-3">
+          <div>
+            <h2 className="text-xl font-semibold text-white md:text-2xl">{template.name}</h2>
+            <p className="text-sm text-zinc-400">{template.description}</p>
           </div>
-          
-          {/* Reflection effect */}
-          <div className="absolute -bottom-8 left-1/2 h-16 w-3/4 -translate-x-1/2 rounded-full bg-indigo-500/20 blur-2xl" />
-        </div>
-
-        {/* Template Info Panel */}
-        <div className="max-w-sm text-center lg:text-left">
-          <h2 className="text-3xl font-bold text-white">{template.name}</h2>
-          <p className="mt-3 text-lg text-zinc-400">{template.description}</p>
-          
-          {/* Features */}
-          <ul className="mt-6 space-y-3">
-            {[
-              'Fully responsive design',
-              'Optimized for conversions',
-              'Easy to customize',
-            ].map((feature) => (
-              <li key={feature} className="flex items-center gap-3 text-zinc-300">
-                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20">
-                  <Check className="h-3 w-3 text-emerald-400" />
-                </div>
-                {feature}
-              </li>
-            ))}
-          </ul>
-
-          {/* CTA Buttons */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="flex gap-2">
             <Button
               onClick={onSelect}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white px-8"
+              className="bg-indigo-500 px-6 text-white hover:bg-indigo-600"
             >
               Select Template
             </Button>
@@ -407,6 +360,15 @@ function TemplatePreviewModal({
               Back to Gallery
             </Button>
           </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-zinc-800 bg-white">
+          <TemplateRenderer
+            templateSlug={templateSlug}
+            data={PREVIEW_DATA}
+            isPreview={true}
+            showPoweredBy={false}
+          />
         </div>
       </div>
     </div>
