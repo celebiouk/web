@@ -569,28 +569,30 @@ export default function EditProductPage() {
         </Card>
 
         <Card>
-          <CardContent className="space-y-4 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Limited-Time Offer
-            </h2>
-
-            <label className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Enable discount offer on this product
+          <CardContent className="space-y-6 p-8 bg-gradient-to-br from-brand-50/80 to-gray-50/60 dark:from-gray-900/80 dark:to-brand-950/60 rounded-2xl shadow-xl border-2 border-brand-100 dark:border-brand-900">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
+                <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.07-7.07l-1.41 1.41M6.34 17.66l-1.41 1.41m12.02 0l-1.41-1.41M6.34 6.34L4.93 4.93" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </span>
-              <input
-                type="checkbox"
-                checked={offerEnabled}
-                onChange={(event) => setOfferEnabled(event.target.checked)}
-              />
-            </label>
+              <h2 className="text-xl font-bold tracking-tight text-brand-700 dark:text-brand-300">Limited-Time Offer</h2>
+            </div>
+
+            <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900 rounded-xl px-5 py-4 border border-brand-200 dark:border-brand-800 transition-all">
+              <span className="text-base font-medium text-brand-700 dark:text-brand-200">Enable discount offer on this product</span>
+              <button
+                type="button"
+                aria-pressed={offerEnabled}
+                onClick={() => setOfferEnabled(!offerEnabled)}
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none ${offerEnabled ? 'bg-brand-500' : 'bg-gray-300 dark:bg-gray-700'}`}
+              >
+                <span className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${offerEnabled ? 'translate-x-7' : 'translate-x-1'}`}></span>
+              </button>
+            </div>
 
             {offerEnabled && (
-              <>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Offer price (USD)
-                  </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-brand-700 dark:text-brand-200">Offer price (USD)</label>
                   <Input
                     type="number"
                     min="0"
@@ -598,16 +600,15 @@ export default function EditProductPage() {
                     value={offerDiscountPrice}
                     onChange={(event) => setOfferDiscountPrice(event.target.value)}
                     placeholder="e.g. 19.99"
+                    className="text-lg font-bold border-brand-300 dark:border-brand-700"
                   />
-                  <p className="mt-1 text-xs text-gray-500">This is the discounted checkout price.</p>
+                  <p className="text-xs text-gray-500">This is the discounted checkout price.</p>
                 </div>
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Offer limit type
-                  </label>
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-brand-700 dark:text-brand-200">Offer limit type</label>
                   <select
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-lg border border-brand-300 dark:border-brand-700 bg-white dark:bg-gray-900 px-4 py-2 text-brand-900 dark:text-brand-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                     value={offerLimitType}
                     onChange={(event) => setOfferLimitType(event.target.value as 'none' | 'time' | 'claims' | 'both')}
                   >
@@ -619,18 +620,18 @@ export default function EditProductPage() {
                 </div>
 
                 {(offerLimitType === 'time' || offerLimitType === 'both') && (
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Countdown timer (Hours:Minutes:Seconds)
-                    </label>
-                    <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-2 col-span-1 md:col-span-2">
+                    <label className="block text-sm font-semibold text-brand-700 dark:text-brand-200">Countdown timer (Hours:Minutes:Seconds)</label>
+                    <div className="flex gap-3">
                       <Input
                         type="number"
                         min="0"
                         value={offerHours}
                         onChange={(event) => setOfferHours(event.target.value)}
                         placeholder="00"
+                        className="w-20 text-center"
                       />
+                      <span className="self-center text-lg font-bold text-brand-400">:</span>
                       <Input
                         type="number"
                         min="0"
@@ -638,7 +639,9 @@ export default function EditProductPage() {
                         value={offerMinutes}
                         onChange={(event) => setOfferMinutes(event.target.value)}
                         placeholder="00"
+                        className="w-20 text-center"
                       />
+                      <span className="self-center text-lg font-bold text-brand-400">:</span>
                       <Input
                         type="number"
                         min="0"
@@ -646,16 +649,15 @@ export default function EditProductPage() {
                         value={offerSeconds}
                         onChange={(event) => setOfferSeconds(event.target.value)}
                         placeholder="00"
+                        className="w-20 text-center"
                       />
                     </div>
                   </div>
                 )}
 
                 {(offerLimitType === 'claims' || offerLimitType === 'both') && (
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Number of buyers allowed (1-1000)
-                    </label>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-brand-700 dark:text-brand-200">Number of buyers allowed (1-1000)</label>
                     <Input
                       type="number"
                       min="1"
@@ -663,16 +665,15 @@ export default function EditProductPage() {
                       value={offerMaxClaims}
                       onChange={(event) => setOfferMaxClaims(event.target.value)}
                       placeholder="10"
+                      className="text-lg font-bold border-brand-300 dark:border-brand-700"
                     />
                   </div>
                 )}
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Bonus product (optional)
-                  </label>
+                <div className="space-y-2 col-span-1 md:col-span-2">
+                  <label className="block text-sm font-semibold text-brand-700 dark:text-brand-200">Bonus product (optional)</label>
                   <select
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    className="w-full rounded-lg border border-brand-300 dark:border-brand-700 bg-white dark:bg-gray-900 px-4 py-2 text-brand-900 dark:text-brand-100 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
                     value={offerBonusProductId}
                     onChange={(event) => setOfferBonusProductId(event.target.value)}
                   >
@@ -683,14 +684,14 @@ export default function EditProductPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Need a new bonus? Create it first, then come back and select it here.
-                  </p>
-                  <Link href="/dashboard/products/new" className="mt-2 inline-flex text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400">
-                    Create bonus product
-                  </Link>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-gray-500">Need a new bonus? Create it first, then come back and select it here.</p>
+                    <Link href="/dashboard/products/new" className="inline-flex text-xs font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 underline">
+                      Create bonus product
+                    </Link>
+                  </div>
                 </div>
-              </>
+              </div>
             )}
           </CardContent>
         </Card>
