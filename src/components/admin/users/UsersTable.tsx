@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Crown,
 } from 'lucide-react';
+import { GrantProModal } from './GrantProModal';
 
 interface User {
   id: string;
@@ -39,6 +40,8 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
   const router = useRouter();
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
+  const [grantModalUser, setGrantModalUser] = useState<User | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleAction = async (userId: string, action: string, data?: Record<string, unknown>) => {
     setLoading(userId);
@@ -56,10 +59,14 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
         throw new Error(json.error || 'Action failed');
       }
 
+      setStatusMessage({ type: 'success', text: 'User updated successfully.' });
       router.refresh();
     } catch (error) {
       console.error('Action failed:', error);
-      alert(error instanceof Error ? error.message : 'Action failed. Please try again.');
+      setStatusMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Action failed. Please try again.',
+      });
     } finally {
       setLoading(null);
     }
@@ -73,18 +80,7 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
       return;
     }
 
-    const hasPaid = window.confirm('Has this user paid for Pro? Click OK for Yes, Cancel for No.');
-    const reason = window.prompt('Enter reason for granting Pro access (required):');
-
-    if (!reason || !reason.trim()) {
-      alert('Reason is required to grant Pro access.');
-      return;
-    }
-
-    await handleAction(user.id, 'upgrade_pro', {
-      hasPaid,
-      reason: reason.trim(),
-    });
+    setGrantModalUser(user);
   };
 
   const handlePageChange = (page: number) => {
@@ -95,6 +91,16 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      {statusMessage && (
+        <div className={`m-4 rounded-lg border px-4 py-3 text-sm ${
+          statusMessage.type === 'success'
+            ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-900/10 dark:text-green-400'
+            : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-900/10 dark:text-red-400'
+        }`}>
+          {statusMessage.text}
+        </div>
+      )}
+
       <div className="overflow-x-auto overflow-y-visible">
         <table className="w-full">
           <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-800">
@@ -283,6 +289,25 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
           </div>
         </div>
       )}
+
+      <GrantProModal
+        isOpen={Boolean(grantModalUser)}
+        userLabel={grantModalUser?.full_name || grantModalUser?.username || 'this user'}
+        isLoading={loading === grantModalUser?.id}
+        onClose={() => {
+          if (!loading) {
+            setGrantModalUser(null);
+          }
+        }}
+        onSubmit={async ({ hasPaid, reason }) => {
+          if (!grantModalUser) {
+            return;
+          }
+
+          await handleAction(grantModalUser.id, 'upgrade_pro', { hasPaid, reason });
+          setGrantModalUser(null);
+        }}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Ban, UserCheck, Crown, User } from 'lucide-react';
+import { GrantProModal } from './GrantProModal';
 
 interface UserActionsPanelProps {
   userId: string;
@@ -13,6 +14,8 @@ interface UserActionsPanelProps {
 export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPanelProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showGrantModal, setShowGrantModal] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   async function handleAction(action: 'suspend' | 'unsuspend' | 'upgrade_pro' | 'downgrade_free', data?: Record<string, unknown>) {
     setIsLoading(true);
@@ -29,10 +32,14 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
         throw new Error(json.error || 'Action failed');
       }
 
+      setStatusMessage({ type: 'success', text: 'User updated successfully.' });
       router.refresh();
     } catch (error) {
       console.error('Admin user action failed:', error);
-      alert('Action failed. Please try again.');
+      setStatusMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Action failed. Please try again.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -44,24 +51,23 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
       return;
     }
 
-    const hasPaid = window.confirm('Has this user paid for Pro? Click OK for Yes, Cancel for No.');
-    const reason = window.prompt('Enter reason for granting Pro access (required):');
-
-    if (!reason || !reason.trim()) {
-      alert('Reason is required to grant Pro access.');
-      return;
-    }
-
-    await handleAction('upgrade_pro', {
-      hasPaid,
-      reason: reason.trim(),
-    });
+    setShowGrantModal(true);
   }
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Actions</h2>
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage account state and subscription tier.</p>
+
+      {statusMessage && (
+        <div className={`mt-4 rounded-lg border px-3 py-2 text-sm ${
+          statusMessage.type === 'success'
+            ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-900/10 dark:text-green-400'
+            : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-900/10 dark:text-red-400'
+        }`}>
+          {statusMessage.text}
+        </div>
+      )}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <button
@@ -82,6 +88,21 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
           {isPro ? 'Set To Free' : 'Grant Pro Access'}
         </button>
       </div>
+
+      <GrantProModal
+        isOpen={showGrantModal}
+        userLabel="this user"
+        isLoading={isLoading}
+        onClose={() => {
+          if (!isLoading) {
+            setShowGrantModal(false);
+          }
+        }}
+        onSubmit={async ({ hasPaid, reason }) => {
+          await handleAction('upgrade_pro', { hasPaid, reason });
+          setShowGrantModal(false);
+        }}
+      />
     </div>
   );
 }

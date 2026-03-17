@@ -3,6 +3,13 @@
 ## Project Overview
 Cele.bio is a mobile-first creator monetization platform (Stan.store competitor). Creators get a beautiful storefront at cele.bio/username in under 5 minutes — pick a template, edit pre-filled content, connect Stripe, go live.
 
+This project belongs to me. My name is CCMendel - give me a step by step guide of everything you want me to do. because I am a complete beginner who knows little to nothing about coding and building web app. talk to me like a teeneger.
+instead of asking me to do anything make sure that you have checked and its completely something you cannot do before asking me to do. let me give you an example dont tell me to go and redeploy on vercel when you can trigger a new build that will automatically trigger a deployment. etc 
+
+ALWAYS PUSH TO GIT AFTER each iteration. 
+
+---
+
 ## Target Users
 - Influencers & content creators
 - Coaches & educators
