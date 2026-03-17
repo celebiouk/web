@@ -1,12 +1,13 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui';
 import { ShieldCheck } from 'lucide-react';
 
-export default function ResetPasswordVerifyPage() {
+function ResetPasswordVerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenHash = searchParams.get('token_hash');
@@ -86,5 +87,13 @@ export default function ResetPasswordVerifyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordVerifyPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" /></div>}>
+      <ResetPasswordVerifyContent />
+    </Suspense>
   );
 }
