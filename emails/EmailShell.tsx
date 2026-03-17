@@ -5,6 +5,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -75,9 +76,14 @@ export function EmailShell({
             <Row>
               <Column align="center">
                 <Link href={appUrl} style={logoLink}>
-                  <Text style={logoText}>
-                    cele<span style={logoDot}>.</span>bio
-                  </Text>
+                  <Img
+                    src={`${appUrl}/fav.png`}
+                    alt="cele.bio"
+                    width="44"
+                    height="44"
+                    style={logoImage}
+                  />
+                  <Text style={logoText}>cele<span style={logoDot}>.</span>bio</Text>
                 </Link>
               </Column>
             </Row>
@@ -157,6 +163,16 @@ const header: React.CSSProperties = {
 
 const logoLink: React.CSSProperties = {
   textDecoration: 'none',
+  display: 'inline-flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: '10px',
+};
+
+const logoImage: React.CSSProperties = {
+  display: 'block',
+  borderRadius: '12px',
+  boxShadow: '0 10px 24px rgba(13, 27, 42, 0.35)',
 };
 
 const logoText: React.CSSProperties = {

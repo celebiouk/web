@@ -45,6 +45,14 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: [
+      { url: '/fav.png', type: 'image/png' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-icon.png', type: 'image/png' }],
+    shortcut: ['/fav.png'],
+  },
 };
 
 export const viewport: Viewport = {

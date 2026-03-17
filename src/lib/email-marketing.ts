@@ -52,6 +52,9 @@ export function buildBroadcastHtml(params: {
   openTrackingUrl: string;
   clickTrackingPrefix: string;
 }) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
+  const brandLogoUrl = `${appUrl}/fav.png`;
+
   const withTrackedLinks = params.bodyHtml.replace(
     /href=["']([^"']+)["']/gi,
     (_full, url: string) => {
@@ -122,7 +125,9 @@ export function buildBroadcastHtml(params: {
         <div class="hero">
           <div class="heroInner">
             <div class="brandRow">
-              <a href="https://cele.bio" class="brand">cele.bio</a>
+              <a href="https://cele.bio" class="brand">
+                <img src="${brandLogoUrl}" alt="cele.bio" width="34" height="34" style="display:block;border-radius:9px;border:1px solid rgba(255,255,255,0.25);" />
+              </a>
               <span class="tag">Creator Update</span>
             </div>
             <h1 class="heroTitle">${subject}</h1>
@@ -159,6 +164,9 @@ export function buildCampaignEmailHtml(params: {
   previewText?: string | null;
   subject?: string | null;
 }) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
+  const brandLogoUrl = `${appUrl}/fav.png`;
+
   const previewText = params.previewText || 'Updates from your creator';
   const subject = params.subject || 'New update for you';
 
@@ -221,7 +229,9 @@ export function buildCampaignEmailHtml(params: {
         <div class="hero">
           <div class="heroInner">
             <div class="brandRow">
-              <a href="https://cele.bio" class="brand">cele.bio</a>
+              <a href="https://cele.bio" class="brand">
+                <img src="${brandLogoUrl}" alt="cele.bio" width="34" height="34" style="display:block;border-radius:9px;border:1px solid rgba(255,255,255,0.25);" />
+              </a>
               <span class="tag">Creator Update</span>
             </div>
             <h1 class="heroTitle">${subject}</h1>
