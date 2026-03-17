@@ -46,12 +46,20 @@ export async function POST(request: Request) {
       }
 
       case 'upgrade_pro': {
-        // Grant Pro access manually (comp account)
+        const hasPaid = Boolean(data?.hasPaid);
+        const reason = typeof data?.reason === 'string' ? data.reason.trim() : '';
+
+        if (!reason) {
+          return NextResponse.json({ error: 'Reason is required to grant Pro access' }, { status: 400 });
+        }
+
+        // Grant Pro access manually (paid or admin-approved comp)
         const { error } = await adminSupabase
           .from('profiles')
           .update({ subscription_tier: 'pro' })
           .eq('id', userId);
         if (error) throw error;
+
         break;
       }
 

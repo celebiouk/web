@@ -40,7 +40,7 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleAction = async (userId: string, action: string) => {
+  const handleAction = async (userId: string, action: string, data?: Record<string, unknown>) => {
     setLoading(userId);
     setActionMenuOpen(null);
 
@@ -48,20 +48,43 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action }),
+        body: JSON.stringify({ userId, action, data }),
       });
 
       if (!response.ok) {
-        throw new Error('Action failed');
+        const json = await response.json().catch(() => ({}));
+        throw new Error(json.error || 'Action failed');
       }
 
       router.refresh();
     } catch (error) {
       console.error('Action failed:', error);
-      alert('Action failed. Please try again.');
+      alert(error instanceof Error ? error.message : 'Action failed. Please try again.');
     } finally {
       setLoading(null);
     }
+  };
+
+  const handleProAction = async (user: User) => {
+    const isProUser = user.subscription_tier === 'pro' || user.subscriptions?.[0]?.status === 'active';
+
+    if (isProUser) {
+      await handleAction(user.id, 'downgrade_free');
+      return;
+    }
+
+    const hasPaid = window.confirm('Has this user paid for Pro? Click OK for Yes, Cancel for No.');
+    const reason = window.prompt('Enter reason for granting Pro access (required):');
+
+    if (!reason || !reason.trim()) {
+      alert('Reason is required to grant Pro access.');
+      return;
+    }
+
+    await handleAction(user.id, 'upgrade_pro', {
+      hasPaid,
+      reason: reason.trim(),
+    });
   };
 
   const handlePageChange = (page: number) => {
@@ -71,8 +94,8 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-      <div className="overflow-x-auto">
+    <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-x-auto overflow-y-visible">
         <table className="w-full">
           <thead className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-800">
             <tr>
@@ -182,7 +205,7 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
                             className="fixed inset-0 z-10"
                             onClick={() => setActionMenuOpen(null)}
                           />
-                          <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                          <div className="absolute bottom-full right-0 z-20 mb-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                             <Link
                               href={`/admin/users/${user.id}`}
                               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -207,7 +230,7 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
                               )}
                             </button>
                             <button
-                              onClick={() => handleAction(user.id, (user.subscription_tier === 'pro' || user.subscriptions?.[0]?.status === 'active') ? 'downgrade_free' : 'upgrade_pro')}
+                              onClick={() => void handleProAction(user)}
                               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                             >
                               {(user.subscription_tier === 'pro' || user.subscriptions?.[0]?.status === 'active') ? (

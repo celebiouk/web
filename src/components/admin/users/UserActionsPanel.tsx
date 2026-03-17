@@ -14,14 +14,14 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleAction(action: 'suspend' | 'unsuspend' | 'upgrade_pro' | 'downgrade_free') {
+  async function handleAction(action: 'suspend' | 'unsuspend' | 'upgrade_pro' | 'downgrade_free', data?: Record<string, unknown>) {
     setIsLoading(true);
 
     try {
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action }),
+        body: JSON.stringify({ userId, action, data }),
       });
 
       if (!response.ok) {
@@ -36,6 +36,26 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function handleProAction() {
+    if (isPro) {
+      await handleAction('downgrade_free');
+      return;
+    }
+
+    const hasPaid = window.confirm('Has this user paid for Pro? Click OK for Yes, Cancel for No.');
+    const reason = window.prompt('Enter reason for granting Pro access (required):');
+
+    if (!reason || !reason.trim()) {
+      alert('Reason is required to grant Pro access.');
+      return;
+    }
+
+    await handleAction('upgrade_pro', {
+      hasPaid,
+      reason: reason.trim(),
+    });
   }
 
   return (
@@ -54,7 +74,7 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
         </button>
 
         <button
-          onClick={() => handleAction(isPro ? 'downgrade_free' : 'upgrade_pro')}
+          onClick={() => void handleProAction()}
           disabled={isLoading}
           className="flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-50"
         >
