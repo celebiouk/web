@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Button, Hr, Section, Text } from '@react-email/components';
-import { EmailShell } from './EmailShell';
+import { EmailShell, emailStyles, colors } from './EmailShell';
 
 export function ProductUploadSuccess({
   creatorName = 'Creator',
@@ -19,34 +19,79 @@ export function ProductUploadSuccess({
       eyebrow="Product Published"
       title={`${productName} is live!`}
     >
-      <Text style={text}>
+      <Section style={celebrationBox}>
+        <Text style={celebrationEmoji}>&#x1F389;</Text>
+      </Section>
+      <Text style={emailStyles.text}>
         Congrats, {creatorName}! Your product is now published and ready for customers.
       </Text>
       <Section style={productCard}>
         <Text style={productTitle}>{productName}</Text>
-        <Text style={productStatus}>Status: Live</Text>
+        <Section style={statusBadge}>
+          <Text style={statusText}>&#x2705; Live</Text>
+        </Section>
       </Section>
-      <Text style={text}>
+      <Text style={emailStyles.text}>
         Share your product link to start making sales. You can track performance and manage your product from your dashboard.
       </Text>
-      <Section style={buttonGroup}>
-        <Button href={productUrl} style={buttonPrimary}>View Product</Button>
-        <Button href={dashboardUrl} style={buttonSecondary}>Go to Dashboard</Button>
+      <Section style={emailStyles.buttonWrapper}>
+        <Button href={productUrl} style={emailStyles.buttonPrimary}>View Product</Button>
+        {' '}
+        <Button href={dashboardUrl} style={emailStyles.buttonSecondary}>Go to Dashboard</Button>
       </Section>
-      <Hr style={hr} />
-      <Text style={muted}>
-        Tip: Share your product on social media for maximum visibility. Add it to your bio link!
-      </Text>
+      <Hr style={emailStyles.hr} />
+      <Section style={emailStyles.cardHighlight}>
+        <Text style={tipTitle}>&#x1F4A1; Pro tip</Text>
+        <Text style={emailStyles.muted}>
+          Share your product on social media for maximum visibility. Add it to your bio link!
+        </Text>
+      </Section>
     </EmailShell>
   );
 }
 
-const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', margin: '0 0 18px' };
-const muted = { color: '#6b7280', fontSize: '13px', lineHeight: '20px' };
-const productCard = { backgroundColor: '#f0fdf4', borderRadius: '16px', padding: '20px', margin: '0 0 22px', border: '1px solid #bbf7d0' };
-const productTitle = { color: '#0D1B2A', fontSize: '18px', fontWeight: 700, margin: '0 0 8px' };
-const productStatus = { color: '#16a34a', fontSize: '14px', fontWeight: 600, margin: '0' };
-const buttonGroup = { margin: '0 0 22px' };
-const buttonPrimary = { backgroundColor: '#0D1B2A', color: '#ffffff', borderRadius: '14px', padding: '14px 20px', fontWeight: 700, textDecoration: 'none', display: 'inline-block', marginRight: '12px' };
-const buttonSecondary = { backgroundColor: '#f3f4f6', color: '#0D1B2A', borderRadius: '14px', padding: '14px 20px', fontWeight: 700, textDecoration: 'none', display: 'inline-block' };
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' };
+const celebrationBox: React.CSSProperties = {
+  textAlign: 'center',
+  marginBottom: '8px',
+};
+
+const celebrationEmoji: React.CSSProperties = {
+  fontSize: '48px',
+  margin: '0',
+};
+
+const productCard: React.CSSProperties = {
+  backgroundColor: colors.successBg,
+  borderRadius: '16px',
+  padding: '24px',
+  margin: '0 0 24px',
+  textAlign: 'center',
+};
+
+const productTitle: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '20px',
+  fontWeight: 700,
+  margin: '0 0 12px',
+};
+
+const statusBadge: React.CSSProperties = {
+  display: 'inline-block',
+  backgroundColor: colors.white,
+  borderRadius: '20px',
+  padding: '6px 14px',
+};
+
+const statusText: React.CSSProperties = {
+  color: colors.success,
+  fontSize: '14px',
+  fontWeight: 600,
+  margin: '0',
+};
+
+const tipTitle: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '14px',
+  fontWeight: 600,
+  margin: '0 0 8px',
+};

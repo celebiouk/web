@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { Button, Input } from '@/components/ui';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 
@@ -18,13 +17,19 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Use our custom API that sends beautiful branded emails
+      const response = await fetch('/api/auth/password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
       });
 
-      if (error) {
-        setError(error.message);
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.error || 'Failed to send reset email');
         return;
       }
 

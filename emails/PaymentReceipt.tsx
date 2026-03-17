@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Button, Section, Text } from '@react-email/components';
-import { EmailShell } from './EmailShell';
+import { Button, Hr, Section, Text } from '@react-email/components';
+import { EmailShell, emailStyles, colors } from './EmailShell';
 
 export function PaymentReceipt({
   creatorName = 'Creator',
@@ -18,25 +18,77 @@ export function PaymentReceipt({
   return (
     <EmailShell
       preview="Your cele.bio subscription receipt"
-      eyebrow="Payment receipt"
+      eyebrow="Payment Receipt"
       title={`Receipt for your ${planLabel} renewal`}
     >
-      <Text style={text}>Thanks for being Pro, {creatorName}. Your latest subscription payment was successful.</Text>
-      <Section style={receiptBox}>
-        <Text style={label}>Plan</Text>
-        <Text style={value}>{planLabel}</Text>
-        <Text style={label}>Amount</Text>
-        <Text style={value}>{amount}</Text>
-        <Text style={label}>Date</Text>
-        <Text style={value}>{invoiceDate}</Text>
+      <Text style={emailStyles.text}>
+        Thanks for being Pro, {creatorName}. Your latest subscription payment was successful.
+      </Text>
+      <Section style={receiptCard}>
+        <Section style={receiptRow}>
+          <Text style={receiptLabel}>Plan</Text>
+          <Text style={receiptValue}>{planLabel}</Text>
+        </Section>
+        <Hr style={hrInner} />
+        <Section style={receiptRow}>
+          <Text style={receiptLabel}>Amount</Text>
+          <Text style={receiptValueBold}>{amount}</Text>
+        </Section>
+        <Hr style={hrInner} />
+        <Section style={receiptRow}>
+          <Text style={receiptLabel}>Date</Text>
+          <Text style={receiptValue}>{invoiceDate}</Text>
+        </Section>
       </Section>
-      <Button href={invoiceUrl} style={button}>Download invoice PDF</Button>
+      <Section style={emailStyles.buttonWrapper}>
+        <Button href={invoiceUrl} style={emailStyles.buttonPrimary}>Download Invoice PDF</Button>
+      </Section>
+      <Hr style={emailStyles.hr} />
+      <Text style={emailStyles.muted}>
+        This receipt was generated automatically. If you have questions about your billing, visit your account settings.
+      </Text>
     </EmailShell>
   );
 }
 
-const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', margin: '0 0 18px' };
-const receiptBox = { backgroundColor: '#f8fafc', borderRadius: '16px', padding: '18px', margin: '0 0 20px' };
-const label = { color: '#6b7280', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, margin: '0 0 4px' };
-const value = { color: '#0D1B2A', fontSize: '16px', lineHeight: '24px', fontWeight: 600, margin: '0 0 12px' };
-const button = { backgroundColor: '#0D1B2A', color: '#ffffff', borderRadius: '14px', padding: '14px 20px', fontWeight: 700, textDecoration: 'none', display: 'inline-block' };
+const receiptCard: React.CSSProperties = {
+  backgroundColor: colors.gray50,
+  borderRadius: '16px',
+  padding: '24px',
+  margin: '0 0 24px',
+  border: `1px solid ${colors.gray200}`,
+};
+
+const receiptRow: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+};
+
+const hrInner: React.CSSProperties = {
+  borderColor: colors.gray200,
+  margin: '14px 0',
+};
+
+const receiptLabel: React.CSSProperties = {
+  color: colors.gray500,
+  fontSize: '13px',
+  fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  margin: '0',
+};
+
+const receiptValue: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '15px',
+  fontWeight: 500,
+  margin: '0',
+};
+
+const receiptValueBold: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '18px',
+  fontWeight: 700,
+  margin: '0',
+};

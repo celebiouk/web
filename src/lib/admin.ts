@@ -1,4 +1,5 @@
 const ADMIN_EMAILS_ENV = 'ADMIN_EMAILS';
+const DEFAULT_ADMIN_EMAILS = ['profmendel@gmail.com', 'cc@cele.bio'];
 
 function parseAdminEmails(rawValue: string | undefined): string[] {
   if (!rawValue) {
@@ -12,7 +13,8 @@ function parseAdminEmails(rawValue: string | undefined): string[] {
 }
 
 export function getInternalAdminEmails(): string[] {
-  return parseAdminEmails(process.env[ADMIN_EMAILS_ENV]);
+  const envEmails = parseAdminEmails(process.env[ADMIN_EMAILS_ENV]);
+  return Array.from(new Set([...DEFAULT_ADMIN_EMAILS, ...envEmails]));
 }
 
 export function isInternalAdminEmail(email: string | null | undefined): boolean {

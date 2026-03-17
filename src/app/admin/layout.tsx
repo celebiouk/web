@@ -1,8 +1,8 @@
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isInternalAdminEmail } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { AdminLoginGate } from '@/components/admin/AdminLoginGate';
 
 export const metadata = {
   title: 'Admin Dashboard | cele.bio',
@@ -17,8 +17,17 @@ export default async function AdminLayout({
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user || !isInternalAdminEmail(user.email)) {
-    redirect('/login?error=unauthorized');
+  if (!user) {
+    return <AdminLoginGate reason="Admin login required." />;
+  }
+
+  if (!isInternalAdminEmail(user.email)) {
+    return (
+      <AdminLoginGate
+        reason="This account is not authorized for admin access."
+        signedInEmail={user.email ?? null}
+      />
+    );
   }
 
   return (

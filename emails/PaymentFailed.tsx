@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Button, Hr, Text } from '@react-email/components';
-import { EmailShell } from './EmailShell';
+import { Button, Hr, Section, Text } from '@react-email/components';
+import { EmailShell, emailStyles, colors } from './EmailShell';
 
 export function PaymentFailed({
   creatorName = 'Creator',
@@ -12,18 +12,49 @@ export function PaymentFailed({
   return (
     <EmailShell
       preview="Action required: update your payment method"
-      eyebrow="Payment issue"
+      eyebrow="Payment Issue"
       title={`Update your card, ${creatorName}`}
     >
-      <Text style={text}>We couldn’t process your latest cele.bio subscription payment. Stripe will retry automatically, but updating your payment method now is the fastest way to keep Pro active without interruption.</Text>
-      <Button href={portalUrl} style={button}>Update payment method</Button>
-      <Hr style={hr} />
-      <Text style={muted}>Your subscription stays active during Stripe’s retry window, but please update your card soon to avoid losing Pro features.</Text>
+      <Section style={emailStyles.warningBox}>
+        <Text style={warningIcon}>&#x26A0;&#xFE0F;</Text>
+        <Text style={warningText}>
+          We couldn't process your latest cele.bio subscription payment.
+        </Text>
+      </Section>
+      <Text style={emailStyles.text}>
+        Stripe will retry automatically, but updating your payment method now is the fastest way to keep Pro active without interruption.
+      </Text>
+      <Section style={emailStyles.buttonWrapper}>
+        <Button href={portalUrl} style={emailStyles.buttonAccent}>Update Payment Method</Button>
+      </Section>
+      <Hr style={emailStyles.hr} />
+      <Section style={emailStyles.card}>
+        <Text style={noteTitle}>&#x1F4A1; Good to know</Text>
+        <Text style={emailStyles.muted}>
+          Your subscription stays active during Stripe's retry window, but please update your card soon to avoid losing Pro features.
+        </Text>
+      </Section>
     </EmailShell>
   );
 }
 
-const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', margin: '0 0 18px' };
-const muted = { color: '#6b7280', fontSize: '13px', lineHeight: '20px' };
-const button = { backgroundColor: '#0D1B2A', color: '#ffffff', borderRadius: '14px', padding: '14px 20px', fontWeight: 700, textDecoration: 'none', display: 'inline-block' };
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' };
+const warningIcon: React.CSSProperties = {
+  fontSize: '28px',
+  margin: '0 0 12px',
+  textAlign: 'center',
+};
+
+const warningText: React.CSSProperties = {
+  color: colors.warning,
+  fontSize: '15px',
+  fontWeight: 600,
+  margin: '0',
+  textAlign: 'center',
+};
+
+const noteTitle: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '14px',
+  fontWeight: 600,
+  margin: '0 0 8px',
+};

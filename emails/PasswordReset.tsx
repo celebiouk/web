@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Button, Hr, Section, Text } from '@react-email/components';
-import { EmailShell } from './EmailShell';
+import { Button, Hr, Section, Text, Row, Column } from '@react-email/components';
+import { EmailShell, emailStyles, colors } from './EmailShell';
 
 export function PasswordReset({
   userName = 'there',
@@ -14,43 +14,90 @@ export function PasswordReset({
   return (
     <EmailShell
       preview="Reset your cele.bio password"
-      eyebrow="Password Reset"
+      eyebrow="Security"
       title="Reset your password"
     >
-      <Text style={text}>
-        Hi {userName}, we received a request to reset your password. Click the button below to create a new password.
+      <Text style={emailStyles.text}>
+        Hi {userName}, we received a request to reset your password. Click the button below to create a new one.
       </Text>
-      <Section style={buttonWrapper}>
-        <Button href={resetUrl} style={button}>Reset Password</Button>
+
+      <Section style={emailStyles.buttonWrapper}>
+        <Button href={resetUrl} style={emailStyles.buttonPrimary}>
+          Reset Password
+        </Button>
       </Section>
-      <Section style={warningBox}>
-        <Text style={warningIcon}>&#x23F3;</Text>
-        <Text style={warningText}>
-          This link expires in {expiresIn}. If you didn&apos;t request this, you can safely ignore this email.
-        </Text>
+
+      <Section style={timerBox}>
+        <Row>
+          <Column style={timerIconCol}>
+            <Text style={timerIcon}>⏱</Text>
+          </Column>
+          <Column>
+            <Text style={timerText}>
+              This link expires in <strong>{expiresIn}</strong>. If you didn't request this, you can safely ignore this email.
+            </Text>
+          </Column>
+        </Row>
       </Section>
-      <Hr style={hr} />
-      <Text style={muted}>
-        For security, this link can only be used once. If you need to reset your password again, please request a new link.
+
+      <Hr style={emailStyles.hr} />
+
+      <Section style={securitySection}>
+        <Text style={securityTitle}>🔒 Security Tips</Text>
+        <Text style={securityItem}>• Use a strong, unique password (12+ characters)</Text>
+        <Text style={securityItem}>• Mix letters, numbers, and symbols</Text>
+        <Text style={securityItem}>• Never share your password with anyone</Text>
+      </Section>
+
+      <Text style={emailStyles.muted}>
+        This link can only be used once. Need help? Reply to this email.
       </Text>
-      <Section style={securityTip}>
-        <Text style={tipTitle}>Security Tips</Text>
-        <Text style={tipText}>&#x2022; Use a strong, unique password</Text>
-        <Text style={tipText}>&#x2022; Never share your password with anyone</Text>
-        <Text style={tipText}>&#x2022; Enable two-factor authentication if available</Text>
-      </Section>
     </EmailShell>
   );
 }
 
-const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', margin: '0 0 18px' };
-const muted = { color: '#6b7280', fontSize: '13px', lineHeight: '20px', margin: '0 0 18px' };
-const buttonWrapper = { textAlign: 'center' as const, margin: '24px 0' };
-const button = { backgroundColor: '#0D1B2A', color: '#ffffff', borderRadius: '14px', padding: '16px 32px', fontWeight: 700, textDecoration: 'none', display: 'inline-block', fontSize: '16px' };
-const warningBox = { backgroundColor: '#fffbeb', borderRadius: '12px', padding: '16px', margin: '0 0 22px', border: '1px solid #fde68a', display: 'flex', alignItems: 'flex-start', gap: '12px' };
-const warningIcon = { fontSize: '20px', margin: '0', lineHeight: '1' };
-const warningText = { color: '#92400e', fontSize: '14px', lineHeight: '20px', margin: '0' };
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' };
-const securityTip = { backgroundColor: '#f8fafc', borderRadius: '12px', padding: '16px', margin: '0' };
-const tipTitle = { color: '#0D1B2A', fontSize: '14px', fontWeight: 600, margin: '0 0 12px' };
-const tipText = { color: '#6b7280', fontSize: '13px', lineHeight: '20px', margin: '0 0 4px' };
+const timerBox: React.CSSProperties = {
+  backgroundColor: colors.warningBg,
+  borderRadius: '12px',
+  padding: '16px 20px',
+  margin: '0 0 24px 0',
+};
+
+const timerIconCol: React.CSSProperties = {
+  width: '32px',
+  verticalAlign: 'top',
+};
+
+const timerIcon: React.CSSProperties = {
+  fontSize: '20px',
+  margin: 0,
+  lineHeight: '24px',
+};
+
+const timerText: React.CSSProperties = {
+  color: '#92400e',
+  fontSize: '14px',
+  lineHeight: '22px',
+  margin: 0,
+};
+
+const securitySection: React.CSSProperties = {
+  backgroundColor: colors.gray50,
+  borderRadius: '12px',
+  padding: '20px',
+  margin: '0 0 24px 0',
+};
+
+const securityTitle: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '14px',
+  fontWeight: 600,
+  margin: '0 0 12px 0',
+};
+
+const securityItem: React.CSSProperties = {
+  color: colors.gray600,
+  fontSize: '13px',
+  lineHeight: '22px',
+  margin: '0 0 4px 0',
+};

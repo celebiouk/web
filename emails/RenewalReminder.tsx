@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Button, Hr, Section, Text } from '@react-email/components';
-import { EmailShell } from './EmailShell';
+import { EmailShell, emailStyles, colors } from './EmailShell';
 
 export function RenewalReminder({
   userName = 'there',
@@ -21,11 +21,11 @@ export function RenewalReminder({
       eyebrow="Renewal Reminder"
       title="Your subscription is renewing soon"
     >
-      <Text style={text}>
+      <Text style={emailStyles.text}>
         Hi {userName}, just a friendly heads up that your cele.bio {planName} subscription will automatically renew soon.
       </Text>
       <Section style={renewalCard}>
-        <Text style={renewalLabel}>Upcoming Renewal</Text>
+        <Text style={renewalTitle}>Upcoming Renewal</Text>
         <Hr style={hrInner} />
         <Section style={detailRow}>
           <Text style={detailLabel}>Plan</Text>
@@ -40,26 +40,65 @@ export function RenewalReminder({
           <Text style={detailValueHighlight}>{renewalDate}</Text>
         </Section>
       </Section>
-      <Text style={text}>
-        No action needed — your subscription will renew automatically. If you want to make any changes, you can manage your subscription from your billing settings.
+      <Text style={emailStyles.textSmall}>
+        No action needed - your subscription will renew automatically. If you want to make any changes, you can manage your subscription from your billing settings.
       </Text>
-      <Button href={billingUrl} style={button}>Manage Subscription</Button>
-      <Hr style={hr} />
-      <Text style={muted}>
-        Questions about your subscription? Reply to this email and we&apos;ll help you out.
+      <Section style={emailStyles.buttonWrapper}>
+        <Button href={billingUrl} style={emailStyles.buttonPrimary}>Manage Subscription</Button>
+      </Section>
+      <Hr style={emailStyles.hr} />
+      <Text style={emailStyles.muted}>
+        Questions about your subscription? Reply to this email and we'll help you out.
       </Text>
     </EmailShell>
   );
 }
 
-const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', margin: '0 0 18px' };
-const muted = { color: '#6b7280', fontSize: '13px', lineHeight: '20px' };
-const renewalCard = { backgroundColor: '#f8fafc', borderRadius: '16px', padding: '20px', margin: '0 0 22px', border: '1px solid #e5e7eb' };
-const renewalLabel = { color: '#6b7280', fontSize: '12px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' as const, margin: '0' };
-const hrInner = { borderColor: '#e5e7eb', margin: '12px 0' };
-const detailRow = { display: 'flex', justifyContent: 'space-between', margin: '0 0 8px' };
-const detailLabel = { color: '#6b7280', fontSize: '14px', margin: '0' };
-const detailValue = { color: '#0D1B2A', fontSize: '14px', fontWeight: 600, margin: '0' };
-const detailValueHighlight = { color: '#1CE7D0', fontSize: '14px', fontWeight: 600, margin: '0' };
-const button = { backgroundColor: '#0D1B2A', color: '#ffffff', borderRadius: '14px', padding: '14px 20px', fontWeight: 700, textDecoration: 'none', display: 'inline-block' };
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' };
+const renewalCard: React.CSSProperties = {
+  backgroundColor: colors.gray50,
+  borderRadius: '16px',
+  padding: '20px 24px',
+  margin: '0 0 24px',
+  border: `1px solid ${colors.gray200}`,
+};
+
+const renewalTitle: React.CSSProperties = {
+  color: colors.gray500,
+  fontSize: '12px',
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  margin: '0',
+};
+
+const hrInner: React.CSSProperties = {
+  borderColor: colors.gray200,
+  margin: '14px 0',
+};
+
+const detailRow: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '10px',
+};
+
+const detailLabel: React.CSSProperties = {
+  color: colors.gray500,
+  fontSize: '14px',
+  margin: '0',
+};
+
+const detailValue: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '14px',
+  fontWeight: 600,
+  margin: '0',
+};
+
+const detailValueHighlight: React.CSSProperties = {
+  color: colors.cyan,
+  fontSize: '14px',
+  fontWeight: 700,
+  margin: '0',
+};

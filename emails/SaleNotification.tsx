@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Button, Hr, Section, Text } from '@react-email/components';
-import { EmailShell } from './EmailShell';
+import { EmailShell, emailStyles, colors } from './EmailShell';
 
 export function SaleNotification({
   creatorName = 'Creator',
@@ -25,50 +25,132 @@ export function SaleNotification({
       eyebrow="New Sale"
       title="Cha-ching! You made a sale"
     >
-      <Text style={text}>
-        Hey {creatorName}, great news — someone just purchased your product!
+      <Section style={celebrationBox}>
+        <Text style={celebrationEmoji}>&#x1F4B8;</Text>
+      </Section>
+      <Text style={emailStyles.text}>
+        Hey {creatorName}, great news - someone just purchased your product!
       </Text>
       <Section style={saleCard}>
         <Text style={productTitle}>{productName}</Text>
         <Text style={buyerInfo}>Purchased by {buyerName}</Text>
-        <Hr style={hrInner} />
+        <Hr style={hrSuccess} />
         <Section style={amountGrid}>
-          <Text style={amountRow}>
-            <span style={amountLabel}>Sale Price</span>
-            <span style={amountValue}>{amount}</span>
-          </Text>
-          <Text style={amountRow}>
-            <span style={amountLabel}>Platform Fee</span>
-            <span style={amountValueMuted}>-{commission}</span>
-          </Text>
-          <Text style={amountRowTotal}>
-            <span style={amountLabelBold}>Your Earnings</span>
-            <span style={amountValueBold}>{netAmount}</span>
-          </Text>
+          <Section style={amountRow}>
+            <Text style={amountLabel}>Sale Price</Text>
+            <Text style={amountValue}>{amount}</Text>
+          </Section>
+          <Section style={amountRow}>
+            <Text style={amountLabel}>Platform Fee</Text>
+            <Text style={amountValueMuted}>-{commission}</Text>
+          </Section>
+          <Hr style={hrDashed} />
+          <Section style={amountRowTotal}>
+            <Text style={amountLabelBold}>Your Earnings</Text>
+            <Text style={amountValueBold}>{netAmount}</Text>
+          </Section>
         </Section>
       </Section>
-      <Button href={dashboardUrl} style={button}>View Order Details</Button>
-      <Hr style={hr} />
-      <Text style={muted}>
+      <Section style={emailStyles.buttonWrapper}>
+        <Button href={dashboardUrl} style={emailStyles.buttonAccent}>View Order Details</Button>
+      </Section>
+      <Hr style={emailStyles.hr} />
+      <Text style={emailStyles.muted}>
         Funds will be transferred to your connected Stripe account according to your payout schedule.
       </Text>
     </EmailShell>
   );
 }
 
-const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', margin: '0 0 18px' };
-const muted = { color: '#6b7280', fontSize: '13px', lineHeight: '20px' };
-const saleCard = { backgroundColor: '#f0fdf4', borderRadius: '16px', padding: '20px', margin: '0 0 22px', border: '1px solid #bbf7d0' };
-const productTitle = { color: '#0D1B2A', fontSize: '18px', fontWeight: 700, margin: '0 0 4px' };
-const buyerInfo = { color: '#6b7280', fontSize: '14px', margin: '0' };
-const hrInner = { borderColor: '#bbf7d0', margin: '16px 0' };
-const amountGrid = { margin: '0' };
-const amountRow = { display: 'flex', justifyContent: 'space-between', color: '#374151', fontSize: '14px', margin: '0 0 8px' };
-const amountRowTotal = { display: 'flex', justifyContent: 'space-between', color: '#0D1B2A', fontSize: '16px', margin: '8px 0 0', paddingTop: '8px', borderTop: '1px dashed #bbf7d0' };
-const amountLabel = { color: '#6b7280' };
-const amountLabelBold = { fontWeight: 700 };
-const amountValue = { color: '#374151' };
-const amountValueMuted = { color: '#9ca3af' };
-const amountValueBold = { fontWeight: 700, color: '#16a34a' };
-const button = { backgroundColor: '#0D1B2A', color: '#ffffff', borderRadius: '14px', padding: '14px 20px', fontWeight: 700, textDecoration: 'none', display: 'inline-block' };
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' };
+const celebrationBox: React.CSSProperties = {
+  textAlign: 'center',
+  marginBottom: '8px',
+};
+
+const celebrationEmoji: React.CSSProperties = {
+  fontSize: '48px',
+  margin: '0',
+};
+
+const saleCard: React.CSSProperties = {
+  backgroundColor: colors.successBg,
+  borderRadius: '16px',
+  padding: '24px',
+  margin: '0 0 24px',
+};
+
+const productTitle: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '18px',
+  fontWeight: 700,
+  margin: '0 0 4px',
+};
+
+const buyerInfo: React.CSSProperties = {
+  color: colors.gray500,
+  fontSize: '14px',
+  margin: '0',
+};
+
+const hrSuccess: React.CSSProperties = {
+  borderColor: colors.success,
+  opacity: 0.2,
+  margin: '18px 0',
+};
+
+const amountGrid: React.CSSProperties = {
+  margin: '0',
+};
+
+const amountRow: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '10px',
+};
+
+const amountRowTotal: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+};
+
+const hrDashed: React.CSSProperties = {
+  borderColor: colors.success,
+  borderStyle: 'dashed',
+  opacity: 0.3,
+  margin: '12px 0',
+};
+
+const amountLabel: React.CSSProperties = {
+  color: colors.gray600,
+  fontSize: '14px',
+  margin: '0',
+};
+
+const amountLabelBold: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '15px',
+  fontWeight: 700,
+  margin: '0',
+};
+
+const amountValue: React.CSSProperties = {
+  color: colors.gray700,
+  fontSize: '14px',
+  fontWeight: 500,
+  margin: '0',
+};
+
+const amountValueMuted: React.CSSProperties = {
+  color: colors.gray400,
+  fontSize: '14px',
+  margin: '0',
+};
+
+const amountValueBold: React.CSSProperties = {
+  color: colors.success,
+  fontSize: '22px',
+  fontWeight: 700,
+  margin: '0',
+};

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Button, Hr, Section, Text } from '@react-email/components';
-import { EmailShell } from './EmailShell';
+import { EmailShell, emailStyles, colors } from './EmailShell';
 
 export function PaymentSuccessful({
   userName = 'there',
@@ -21,35 +21,75 @@ export function PaymentSuccessful({
       eyebrow="Payment Successful"
       title="Your payment went through!"
     >
-      <Text style={text}>
-        Hi {userName}, we&apos;ve successfully processed your payment.
+      <Text style={emailStyles.text}>
+        Hi {userName}, we've successfully processed your payment.
       </Text>
       <Section style={paymentCard}>
-        <Section style={checkmark}>
+        <Section style={checkmarkCircle}>
           <Text style={checkmarkIcon}>&#x2713;</Text>
         </Section>
         <Text style={amountText}>{amount}</Text>
         <Text style={descriptionText}>{description}</Text>
-        <Hr style={hrInner} />
+        <Hr style={hrSuccess} />
         <Text style={dateText}>Processed on {date}</Text>
       </Section>
-      <Button href={receiptUrl} style={button}>View Receipt</Button>
-      <Hr style={hr} />
-      <Text style={muted}>
+      <Section style={emailStyles.buttonWrapper}>
+        <Button href={receiptUrl} style={emailStyles.buttonPrimary}>View Receipt</Button>
+      </Section>
+      <Hr style={emailStyles.hr} />
+      <Text style={emailStyles.muted}>
         This payment was processed securely via Stripe. A receipt has been sent to your email.
       </Text>
     </EmailShell>
   );
 }
 
-const text = { color: '#374151', fontSize: '15px', lineHeight: '24px', margin: '0 0 18px' };
-const muted = { color: '#6b7280', fontSize: '13px', lineHeight: '20px' };
-const paymentCard = { backgroundColor: '#f0fdf4', borderRadius: '16px', padding: '24px', margin: '0 0 22px', border: '1px solid #bbf7d0', textAlign: 'center' as const };
-const checkmark = { width: '48px', height: '48px', backgroundColor: '#16a34a', borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const checkmarkIcon = { color: '#ffffff', fontSize: '24px', fontWeight: 700, margin: '0' };
-const amountText = { color: '#0D1B2A', fontSize: '32px', fontWeight: 700, margin: '0 0 4px' };
-const descriptionText = { color: '#6b7280', fontSize: '14px', margin: '0' };
-const hrInner = { borderColor: '#bbf7d0', margin: '16px 0' };
-const dateText = { color: '#6b7280', fontSize: '13px', margin: '0' };
-const button = { backgroundColor: '#0D1B2A', color: '#ffffff', borderRadius: '14px', padding: '14px 20px', fontWeight: 700, textDecoration: 'none', display: 'inline-block' };
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' };
+const paymentCard: React.CSSProperties = {
+  backgroundColor: colors.successBg,
+  borderRadius: '16px',
+  padding: '28px',
+  margin: '0 0 24px',
+  textAlign: 'center',
+};
+
+const checkmarkCircle: React.CSSProperties = {
+  width: '56px',
+  height: '56px',
+  backgroundColor: colors.success,
+  borderRadius: '50%',
+  margin: '0 auto 20px',
+};
+
+const checkmarkIcon: React.CSSProperties = {
+  color: colors.white,
+  fontSize: '28px',
+  fontWeight: 700,
+  margin: '0',
+  lineHeight: '56px',
+};
+
+const amountText: React.CSSProperties = {
+  color: colors.dark,
+  fontSize: '36px',
+  fontWeight: 700,
+  margin: '0 0 6px',
+  letterSpacing: '-0.02em',
+};
+
+const descriptionText: React.CSSProperties = {
+  color: colors.gray600,
+  fontSize: '15px',
+  margin: '0',
+};
+
+const hrSuccess: React.CSSProperties = {
+  borderColor: colors.success,
+  opacity: 0.3,
+  margin: '20px 0',
+};
+
+const dateText: React.CSSProperties = {
+  color: colors.gray500,
+  fontSize: '13px',
+  margin: '0',
+};
