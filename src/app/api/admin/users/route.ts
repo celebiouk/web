@@ -20,21 +20,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing userId or action' }, { status: 400 });
     }
 
-    const { data: targetProfile, error: targetProfileError } = await adminSupabase
-      .from('profiles')
-      .select('id, subscription_tier, is_suspended')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (targetProfileError) {
-      console.error('Failed to load target profile:', targetProfileError);
-      return NextResponse.json({ error: 'Failed to find user profile' }, { status: 500 });
-    }
-
-    if (!targetProfile) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
     // Log the admin action
     try {
       await adminSupabase.from('admin_audit_logs').insert({
@@ -110,7 +95,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Admin user action error:', error);
-    return NextResponse.json({ error: 'Action failed' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Action failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
