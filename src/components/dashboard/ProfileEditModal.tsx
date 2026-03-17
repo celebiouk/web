@@ -9,6 +9,15 @@ import { uploadFile, validateFile, FILE_TYPES } from '@/lib/utils/uploadFile';
 import { Camera, Upload, X, ImageIcon } from 'lucide-react';
 import type { Profile } from '@/types/supabase';
 
+type PageBackgroundType = 'none' | 'color' | 'gradient' | 'image';
+
+const GRADIENT_PRESETS = [
+  'linear-gradient(135deg, #EEF2FF 0%, #FDF2F8 100%)',
+  'linear-gradient(135deg, #ECFEFF 0%, #F0FDF4 100%)',
+  'linear-gradient(135deg, #FFF7ED 0%, #FEF2F2 100%)',
+  'linear-gradient(135deg, #111827 0%, #374151 100%)',
+];
+
 interface ProfileEditModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,12 +36,18 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
   const [website, setWebsite] = useState(profile.website || '');
   const [testimonialsEnabled, setTestimonialsEnabled] = useState(profile.testimonials_enabled ?? false);
   const [showAvatarOnBanner, setShowAvatarOnBanner] = useState((profile as any).show_avatar_on_banner ?? true);
+  const [pageBackgroundType, setPageBackgroundType] = useState<PageBackgroundType>(((profile as any).page_background_type as PageBackgroundType) || 'none');
+  const [pageBackgroundValue, setPageBackgroundValue] = useState<string | null>((profile as any).page_background_value || null);
 
   // Image state
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatar_url);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(profile.banner_url);
+  const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null);
+  const [backgroundImagePreview, setBackgroundImagePreview] = useState<string | null>(
+    ((profile as any).page_background_type as PageBackgroundType) === 'image' ? ((profile as any).page_background_value as string | null) : null
+  );
 
   // UI state
   const [isSaving, setIsSaving] = useState(false);
@@ -88,6 +103,37 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
     if (bannerInputRef.current) bannerInputRef.current.value = '';
   }
 
+  function handleBackgroundImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateFile(file, {
+      maxSize: 10 * 1024 * 1024,
+      allowedTypes: FILE_TYPES.images,
+    });
+
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid file');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setBackgroundImageFile(file);
+    setBackgroundImagePreview(objectUrl);
+    setPageBackgroundType('image');
+    setPageBackgroundValue(objectUrl);
+    setError(null);
+  }
+
+  function setBackgroundType(type: PageBackgroundType) {
+    setPageBackgroundType(type);
+    if (type === 'none') {
+      setPageBackgroundValue(null);
+      setBackgroundImageFile(null);
+      setBackgroundImagePreview(null);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -96,6 +142,7 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
     try {
       let avatarUrl = avatarPreview;
       let bannerUrl = bannerPreview;
+      let backgroundValue = pageBackgroundType === 'none' ? null : pageBackgroundValue;
 
       // Upload new avatar if selected
       if (avatarFile) {
@@ -113,6 +160,13 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
         bannerUrl = result.publicUrl || null;
       }
 
+      if (pageBackgroundType === 'image' && backgroundImageFile) {
+        const result = await uploadFile('banners', backgroundImageFile, {
+          folder: `${profile.id}/page-backgrounds`,
+        });
+        backgroundValue = result.publicUrl || null;
+      }
+
       // Update profile
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: updateError } = await (supabase as any)
@@ -125,6 +179,8 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
           banner_url: bannerUrl,
           testimonials_enabled: testimonialsEnabled,
           show_avatar_on_banner: showAvatarOnBanner,
+          page_background_type: pageBackgroundType,
+          page_background_value: backgroundValue,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -204,6 +260,94 @@ export function ProfileEditModal({ isOpen, onClose, profile }: ProfileEditModalP
             onChange={handleBannerSelect}
             className="hidden"
           />
+        </div>
+
+        {/* Page Background */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Page Background
+          </label>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Set the background behind your page content.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {(['none', 'color', 'gradient', 'image'] as PageBackgroundType[]).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setBackgroundType(type)}
+                className={`rounded-lg border px-3 py-2 text-xs font-medium capitalize transition-colors ${
+                  pageBackgroundType === type
+                    ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+
+          {pageBackgroundType === 'color' ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={pageBackgroundValue?.startsWith('#') ? pageBackgroundValue : '#ffffff'}
+                onChange={(e) => setPageBackgroundValue(e.target.value)}
+                className="h-9 w-12 cursor-pointer rounded border border-gray-300 bg-transparent p-1 dark:border-gray-700"
+              />
+              <Input
+                value={pageBackgroundValue || '#ffffff'}
+                onChange={(e) => setPageBackgroundValue(e.target.value)}
+                placeholder="#ffffff"
+              />
+            </div>
+          ) : null}
+
+          {pageBackgroundType === 'gradient' ? (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                {GRADIENT_PRESETS.map((gradient) => (
+                  <button
+                    key={gradient}
+                    type="button"
+                    onClick={() => setPageBackgroundValue(gradient)}
+                    className={`h-10 rounded-lg border ${pageBackgroundValue === gradient ? 'border-brand-500' : 'border-gray-200 dark:border-gray-700'}`}
+                    style={{ background: gradient }}
+                  />
+                ))}
+              </div>
+              <Input
+                value={pageBackgroundValue || ''}
+                onChange={(e) => setPageBackgroundValue(e.target.value)}
+                placeholder="linear-gradient(135deg, #fff 0%, #f3f4f6 100%)"
+              />
+            </div>
+          ) : null}
+
+          {pageBackgroundType === 'image' ? (
+            <label className="group relative block cursor-pointer">
+              <div className={`relative h-24 w-full overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
+                backgroundImagePreview
+                  ? 'border-transparent'
+                  : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
+              }`}>
+                {backgroundImagePreview ? (
+                  <>
+                    <Image src={backgroundImagePreview} alt="Page background preview" fill className="object-cover" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Camera className="h-8 w-8 text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center text-gray-400">
+                    <ImageIcon className="mb-2 h-8 w-8" />
+                    <span className="text-sm">Click to upload background image</span>
+                  </div>
+                )}
+              </div>
+              <input type="file" accept="image/*" onChange={handleBackgroundImageSelect} className="hidden" />
+            </label>
+          ) : null}
         </div>
 
         {/* Avatar */}

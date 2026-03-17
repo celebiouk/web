@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { TemplateRenderer } from '@/components/templates/TemplateRenderer';
+import { SOCIAL_ICONS } from '@/components/templates/shared';
 import { Input, Textarea, Button, Avatar, Spinner } from '@/components/ui';
 import { uploadFile, validateFile, FILE_TYPES } from '@/lib/utils/uploadFile';
 import { 
@@ -32,6 +33,70 @@ const TEMPLATES: { slug: TemplateSlug; name: string; icon: LucideIcon }[] = [
 ];
 
 type ViewMode = 'mobile' | 'desktop';
+type PageBackgroundType = 'none' | 'color' | 'gradient' | 'image';
+type SocialPlatform = 'instagram' | 'tiktok' | 'facebook' | 'linkedin' | 'twitter';
+
+const GRADIENT_PRESETS = [
+  'linear-gradient(135deg, #EEF2FF 0%, #FDF2F8 100%)',
+  'linear-gradient(135deg, #ECFEFF 0%, #F0FDF4 100%)',
+  'linear-gradient(135deg, #FFF7ED 0%, #FEF2F2 100%)',
+  'linear-gradient(135deg, #111827 0%, #374151 100%)',
+];
+
+const SOCIAL_PLATFORM_CONFIG: Array<{ platform: SocialPlatform; label: string; baseUrl: string }> = [
+  { platform: 'instagram', label: 'Instagram', baseUrl: 'https://instagram.com/' },
+  { platform: 'tiktok', label: 'TikTok', baseUrl: 'https://tiktok.com/@' },
+  { platform: 'facebook', label: 'Facebook', baseUrl: 'https://facebook.com/' },
+  { platform: 'linkedin', label: 'LinkedIn', baseUrl: 'https://linkedin.com/in/' },
+  { platform: 'twitter', label: 'X', baseUrl: 'https://x.com/' },
+];
+
+const EMPTY_SOCIAL_USERNAMES: Record<SocialPlatform, string> = {
+  instagram: '',
+  tiktok: '',
+  facebook: '',
+  linkedin: '',
+  twitter: '',
+};
+
+function normalizeUsername(value: string): string {
+  return value.trim().replace(/^@+/, '').replace(/\s+/g, '');
+}
+
+function usernamesFromLinks(rawLinks: Array<{ platform?: string; url?: string }> | null | undefined): Record<SocialPlatform, string> {
+  const result = { ...EMPTY_SOCIAL_USERNAMES };
+  if (!rawLinks || rawLinks.length === 0) return result;
+
+  for (const entry of rawLinks) {
+    const platform = (entry.platform || '').toLowerCase() as SocialPlatform;
+    if (!Object.prototype.hasOwnProperty.call(result, platform)) continue;
+    const url = (entry.url || '').trim();
+    if (!url) continue;
+
+    try {
+      const parsed = new URL(url);
+      const handle = parsed.pathname.replace(/^\/+/, '').split('/').filter(Boolean).pop() || '';
+      result[platform] = normalizeUsername(handle);
+    } catch {
+      result[platform] = normalizeUsername(url);
+    }
+  }
+
+  return result;
+}
+
+function linksFromUsernames(usernames: Record<SocialPlatform, string>): Array<{ platform: SocialPlatform; url: string }> {
+  return SOCIAL_PLATFORM_CONFIG
+    .map(({ platform, baseUrl }) => {
+      const username = normalizeUsername(usernames[platform] || '');
+      if (!username) return null;
+      return {
+        platform,
+        url: `${baseUrl}${username}`,
+      };
+    })
+    .filter((item): item is { platform: SocialPlatform; url: string } => Boolean(item));
+}
 
 export default function PageEditorPage() {
   const router = useRouter();
@@ -50,12 +115,17 @@ export default function PageEditorPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateSlug>('minimal-clean');
   const [testimonialsEnabled, setTestimonialsEnabled] = useState(false);
   const [showAvatarOnBanner, setShowAvatarOnBanner] = useState(true);
+  const [pageBackgroundType, setPageBackgroundType] = useState<PageBackgroundType>('none');
+  const [pageBackgroundValue, setPageBackgroundValue] = useState<string | null>(null);
+  const [socialUsernames, setSocialUsernames] = useState<Record<SocialPlatform, string>>(EMPTY_SOCIAL_USERNAMES);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [backgroundImagePreview, setBackgroundImagePreview] = useState<string | null>(null);
   
   // File uploads
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null);
   
   // UI states
   const [viewMode, setViewMode] = useState<ViewMode>('mobile');
@@ -91,8 +161,14 @@ export default function PageEditorPage() {
       setSelectedTemplate((prof as any).template_slug as TemplateSlug || 'minimal-clean');
       setTestimonialsEnabled((prof as any).testimonials_enabled ?? false);
       setShowAvatarOnBanner((prof as any).show_avatar_on_banner ?? true);
+      const initialBackgroundType = ((prof as any).page_background_type as PageBackgroundType) || 'none';
+      const initialBackgroundValue = ((prof as any).page_background_value as string | null) || null;
+      setPageBackgroundType(initialBackgroundType);
+      setPageBackgroundValue(initialBackgroundValue);
+      setSocialUsernames(usernamesFromLinks((prof as any).social_links as Array<{ platform?: string; url?: string }>));
       setAvatarPreview(prof.avatar_url);
       setBannerPreview((prof as any).banner_url);
+      setBackgroundImagePreview(initialBackgroundType === 'image' ? initialBackgroundValue : null);
 
       // Fetch products
       const { data: productsData } = await supabase
@@ -149,6 +225,8 @@ export default function PageEditorPage() {
           avatar_url: prof.avatar_url,
           banner_url: (prof as any).banner_url || null,
           show_avatar_on_banner: (prof as any).show_avatar_on_banner ?? true,
+          page_background_type: (prof as any).page_background_type || 'none',
+          page_background_value: (prof as any).page_background_value || null,
           subscription_tier: prof.subscription_tier,
           social_links: (prof as any).social_links || [],
           testimonials_enabled: (prof as any).testimonials_enabled ?? false,
@@ -191,6 +269,8 @@ export default function PageEditorPage() {
   }, [router, supabase]);
 
   // Live preview data - updates whenever edit states change
+  const socialLinks = linksFromUsernames(socialUsernames);
+
   const livePageData: CreatorPageData | null = pageData ? {
     ...pageData,
     profile: {
@@ -200,6 +280,9 @@ export default function PageEditorPage() {
       avatar_url: avatarPreview,
       banner_url: bannerPreview,
       show_avatar_on_banner: showAvatarOnBanner,
+      page_background_type: pageBackgroundType,
+      page_background_value: pageBackgroundType === 'none' ? null : pageBackgroundValue,
+      social_links: socialLinks,
       testimonials_enabled: testimonialsEnabled,
     },
   } : null;
@@ -213,10 +296,14 @@ export default function PageEditorPage() {
       selectedTemplate !== ((profile as any).template_slug || 'minimal-clean') ||
       testimonialsEnabled !== ((profile as any).testimonials_enabled ?? false) ||
       showAvatarOnBanner !== ((profile as any).show_avatar_on_banner ?? true) ||
+      pageBackgroundType !== (((profile as any).page_background_type as PageBackgroundType) || 'none') ||
+      (pageBackgroundType === 'none' ? null : pageBackgroundValue) !== ((profile as any).page_background_value || null) ||
+      JSON.stringify(socialLinks) !== JSON.stringify(((profile as any).social_links || [])) ||
       avatarFile !== null ||
-      bannerFile !== null;
+      bannerFile !== null ||
+      backgroundImageFile !== null;
     setHasChanges(changed);
-  }, [fullName, bio, selectedTemplate, testimonialsEnabled, showAvatarOnBanner, avatarFile, bannerFile, profile]);
+  }, [fullName, bio, selectedTemplate, testimonialsEnabled, showAvatarOnBanner, pageBackgroundType, pageBackgroundValue, socialLinks, avatarFile, bannerFile, backgroundImageFile, profile]);
 
   // Handle avatar selection
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,6 +325,30 @@ export default function PageEditorPage() {
     setBannerPreview(URL.createObjectURL(file));
   };
 
+  const handleBackgroundImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validation = validateFile(file, { maxSize: 10 * 1024 * 1024, allowedTypes: FILE_TYPES.images });
+    if (!validation.valid) return;
+    const objectUrl = URL.createObjectURL(file);
+    setBackgroundImageFile(file);
+    setBackgroundImagePreview(objectUrl);
+    setPageBackgroundType('image');
+    setPageBackgroundValue(objectUrl);
+  };
+
+  const handleBackgroundTypeChange = (type: PageBackgroundType) => {
+    setPageBackgroundType(type);
+    if (type === 'none') {
+      setPageBackgroundValue(null);
+      setBackgroundImagePreview(null);
+      setBackgroundImageFile(null);
+    }
+    if (type === 'image' && !backgroundImagePreview && !pageBackgroundValue) {
+      setPageBackgroundValue(null);
+    }
+  };
+
   // Save all changes
   const handleSave = useCallback(async () => {
     if (!profile) return;
@@ -247,6 +358,7 @@ export default function PageEditorPage() {
     try {
       let avatarUrl = avatarPreview;
       let bannerUrl = bannerPreview;
+      let backgroundValue = pageBackgroundType === 'none' ? null : pageBackgroundValue;
 
       // Upload avatar if changed
       if (avatarFile) {
@@ -258,6 +370,11 @@ export default function PageEditorPage() {
       if (bannerFile) {
         const result = await uploadFile('banners', bannerFile, { folder: profile.id });
         bannerUrl = result.publicUrl || null;
+      }
+
+      if (pageBackgroundType === 'image' && backgroundImageFile) {
+        const result = await uploadFile('banners', backgroundImageFile, { folder: `${profile.id}/page-backgrounds` });
+        backgroundValue = result.publicUrl || null;
       }
 
       // Update profile
@@ -272,6 +389,9 @@ export default function PageEditorPage() {
           template_slug: selectedTemplate,
           testimonials_enabled: testimonialsEnabled,
           show_avatar_on_banner: showAvatarOnBanner,
+          page_background_type: pageBackgroundType,
+          page_background_value: backgroundValue,
+          social_links: socialLinks,
           updated_at: new Date().toISOString(),
         })
         .eq('id', profile.id);
@@ -279,6 +399,9 @@ export default function PageEditorPage() {
       // Clear file states
       setAvatarFile(null);
       setBannerFile(null);
+      setBackgroundImageFile(null);
+      setPageBackgroundValue(backgroundValue);
+      setBackgroundImagePreview(pageBackgroundType === 'image' ? backgroundValue : null);
       setHasChanges(false);
       setSaveSuccess(true);
       
@@ -290,7 +413,7 @@ export default function PageEditorPage() {
     } finally {
       setSaving(false);
     }
-  }, [profile, avatarFile, bannerFile, fullName, bio, selectedTemplate, testimonialsEnabled, showAvatarOnBanner, avatarPreview, bannerPreview, supabase]);
+  }, [profile, avatarFile, bannerFile, backgroundImageFile, fullName, bio, selectedTemplate, testimonialsEnabled, showAvatarOnBanner, pageBackgroundType, pageBackgroundValue, socialLinks, avatarPreview, bannerPreview, supabase]);
 
   if (loading) {
     return (
@@ -476,6 +599,122 @@ export default function PageEditorPage() {
                   </div>
                   <input type="file" accept="image/*" onChange={handleBannerSelect} className="hidden" />
                 </label>
+              </div>
+
+              {/* Page Background */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Page Background
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Controls the background behind the rest of your page content.
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['none', 'color', 'gradient', 'image'] as PageBackgroundType[]).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => handleBackgroundTypeChange(type)}
+                      className={`rounded-lg border px-3 py-2 text-xs font-medium capitalize transition-colors ${
+                        pageBackgroundType === type
+                          ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+
+                {pageBackgroundType === 'color' ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={pageBackgroundValue?.startsWith('#') ? pageBackgroundValue : '#ffffff'}
+                      onChange={(e) => setPageBackgroundValue(e.target.value)}
+                      className="h-9 w-12 cursor-pointer rounded border border-gray-300 bg-transparent p-1 dark:border-gray-700"
+                    />
+                    <Input
+                      value={pageBackgroundValue || '#ffffff'}
+                      onChange={(e) => setPageBackgroundValue(e.target.value)}
+                      placeholder="#ffffff"
+                    />
+                  </div>
+                ) : null}
+
+                {pageBackgroundType === 'gradient' ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      {GRADIENT_PRESETS.map((gradient) => (
+                        <button
+                          key={gradient}
+                          type="button"
+                          onClick={() => setPageBackgroundValue(gradient)}
+                          className={`h-10 rounded-lg border ${pageBackgroundValue === gradient ? 'border-brand-500' : 'border-gray-200 dark:border-gray-700'}`}
+                          style={{ background: gradient }}
+                        />
+                      ))}
+                    </div>
+                    <Input
+                      value={pageBackgroundValue || ''}
+                      onChange={(e) => setPageBackgroundValue(e.target.value)}
+                      placeholder="linear-gradient(135deg, #fff 0%, #f3f4f6 100%)"
+                    />
+                  </div>
+                ) : null}
+
+                {pageBackgroundType === 'image' ? (
+                  <div className="space-y-2">
+                    <label className="group relative block cursor-pointer">
+                      <div className={`relative h-20 w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
+                        backgroundImagePreview ? 'border-transparent' : 'border-gray-300 hover:border-gray-400 dark:border-gray-700'
+                      }`}>
+                        {backgroundImagePreview ? (
+                          <>
+                            <Image src={backgroundImagePreview} alt="Background" fill className="object-cover" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                              <Camera className="h-5 w-5 text-white" />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-gray-400">
+                            <Palette className="mr-2 h-4 w-4" />
+                            <span className="text-sm">Add background image</span>
+                          </div>
+                        )}
+                      </div>
+                      <input type="file" accept="image/*" onChange={handleBackgroundImageSelect} className="hidden" />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Social Links (username only)
+                </label>
+                <div className="space-y-2">
+                  {SOCIAL_PLATFORM_CONFIG.map((item) => {
+                    const iconPath = SOCIAL_ICONS[item.platform];
+                    return (
+                      <div key={item.platform} className="flex items-center rounded-lg border border-gray-200 bg-white px-2 py-2 dark:border-gray-700 dark:bg-gray-800">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d={iconPath} />
+                          </svg>
+                        </span>
+                        <span className="mx-2 text-sm text-gray-400">@</span>
+                        <input
+                          value={socialUsernames[item.platform]}
+                          onChange={(e) => setSocialUsernames((prev) => ({ ...prev, [item.platform]: e.target.value }))}
+                          placeholder={`${item.label} username`}
+                          className="w-full border-0 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Name */}

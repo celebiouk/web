@@ -56,6 +56,8 @@ export interface Database {
           bio: string | null;
           avatar_url: string | null;
           banner_url: string | null;
+          page_background_type: 'none' | 'color' | 'gradient' | 'image';
+          page_background_value: string | null;
           website: string | null;
           subscription_tier: SubscriptionTier;
           stripe_account_id: string | null;
@@ -78,6 +80,8 @@ export interface Database {
           bio?: string | null;
           avatar_url?: string | null;
           banner_url?: string | null;
+          page_background_type?: 'none' | 'color' | 'gradient' | 'image';
+          page_background_value?: string | null;
           website?: string | null;
           subscription_tier?: SubscriptionTier;
           stripe_account_id?: string | null;
@@ -100,6 +104,8 @@ export interface Database {
           bio?: string | null;
           avatar_url?: string | null;
           banner_url?: string | null;
+          page_background_type?: 'none' | 'color' | 'gradient' | 'image';
+          page_background_value?: string | null;
           website?: string | null;
           subscription_tier?: SubscriptionTier;
           stripe_account_id?: string | null;

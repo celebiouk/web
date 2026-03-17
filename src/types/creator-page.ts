@@ -73,6 +73,8 @@ export type CreatorPageData = {
     avatar_url: string | null;
     banner_url: string | null;
     show_avatar_on_banner?: boolean;
+    page_background_type?: 'none' | 'color' | 'gradient' | 'image';
+    page_background_value?: string | null;
     social_links: SocialLink[];
     subscription_tier: 'free' | 'pro';
     testimonials_enabled: boolean;

@@ -175,6 +175,8 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       avatar_url: profile.avatar_url,
       banner_url: (profile as any).banner_url || null,
       show_avatar_on_banner: (profile as any).show_avatar_on_banner ?? true,
+      page_background_type: (profile as any).page_background_type || 'none',
+      page_background_value: (profile as any).page_background_value || null,
       subscription_tier: profile.subscription_tier,
       social_links: profile.social_links || [],
       testimonials_enabled: (profile as any).testimonials_enabled ?? false,

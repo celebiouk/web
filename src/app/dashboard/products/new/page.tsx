@@ -214,9 +214,9 @@ export default function NewProductPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: insertError } = await (supabase as any).from('products').insert({
         creator_id: user.id,
-        title: title.trim(),
-        subtitle: subtitle.trim() || null,
-        description: description.trim() || null,
+        title: title.trim().slice(0, 50),
+        subtitle: subtitle.trim().slice(0, 100) || null,
+        description: description.trim().slice(0, 2000) || null,
         description_html: descriptionHtml.trim() || null,
         price: priceInCents,
         currency,
@@ -315,7 +315,7 @@ export default function NewProductPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Social Media Growth Guide"
-                maxLength={100}
+                maxLength={50}
               />
             </div>
 
@@ -327,7 +327,7 @@ export default function NewProductPage() {
                 value={subtitle}
                 onChange={(e) => setSubtitle(e.target.value)}
                 placeholder="One short line that explains the core transformation"
-                maxLength={140}
+                maxLength={100}
               />
             </div>
 
@@ -339,7 +339,7 @@ export default function NewProductPage() {
                 value={descriptionHtml}
                 onChange={(html, plainText) => {
                   setDescriptionHtml(html);
-                  setDescription(plainText.slice(0, 5000));
+                  setDescription(plainText.slice(0, 2000));
                 }}
                 placeholder="Write your long-form sales copy with formatting, lists, images, and YouTube links."
               />

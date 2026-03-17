@@ -16,6 +16,7 @@ import { Editorial } from './Editorial';
 import { TechVibe } from './TechVibe';
 import { Luxury } from './Luxury';
 import { Phase7GrowthBlocks } from './phase7-growth-blocks';
+import { SocialLinks } from './shared';
 
 export interface TemplateRendererProps {
   templateSlug: string;
@@ -67,6 +68,28 @@ export function TemplateRenderer({
 
   const hasHeaderBanner = Boolean(data.profile.banner_url);
   const showAvatarOnBanner = data.profile.show_avatar_on_banner ?? true;
+  const pageBackgroundType = data.profile.page_background_type ?? 'none';
+  const pageBackgroundValue = data.profile.page_background_value ?? null;
+  const hasSocialLinks = Boolean(data.profile.social_links?.length);
+
+  const contentBackgroundStyle = useMemo(() => {
+    if (pageBackgroundType === 'none' || !pageBackgroundValue) return undefined;
+    if (pageBackgroundType === 'color') {
+      return { backgroundColor: pageBackgroundValue };
+    }
+    if (pageBackgroundType === 'gradient') {
+      return { background: pageBackgroundValue };
+    }
+    if (pageBackgroundType === 'image') {
+      return {
+        backgroundImage: `url(${pageBackgroundValue})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      };
+    }
+    return undefined;
+  }, [pageBackgroundType, pageBackgroundValue]);
 
   // When a header banner exists, always strip the avatar from template data
   // so the template's own hero section never renders a duplicate avatar.
@@ -78,6 +101,7 @@ export function TemplateRenderer({
       profile: {
         ...data.profile,
         avatar_url: null,
+        social_links: [],
       },
     };
   }, [data, hasHeaderBanner]);
@@ -115,7 +139,20 @@ export function TemplateRenderer({
         </section>
       ) : null}
 
-      <div>
+      <div
+        className={`page-content-shell ${contentBackgroundStyle ? 'has-custom-background' : ''}`}
+        style={contentBackgroundStyle}
+      >
+        {hasHeaderBanner && hasSocialLinks ? (
+          <div className={`flex justify-center px-4 ${showAvatarOnBanner && data.profile.avatar_url ? 'pb-5 pt-14' : 'pb-5 pt-4'}`}>
+            <SocialLinks
+              links={data.profile.social_links}
+              variant="banner"
+              className="justify-center"
+              iconSize={17}
+            />
+          </div>
+        ) : null}
         <TemplateComponent
           data={dataForTemplate}
           isPreview={isPreview}
@@ -123,6 +160,13 @@ export function TemplateRenderer({
           showPoweredBy={showPoweredBy}
         />
       </div>
+      <style jsx>{`
+        .page-content-shell.has-custom-background > :global(div:first-child) {
+          background: transparent !important;
+          background-color: transparent !important;
+          background-image: none !important;
+        }
+      `}</style>
       {!isPreview ? <Phase7GrowthBlocks data={data} /> : null}
     </>
   );

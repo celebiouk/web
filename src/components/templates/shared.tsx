@@ -174,7 +174,7 @@ export function SocialLinks({
   links: { platform: string; url: string }[];
   className?: string;
   iconSize?: number;
-  variant?: 'filled' | 'outline' | 'minimal';
+  variant?: 'filled' | 'outline' | 'minimal' | 'banner';
   style?: React.CSSProperties;
 }) {
   if (!links || links.length === 0) return null;
@@ -183,6 +183,7 @@ export function SocialLinks({
     filled: 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm',
     outline: 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300',
     minimal: 'text-gray-500 hover:text-gray-900 hover:bg-gray-100',
+    banner: 'border border-white/80 bg-black/35 text-white hover:bg-black/50',
   };
 
   return (
