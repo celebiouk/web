@@ -6,6 +6,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Package, Users, Star, Clock, ChevronRight, ExternalLink, ShoppingBag, Zap, Award } from 'lucide-react';
+import logoImage from '@/app/logo.png';
 import { PLACEHOLDER_TESTIMONIALS, FONT_FAMILIES, type Testimonial, type PageTheme, type CreatorCourse, type CreatorPageData, type CreatorProduct } from '@/types/creator-page';
 
 // Format price from cents to display string
@@ -589,15 +590,30 @@ export function PoweredByFooter({
 }) {
   if (!show) return null;
 
+  const isDark = theme === 'dark';
+
   return (
-    <div className={`py-6 text-center text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+    <div className={`py-6 text-center text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
       <a
         href="https://cele.bio"
         target="_blank"
         rel="noopener noreferrer"
-        className="hover:underline"
+        className="inline-flex items-center gap-2 rounded-full border px-4 py-2 transition-colors hover:opacity-90"
+        style={{
+          borderColor: isDark ? 'rgba(255,255,255,0.18)' : 'rgba(17,24,39,0.12)',
+          backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.72)',
+        }}
       >
-        Powered by <span className="font-medium">cele.bio</span>
+        <Image
+          src={logoImage}
+          alt="Cele.bio logo"
+          width={16}
+          height={16}
+          className="rounded"
+        />
+        <span>
+          This page was built with <span className="font-medium">cele.bio</span> — Build your own for free.
+        </span>
       </a>
     </div>
   );

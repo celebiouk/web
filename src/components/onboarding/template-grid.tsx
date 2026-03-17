@@ -119,14 +119,24 @@ export function TemplateGrid({ templates, selectedTemplateId }: TemplateGridProp
         return;
       }
 
+      const selectedTemplate = templates.find((template) => template.id === selected);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('profiles')
-        .update({ template_id: selected })
-        .eq('id', user.id);
+        .upsert(
+          {
+            id: user.id,
+            template_id: selected,
+            template_slug: selectedTemplate?.slug || null,
+            onboarding_completed: false,
+          },
+          { onConflict: 'id' }
+        );
 
       if (error) {
         console.error('Error saving template:', error);
+        alert('Failed to save your template. Please try again.');
         return;
       }
 
