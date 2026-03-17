@@ -93,10 +93,10 @@ async function handlePaymentSucceeded(supabaseAdmin: SupabaseClient<Database>, p
     buyer_email: string;
     offer_applied?: boolean;
     offer_bonus_product_id?: string | null;
-    products?: { offer_limit_type?: 'none' | 'time' | 'claims'; offer_claims_used?: number; offer_max_claims?: number };
+    products?: { offer_limit_type?: 'none' | 'time' | 'claims' | 'both'; offer_claims_used?: number; offer_max_claims?: number };
   } | null;
 
-  if (orderWithOffer?.offer_applied && orderWithOffer.products?.offer_limit_type === 'claims') {
+  if (orderWithOffer?.offer_applied && (orderWithOffer.products?.offer_limit_type === 'claims' || orderWithOffer.products?.offer_limit_type === 'both')) {
     await (supabaseAdmin.from('products') as any)
       .update({ offer_claims_used: Number(orderWithOffer.products.offer_claims_used || 0) + 1 })
       .eq('id', orderWithOffer.product_id)

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button, Input } from '@/components/ui';
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -47,7 +48,7 @@ export default function ForgotPasswordPage() {
         href="/"
         className="mb-8 block text-center text-2xl font-bold text-gray-900 dark:text-white"
       >
-        cele<span className="text-brand-600">.bio</span>
+        <BrandWordmark dotClassName="text-brand-600" />
       </Link>
 
       {/* Card */}

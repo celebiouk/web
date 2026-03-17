@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import { 
   ShoppingBag, 
   CalendarCheck, 
@@ -23,7 +24,7 @@ export default function HomePage() {
         {/* Navigation */}
         <nav className="container-page relative z-10 flex items-center justify-between py-6">
           <Link href="/" className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            cele<span className="text-brand-600">.bio</span>
+            <BrandWordmark dotClassName="text-brand-600" />
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/login">
@@ -215,7 +216,7 @@ export default function HomePage() {
         <div className="container-page">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
-              cele<span className="text-brand-600">.bio</span>
+              <BrandWordmark dotClassName="text-brand-600" />
             </Link>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               © {new Date().getFullYear()} Cele.bio. All rights reserved.

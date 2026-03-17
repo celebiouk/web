@@ -30,7 +30,7 @@ function getActiveOffer(product: {
   price: number;
   offer_enabled?: boolean | null;
   offer_discount_price_cents?: number | null;
-  offer_limit_type?: 'none' | 'time' | 'claims' | null;
+  offer_limit_type?: 'none' | 'time' | 'claims' | 'both' | null;
   offer_expires_at?: string | null;
   offer_max_claims?: number | null;
   offer_claims_used?: number | null;
@@ -49,15 +49,17 @@ function getActiveOffer(product: {
   }
 
   const limitType = product.offer_limit_type || 'none';
+  const hasTimeLimit = limitType === 'time' || limitType === 'both';
+  const hasClaimsLimit = limitType === 'claims' || limitType === 'both';
 
-  if (limitType === 'time' && product.offer_expires_at) {
+  if (hasTimeLimit && product.offer_expires_at) {
     const expiresAtMs = new Date(product.offer_expires_at).getTime();
     if (Number.isFinite(expiresAtMs) && Date.now() >= expiresAtMs) {
       return { enabled: false, discountedPriceCents: product.price, discountCents: 0, bonusProductId: null };
     }
   }
 
-  if (limitType === 'claims') {
+  if (hasClaimsLimit) {
     const maxClaims = Number(product.offer_max_claims || 0);
     const usedClaims = Number(product.offer_claims_used || 0);
 
@@ -135,7 +137,7 @@ export async function POST(request: Request) {
       price: number;
       offer_enabled?: boolean | null;
       offer_discount_price_cents?: number | null;
-      offer_limit_type?: 'none' | 'time' | 'claims' | null;
+      offer_limit_type?: 'none' | 'time' | 'claims' | 'both' | null;
       offer_expires_at?: string | null;
       offer_max_claims?: number | null;
       offer_claims_used?: number | null;
@@ -182,8 +184,8 @@ export async function POST(request: Request) {
         );
       }
 
-      const offerLimitType = (product.offer_limit_type || 'none') as 'none' | 'time' | 'claims';
-      if (activeOffer.enabled && offerLimitType === 'claims') {
+      const offerLimitType = (product.offer_limit_type || 'none') as 'none' | 'time' | 'claims' | 'both';
+      if (activeOffer.enabled && (offerLimitType === 'claims' || offerLimitType === 'both')) {
         await supabaseAdmin
           .from('products')
           .update({ offer_claims_used: Number(product.offer_claims_used || 0) + 1 })

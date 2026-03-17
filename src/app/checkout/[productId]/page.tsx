@@ -85,7 +85,7 @@ export default function CheckoutPage() {
       const productOffer = product as Product & {
         offer_enabled?: boolean;
         offer_discount_price_cents?: number | null;
-        offer_limit_type?: 'none' | 'time' | 'claims';
+        offer_limit_type?: 'none' | 'time' | 'claims' | 'both';
         offer_expires_at?: string | null;
         offer_max_claims?: number | null;
         offer_claims_used?: number | null;
@@ -115,8 +115,10 @@ export default function CheckoutPage() {
 
       const expiresAt = productOffer.offer_expires_at ? new Date(productOffer.offer_expires_at).getTime() : null;
       const limitType = productOffer.offer_limit_type || 'none';
-      const hasTimeExpired = limitType === 'time' && expiresAt !== null && Date.now() >= expiresAt;
-      const claimsLeft = limitType === 'claims'
+      const hasTimeLimit = limitType === 'time' || limitType === 'both';
+      const hasClaimsLimit = limitType === 'claims' || limitType === 'both';
+      const hasTimeExpired = hasTimeLimit && expiresAt !== null && Date.now() >= expiresAt;
+      const claimsLeft = hasClaimsLimit
         ? Math.max(0, Number(productOffer.offer_max_claims || 0) - Number(productOffer.offer_claims_used || 0))
         : null;
 
@@ -126,12 +128,12 @@ export default function CheckoutPage() {
           && productOffer.offer_discount_price_cents >= 0
           && productOffer.offer_discount_price_cents < productOffer.price
           && !hasTimeExpired
-          && (limitType !== 'claims' || (claimsLeft !== null && claimsLeft > 0))
+            && (!hasClaimsLimit || (claimsLeft !== null && claimsLeft > 0))
       );
 
       setCheckoutAmount(offerIsActive ? Number(productOffer.offer_discount_price_cents) : productOffer.price);
 
-      if (offerIsActive && limitType === 'time' && expiresAt) {
+      if (offerIsActive && hasTimeLimit && expiresAt) {
         setSecondsRemaining(Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)));
       } else {
         setSecondsRemaining(null);
@@ -241,7 +243,7 @@ export default function CheckoutPage() {
   const productOffer = product as Product & {
     offer_enabled?: boolean;
     offer_discount_price_cents?: number | null;
-    offer_limit_type?: 'none' | 'time' | 'claims';
+    offer_limit_type?: 'none' | 'time' | 'claims' | 'both';
     offer_expires_at?: string | null;
     offer_max_claims?: number | null;
     offer_claims_used?: number | null;
@@ -254,15 +256,17 @@ export default function CheckoutPage() {
     ? productOffer.offer_discount_price_cents
     : regularPrice;
   const offerLimitType = productOffer.offer_limit_type || 'none';
-  const offerClaimsLeft = offerLimitType === 'claims'
+  const offerHasTimeLimit = offerLimitType === 'time' || offerLimitType === 'both';
+  const offerHasClaimsLimit = offerLimitType === 'claims' || offerLimitType === 'both';
+  const offerClaimsLeft = offerHasClaimsLimit
     ? Math.max(0, Number(productOffer.offer_max_claims || 0) - Number(productOffer.offer_claims_used || 0))
     : null;
   const offerActive = Boolean(
     productOffer.offer_enabled
       && discountedPrice >= 0
       && discountedPrice < regularPrice
-      && (offerLimitType !== 'time' || (secondsRemaining !== null && secondsRemaining > 0))
-      && (offerLimitType !== 'claims' || (offerClaimsLeft !== null && offerClaimsLeft > 0))
+      && (!offerHasTimeLimit || (secondsRemaining !== null && secondsRemaining > 0))
+      && (!offerHasClaimsLimit || (offerClaimsLeft !== null && offerClaimsLeft > 0))
   );
 
   const displayedAmount = checkoutAmount ?? (offerActive ? discountedPrice : regularPrice);
@@ -334,7 +338,7 @@ export default function CheckoutPage() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">Limited Offer Active</p>
                     <h3 className="mt-1 text-base font-semibold text-gray-900 dark:text-white">Save {formatPrice(offerSavings, product.currency)} when you buy now</h3>
 
-                    {offerLimitType === 'time' && (
+                    {offerHasTimeLimit && (
                       <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 font-mono text-lg font-bold text-gray-900 shadow-sm dark:bg-gray-900 dark:text-white">
                         <span>{hours}</span>
                         <span>:</span>
@@ -344,7 +348,7 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
-                    {offerLimitType === 'claims' && offerClaimsLeft !== null && (
+                    {offerHasClaimsLimit && offerClaimsLeft !== null && (
                       <p className="mt-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                         {offerClaimsLeft} discounted spot{offerClaimsLeft === 1 ? '' : 's'} left
                       </p>

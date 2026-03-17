@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 
 export const metadata = {
   title: 'Privacy Policy | cele.bio',
@@ -15,7 +16,7 @@ export default function PrivacyPage() {
             href="/"
             className="text-xl font-bold text-gray-900 dark:text-white"
           >
-            cele<span className="text-brand-600">.bio</span>
+            <BrandWordmark dotClassName="text-brand-600" />
           </Link>
         </div>
       </header>

@@ -59,7 +59,7 @@ export default function EditProductPage() {
   const [upsellOptions, setUpsellOptions] = useState<Array<{ id: string; title: string; price: number }>>([]);
   const [offerEnabled, setOfferEnabled] = useState(false);
   const [offerDiscountPrice, setOfferDiscountPrice] = useState('');
-  const [offerLimitType, setOfferLimitType] = useState<'none' | 'time' | 'claims'>('none');
+  const [offerLimitType, setOfferLimitType] = useState<'none' | 'time' | 'claims' | 'both'>('none');
   const [offerHours, setOfferHours] = useState('00');
   const [offerMinutes, setOfferMinutes] = useState('00');
   const [offerSeconds, setOfferSeconds] = useState('00');
@@ -130,7 +130,7 @@ export default function EditProductPage() {
       const productWithOffer = product as Product & {
         offer_enabled?: boolean;
         offer_discount_price_cents?: number | null;
-        offer_limit_type?: 'none' | 'time' | 'claims';
+        offer_limit_type?: 'none' | 'time' | 'claims' | 'both';
         offer_expires_at?: string | null;
         offer_max_claims?: number | null;
         offer_bonus_product_id?: string | null;
@@ -351,6 +351,8 @@ export default function EditProductPage() {
       let offerExpiresAt: string | null = null;
       let offerMaxClaimsValue: number | null = null;
       let offerClaimsUsedValue = ((originalProduct as Product & { offer_claims_used?: number })?.offer_claims_used || 0);
+      const hasTimeLimit = offerLimitType === 'time' || offerLimitType === 'both';
+      const hasClaimsLimit = offerLimitType === 'claims' || offerLimitType === 'both';
 
       if (offerEnabled) {
         if (Number.isNaN(offerDiscountValue) || offerDiscountValue < 0) {
@@ -366,7 +368,7 @@ export default function EditProductPage() {
           return;
         }
 
-        if (offerLimitType === 'time') {
+        if (hasTimeLimit) {
           const hours = Math.max(0, Number.parseInt(offerHours || '0', 10));
           const minutes = Math.max(0, Number.parseInt(offerMinutes || '0', 10));
           const seconds = Math.max(0, Number.parseInt(offerSeconds || '0', 10));
@@ -381,7 +383,7 @@ export default function EditProductPage() {
           offerExpiresAt = new Date(Date.now() + (totalSeconds * 1000)).toISOString();
         }
 
-        if (offerLimitType === 'claims') {
+        if (hasClaimsLimit) {
           const parsedClaims = Number.parseInt(offerMaxClaims || '0', 10);
           if (Number.isNaN(parsedClaims) || parsedClaims < 1 || parsedClaims > 1000) {
             setError('Claim limit must be between 1 and 1000.');
@@ -390,6 +392,8 @@ export default function EditProductPage() {
           }
 
           offerMaxClaimsValue = parsedClaims;
+          offerClaimsUsedValue = Math.min(Math.max(0, offerClaimsUsedValue), parsedClaims);
+        } else {
           offerClaimsUsedValue = 0;
         }
       }
@@ -429,8 +433,8 @@ export default function EditProductPage() {
           offer_discount_price_cents: offerEnabled ? offerDiscountPriceCents : null,
           offer_limit_type: offerEnabled ? offerLimitType : 'none',
           offer_expires_at: offerEnabled ? offerExpiresAt : null,
-          offer_max_claims: offerEnabled && offerLimitType === 'claims' ? offerMaxClaimsValue : null,
-          offer_claims_used: offerEnabled && offerLimitType === 'claims' ? offerClaimsUsedValue : 0,
+          offer_max_claims: offerEnabled && hasClaimsLimit ? offerMaxClaimsValue : null,
+          offer_claims_used: offerEnabled && hasClaimsLimit ? offerClaimsUsedValue : 0,
           offer_bonus_product_id: offerEnabled ? offerBonusProductId || null : null,
         })
         .eq('id', productId);
@@ -605,15 +609,16 @@ export default function EditProductPage() {
                   <select
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     value={offerLimitType}
-                    onChange={(event) => setOfferLimitType(event.target.value as 'none' | 'time' | 'claims')}
+                    onChange={(event) => setOfferLimitType(event.target.value as 'none' | 'time' | 'claims' | 'both')}
                   >
                     <option value="none">Permanent discount</option>
                     <option value="time">Countdown timer (HH:MM:SS)</option>
                     <option value="claims">First N people</option>
+                    <option value="both">Countdown + First N people</option>
                   </select>
                 </div>
 
-                {offerLimitType === 'time' && (
+                {(offerLimitType === 'time' || offerLimitType === 'both') && (
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Countdown timer (Hours:Minutes:Seconds)
@@ -646,7 +651,7 @@ export default function EditProductPage() {
                   </div>
                 )}
 
-                {offerLimitType === 'claims' && (
+                {(offerLimitType === 'claims' || offerLimitType === 'both') && (
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Number of buyers allowed (1-1000)

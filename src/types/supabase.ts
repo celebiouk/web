@@ -190,7 +190,7 @@ export interface Database {
           file_url: string | null;
           offer_enabled: boolean;
           offer_discount_price_cents: number | null;
-          offer_limit_type: 'none' | 'time' | 'claims';
+          offer_limit_type: 'none' | 'time' | 'claims' | 'both';
           offer_expires_at: string | null;
           offer_max_claims: number | null;
           offer_claims_used: number;
@@ -215,7 +215,7 @@ export interface Database {
           file_url?: string | null;
           offer_enabled?: boolean;
           offer_discount_price_cents?: number | null;
-          offer_limit_type?: 'none' | 'time' | 'claims';
+          offer_limit_type?: 'none' | 'time' | 'claims' | 'both';
           offer_expires_at?: string | null;
           offer_max_claims?: number | null;
           offer_claims_used?: number;
@@ -240,7 +240,7 @@ export interface Database {
           file_url?: string | null;
           offer_enabled?: boolean;
           offer_discount_price_cents?: number | null;
-          offer_limit_type?: 'none' | 'time' | 'claims';
+          offer_limit_type?: 'none' | 'time' | 'claims' | 'both';
           offer_expires_at?: string | null;
           offer_max_claims?: number | null;
           offer_claims_used?: number;

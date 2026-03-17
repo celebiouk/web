@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '@/components/ui';
 import { ShieldCheck } from 'lucide-react';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 
 function ResetPasswordVerifyContent() {
   const router = useRouter();
@@ -57,7 +58,7 @@ function ResetPasswordVerifyContent() {
           href="/"
           className="mb-8 block text-center text-2xl font-bold text-gray-900 dark:text-white"
         >
-          cele<span className="text-brand-600">.bio</span>
+          <BrandWordmark dotClassName="text-brand-600" />
         </Link>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">

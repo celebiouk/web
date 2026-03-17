@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input } from '@/components/ui';
 import { Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -91,7 +92,7 @@ export default function ResetPasswordPage() {
             href="/"
             className="mb-8 block text-center text-2xl font-bold text-gray-900 dark:text-white"
           >
-            cele<span className="text-brand-600">.bio</span>
+            <BrandWordmark dotClassName="text-brand-600" />
           </Link>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">
@@ -129,7 +130,7 @@ export default function ResetPasswordPage() {
           href="/"
           className="mb-8 block text-center text-2xl font-bold text-gray-900 dark:text-white"
         >
-          cele<span className="text-brand-600">.bio</span>
+          <BrandWordmark dotClassName="text-brand-600" />
         </Link>
 
         {/* Card */}

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button } from '@/components/ui';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import { PRICING } from '@/lib/constants';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -97,7 +98,7 @@ export default function PricingPage() {
       <section className="container-page py-6 md:py-8">
         <nav className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-            cele<span className="text-brand-600">.bio</span>
+            <BrandWordmark dotClassName="text-brand-600" />
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/login"><Button variant="ghost" size="sm">Log in</Button></Link>

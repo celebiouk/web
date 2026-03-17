@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import type { Profile } from '@/types/supabase';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 
 /**
  * Onboarding layout - shared wrapper for onboarding steps
@@ -46,7 +47,7 @@ export default async function OnboardingLayout({
             href="/"
             className="text-2xl font-bold text-white"
           >
-            cele<span className="text-indigo-400">.bio</span>
+            <BrandWordmark dotClassName="text-indigo-400" />
           </Link>
           <div className="text-sm text-zinc-500">
             Step-by-step setup

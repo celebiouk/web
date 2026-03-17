@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Avatar, Badge } from '@/components/ui';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import { cn } from '@/lib/utils';
 import { DASHBOARD_NAV } from '@/lib/constants';
 import type { SubscriptionTier } from '@/types/supabase';
@@ -71,7 +72,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
           {/* Logo */}
           <div className="flex h-16 items-center border-b border-gray-200 px-6 dark:border-gray-800">
             <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
-              cele<span className="text-brand-600">.bio</span>
+              <BrandWordmark dotClassName="text-brand-600" />
             </Link>
           </div>
 

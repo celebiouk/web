@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input } from '@/components/ui';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 
 interface AdminLoginGateProps {
   reason?: string;
@@ -59,7 +60,7 @@ export function AdminLoginGate({ reason, signedInEmail }: AdminLoginGateProps) {
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">
         <div className="mb-6 text-center">
           <Link href="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-            cele<span className="text-brand-600">.bio</span>
+            <BrandWordmark dotClassName="text-brand-600" />
           </Link>
           <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
             Admin Portal

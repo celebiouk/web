@@ -211,7 +211,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       is_published: p.is_published,
       offer_enabled: Boolean((p as any).offer_enabled),
       offer_discount_price_cents: (p as any).offer_discount_price_cents ?? null,
-      offer_limit_type: ((p as any).offer_limit_type || 'none') as 'none' | 'time' | 'claims',
+      offer_limit_type: ((p as any).offer_limit_type || 'none') as 'none' | 'time' | 'claims' | 'both',
       offer_expires_at: (p as any).offer_expires_at || null,
       offer_max_claims: (p as any).offer_max_claims ?? null,
       offer_claims_used: (p as any).offer_claims_used ?? 0,

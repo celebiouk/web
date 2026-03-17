@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { isFeatureAllowed } from '@/lib/gates/featureGates';
 import type { SubscriptionTier } from '@/types/supabase';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import {
   Home,
   LayoutGrid,
@@ -81,7 +82,7 @@ export function DashboardSidebar({ profile }: DashboardSidebarProps) {
           href="/" 
           className="group flex items-center gap-2 text-lg font-semibold tracking-tight text-zinc-100 transition-colors hover:text-white"
         >
-          cele<span className="text-indigo-400 transition-colors group-hover:text-indigo-300">.bio</span>
+          <BrandWordmark dotClassName="text-indigo-400 transition-colors group-hover:text-indigo-300" />
         </Link>
       </div>
 

@@ -10,7 +10,7 @@ import {
   Users,
   Package,
   Plus,
-  MoreVertical,
+  Clock3,
   Eye,
   EyeOff,
   Pencil,
@@ -36,6 +36,8 @@ export default function ProductsPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [updatingOfferId, setUpdatingOfferId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
 
   const supabase = createClient();
 
@@ -48,6 +50,14 @@ export default function ProductsPage() {
     const handleClick = () => setOpenMenuId(null);
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(interval);
   }, []);
 
   async function loadData() {
@@ -131,6 +141,88 @@ export default function ProductsPage() {
       style: 'currency',
       currency: currency.toUpperCase(),
     }).format(priceInCents / 100);
+  }
+
+  function hasOfferTimeLimit(limitType: Product['offer_limit_type']) {
+    return limitType === 'time' || limitType === 'both';
+  }
+
+  function hasOfferClaimsLimit(limitType: Product['offer_limit_type']) {
+    return limitType === 'claims' || limitType === 'both';
+  }
+
+  function getOfferTimeRemaining(product: Product) {
+    if (!product.offer_enabled || !hasOfferTimeLimit(product.offer_limit_type) || !product.offer_expires_at) {
+      return null;
+    }
+
+    const expiresAtMs = new Date(product.offer_expires_at).getTime();
+    if (!Number.isFinite(expiresAtMs)) {
+      return null;
+    }
+
+    return Math.max(0, Math.floor((expiresAtMs - currentTime) / 1000));
+  }
+
+  function formatCountdown(totalSeconds: number) {
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+  }
+
+  async function updateOfferFields(productId: string, updates: Partial<Product>) {
+    setUpdatingOfferId(productId);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from('products')
+        .update(updates)
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      setProducts((previous) =>
+        previous.map((item) => (item.id === productId ? { ...item, ...updates } : item))
+      );
+    } catch (err) {
+      console.error('Offer update error:', err);
+      alert('Failed to update offer timer');
+    } finally {
+      setUpdatingOfferId(null);
+    }
+  }
+
+  async function extendOfferTimer(product: Product, minutesToAdd: number) {
+    const existingMs = product.offer_expires_at ? new Date(product.offer_expires_at).getTime() : Number.NaN;
+    const baselineMs = Number.isFinite(existingMs) && existingMs > currentTime ? existingMs : currentTime;
+    const nextExpiresAt = new Date(baselineMs + (minutesToAdd * 60 * 1000)).toISOString();
+
+    await updateOfferFields(product.id, { offer_expires_at: nextExpiresAt });
+  }
+
+  async function editOfferTimer(product: Product) {
+    const input = window.prompt('Add how many minutes to the countdown?', '30');
+    if (!input) return;
+
+    const parsed = Number.parseInt(input, 10);
+    if (Number.isNaN(parsed) || parsed < 1 || parsed > 10080) {
+      alert('Enter a number between 1 and 10080 minutes.');
+      return;
+    }
+
+    await extendOfferTimer(product, parsed);
+  }
+
+  async function removeOfferTimer(product: Product) {
+    const nextLimitType = product.offer_limit_type === 'both' ? 'claims' : 'none';
+
+    await updateOfferFields(product.id, {
+      offer_limit_type: nextLimitType,
+      offer_expires_at: null,
+      offer_max_claims: nextLimitType === 'none' ? null : product.offer_max_claims,
+      offer_claims_used: nextLimitType === 'none' ? 0 : product.offer_claims_used,
+    });
   }
 
   const stripeConnected = profile?.stripe_account_id;
@@ -268,6 +360,15 @@ export default function ProductsPage() {
         <div className="grid gap-3">
           {products.map((product) => {
             const ProductIcon = getProductIcon(product.type);
+            const offerLimitType = product.offer_limit_type || 'none';
+            const hasTimeLimit = hasOfferTimeLimit(offerLimitType);
+            const hasClaimsLimit = hasOfferClaimsLimit(offerLimitType);
+            const offerTimeRemaining = getOfferTimeRemaining(product);
+            const offerClaimsLeft = hasClaimsLimit
+              ? Math.max(0, Number(product.offer_max_claims || 0) - Number(product.offer_claims_used || 0))
+              : null;
+            const showOfferControls = product.offer_enabled && hasTimeLimit;
+
             return (
               <div
                 key={product.id}
@@ -327,7 +428,61 @@ export default function ProductsPage() {
                           No file uploaded
                         </span>
                       )}
+                      {product.offer_enabled && (
+                        <span className="rounded bg-indigo-500/15 px-2 py-0.5 text-[11px] font-medium text-indigo-300">
+                          Offer active
+                        </span>
+                      )}
                     </div>
+
+                    {product.offer_enabled && (hasTimeLimit || hasClaimsLimit) && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                        {hasTimeLimit && (
+                          <span className="inline-flex items-center gap-1 rounded border border-zinc-700/80 bg-zinc-900/60 px-2 py-1 font-mono text-zinc-300">
+                            <Clock3 className="h-3.5 w-3.5" />
+                            {offerTimeRemaining !== null && offerTimeRemaining > 0 ? formatCountdown(offerTimeRemaining) : 'Timer ended'}
+                          </span>
+                        )}
+                        {hasClaimsLimit && offerClaimsLeft !== null && (
+                          <span className="rounded border border-zinc-700/80 bg-zinc-900/60 px-2 py-1 font-medium text-zinc-300">
+                            {offerClaimsLeft} spot{offerClaimsLeft === 1 ? '' : 's'} left
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {showOfferControls && (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-800/60 pt-3">
+                        <button
+                          onClick={() => extendOfferTimer(product, 15)}
+                          disabled={updatingOfferId === product.id}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 disabled:opacity-50"
+                        >
+                          +15m
+                        </button>
+                        <button
+                          onClick={() => extendOfferTimer(product, 60)}
+                          disabled={updatingOfferId === product.id}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 disabled:opacity-50"
+                        >
+                          +1h
+                        </button>
+                        <button
+                          onClick={() => editOfferTimer(product)}
+                          disabled={updatingOfferId === product.id}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-zinc-300 transition-colors hover:border-zinc-700 hover:bg-zinc-800 disabled:opacity-50"
+                        >
+                          Edit timer
+                        </button>
+                        <button
+                          onClick={() => removeOfferTimer(product)}
+                          disabled={updatingOfferId === product.id}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 px-2.5 py-1.5 text-[11px] font-medium text-red-300 transition-colors hover:border-red-500/30 hover:bg-red-500/10 disabled:opacity-50"
+                        >
+                          Remove timer
+                        </button>
+                      </div>
+                    )}
 
                     {/* Actions */}
                     <div className="mt-4 flex items-center gap-2 border-t border-zinc-800/60 pt-4">

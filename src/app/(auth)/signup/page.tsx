@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input } from '@/components/ui';
 import { OAuthButtons, OAuthDivider } from '@/components/ui/OAuthButtons';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 
 /**
  * Sign up page
@@ -70,7 +71,7 @@ export default function SignupPage() {
         href="/"
         className="mb-8 block text-center text-2xl font-bold text-gray-900 dark:text-white"
       >
-        cele<span className="text-brand-600">.bio</span>
+        <BrandWordmark dotClassName="text-brand-600" />
       </Link>
 
       {/* Card */}
