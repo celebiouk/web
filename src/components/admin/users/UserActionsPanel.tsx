@@ -34,12 +34,14 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
 
       setStatusMessage({ type: 'success', text: 'User updated successfully.' });
       router.refresh();
+      return true;
     } catch (error) {
       console.error('Admin user action failed:', error);
       setStatusMessage({
         type: 'error',
         text: error instanceof Error ? error.message : 'Action failed. Please try again.',
       });
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -99,8 +101,10 @@ export function UserActionsPanel({ userId, isSuspended, isPro }: UserActionsPane
           }
         }}
         onSubmit={async ({ hasPaid, reason }) => {
-          await handleAction('upgrade_pro', { hasPaid, reason });
-          setShowGrantModal(false);
+          const ok = await handleAction('upgrade_pro', { hasPaid, reason });
+          if (ok) {
+            setShowGrantModal(false);
+          }
         }}
       />
     </div>

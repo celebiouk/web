@@ -61,12 +61,14 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
 
       setStatusMessage({ type: 'success', text: 'User updated successfully.' });
       router.refresh();
+      return true;
     } catch (error) {
       console.error('Action failed:', error);
       setStatusMessage({
         type: 'error',
         text: error instanceof Error ? error.message : 'Action failed. Please try again.',
       });
+      return false;
     } finally {
       setLoading(null);
     }
@@ -304,8 +306,10 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
             return;
           }
 
-          await handleAction(grantModalUser.id, 'upgrade_pro', { hasPaid, reason });
-          setGrantModalUser(null);
+          const ok = await handleAction(grantModalUser.id, 'upgrade_pro', { hasPaid, reason });
+          if (ok) {
+            setGrantModalUser(null);
+          }
         }}
       />
     </div>

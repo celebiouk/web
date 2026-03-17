@@ -5,7 +5,9 @@ import { isInternalAdminEmail } from '@/lib/admin';
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const adminSupabase = await createServiceClient() as any;
+    const adminSupabase = (process.env.SUPABASE_SERVICE_ROLE_KEY
+      ? await createServiceClient()
+      : supabase) as any;
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user || !isInternalAdminEmail(user.email)) {
@@ -18,13 +20,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing userId or action' }, { status: 400 });
     }
 
+    const { data: targetProfile, error: targetProfileError } = await adminSupabase
+      .from('profiles')
+      .select('id, subscription_tier, is_suspended')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (targetProfileError) {
+      console.error('Failed to load target profile:', targetProfileError);
+      return NextResponse.json({ error: 'Failed to find user profile' }, { status: 500 });
+    }
+
+    if (!targetProfile) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     // Log the admin action
-    await adminSupabase.from('admin_audit_logs').insert({
-      admin_id: user.id,
-      action,
-      target_user_id: userId,
-      details: data || {},
-    });
+    try {
+      await adminSupabase.from('admin_audit_logs').insert({
+        admin_id: user.id,
+        action,
+        target_user_id: userId,
+        details: data || {},
+      });
+    } catch (auditError) {
+      console.error('Admin audit log failed:', auditError);
+    }
 
     switch (action) {
       case 'suspend': {
