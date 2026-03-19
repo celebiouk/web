@@ -11,14 +11,15 @@ type BrandWordmarkProps = {
 export function BrandWordmark({ className, dotClassName, iconClassName }: BrandWordmarkProps) {
   return (
     <span className={cn('inline-flex items-center leading-none', className)}>
-      <span>
-        cele<span className={dotClassName}>.bio</span>
-      </span>
       <Image
         src={logoImage}
         alt="Cele.bio logo"
-        className={cn('ml-[1px] h-[1em] w-[1em] shrink-0 rounded-[0.2em]', iconClassName)}
+        className={cn('-mr-[0.08em] h-[1.15em] w-[1.15em] shrink-0 align-middle', iconClassName)}
+        style={{ marginRight: '-0.08em' }}
       />
+      <span className="align-middle">
+        Cele<span className={dotClassName}>.bio</span>
+      </span>
     </span>
   );
 }
