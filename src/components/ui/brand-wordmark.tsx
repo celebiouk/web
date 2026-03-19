@@ -18,7 +18,7 @@ export function BrandWordmark({ className, dotClassName, iconClassName }: BrandW
         style={{ marginRight: '-0.08em' }}
       />
       <span className="align-middle">
-        Cele<span className={dotClassName}>.bio</span>
+        ele<span className={dotClassName}>.bio</span>
       </span>
     </span>
   );
