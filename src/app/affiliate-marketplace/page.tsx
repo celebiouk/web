@@ -83,10 +83,10 @@ export default function AffiliateMarketplacePage() {
     
     if (user) {
       // Load products user is already promoting
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('affiliate_promotions')
         .select('product_id')
-        .eq('promoter_id', user.id);
+        .eq('promoter_id', user.id) as { data: { product_id: string }[] | null };
       
       if (data) {
         setPromotingIds(new Set(data.map(p => p.product_id)));
@@ -97,7 +97,7 @@ export default function AffiliateMarketplacePage() {
   async function loadProducts() {
     setIsLoading(true);
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('affiliate_marketplace')
         .select('*');
       
@@ -123,7 +123,7 @@ export default function AffiliateMarketplacePage() {
           break;
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query as { data: AffiliateProduct[] | null, error: any };
       
       if (error) throw error;
       setProducts(data || []);
@@ -146,7 +146,7 @@ export default function AffiliateMarketplacePage() {
 
     setAddingId(productId);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('affiliate_promotions')
         .insert({
           promoter_id: user.id,
