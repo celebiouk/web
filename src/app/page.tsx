@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { BrandWordmark } from '@/components/ui/brand-wordmark';
+import { useTheme } from '@/components/providers/theme-provider';
 import { 
   ShoppingBag, 
   CalendarCheck, 
@@ -26,7 +27,9 @@ import {
   Star,
   AlertTriangle,
   DollarSign,
-  Play
+  Play,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 // ============================================
@@ -60,12 +63,17 @@ export default function HomePage() {
 // ============================================
 function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -91,6 +99,25 @@ function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-1.5 text-sm font-medium text-gray-700 backdrop-blur-sm transition-all hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-300 dark:hover:bg-gray-700"
+            aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            {resolvedTheme === 'dark' ? (
+              <>
+                <Sun className="h-4 w-4 text-amber-500" />
+                <span className="hidden sm:inline">Light</span>
+              </>
+            ) : (
+              <>
+                <Moon className="h-4 w-4 text-indigo-500" />
+                <span className="hidden sm:inline">Dark</span>
+              </>
+            )}
+          </button>
+          
           <Link href="/login">
             <Button variant="ghost" size="sm">Log in</Button>
           </Link>
