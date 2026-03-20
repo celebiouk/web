@@ -141,6 +141,23 @@ export async function createConnectPaymentIntent(params: {
   });
 }
 
+export async function createPlatformPaymentIntent(params: {
+  amountCents: number;
+  customerId?: string;
+  metadata?: Record<string, string>;
+}): Promise<Stripe.PaymentIntent> {
+  return stripe.paymentIntents.create({
+    amount: params.amountCents,
+    currency: 'usd',
+    customer: params.customerId,
+    setup_future_usage: params.customerId ? 'off_session' : undefined,
+    automatic_payment_methods: {
+      enabled: true,
+    },
+    metadata: params.metadata,
+  });
+}
+
 export async function createOrUpdateCustomer(params: {
   existingCustomerId?: string | null;
   email: string;

@@ -68,26 +68,43 @@ export default function TermsPage() {
 
           <h2>5. Payments and Fees</h2>
           <p>
-            Payments are processed through third-party payment processors (Stripe, PayPal).
-            cele.bio charges a platform fee on transactions as outlined in our pricing page.
-            You are responsible for any taxes applicable to your earnings.
+            Payments are processed through third-party payment processors (including Stripe and Paystack).
+            cele.bio charges platform fees according to your plan and pricing page.
+            Creators are responsible for payment processor fees, gateway fees, and any applicable taxes.
           </p>
 
-          <h2>6. Refunds</h2>
+          <h2>6. Payout Routing and Manual Payout Policy (MVP)</h2>
+          <p>
+            To receive payouts, creators must provide payout country and payout details in payment settings.
+            cele.bio routes payouts by country as follows:
+          </p>
+          <ul>
+            <li>Paystack countries (Nigeria, Ghana, South Africa, Kenya, Côte d&apos;Ivoire): Paystack payout flow.</li>
+            <li>Stripe-supported countries outside the Paystack list: Stripe payout flow.</li>
+            <li>All other countries: manual bank payout flow.</li>
+          </ul>
+          <p>
+            For manual payouts, cleared balances are scheduled for payout on the 9th and 24th of each month.
+            cele.bio may process payouts one day earlier when operationally possible. Manual payouts may be
+            delayed by compliance, fraud review, disputes, or banking rail issues. Creators are responsible
+            for ensuring submitted bank details are accurate and up to date.
+          </p>
+
+          <h2>7. Refunds</h2>
           <p>
             Refund policies are set by individual creators. Creators are responsible for
             handling refund requests for their products and services. cele.bio may intervene
             in disputes at our discretion.
           </p>
 
-          <h2>7. Intellectual Property</h2>
+          <h2>8. Intellectual Property</h2>
           <p>
             You retain ownership of content you upload to cele.bio. By uploading content,
             you grant cele.bio a license to display and distribute your content as necessary
             to provide the Service.
           </p>
 
-          <h2>8. Prohibited Activities</h2>
+          <h2>9. Prohibited Activities</h2>
           <p>You may not:</p>
           <ul>
             <li>Use the Service for illegal purposes</li>
@@ -97,31 +114,31 @@ export default function TermsPage() {
             <li>Violate intellectual property rights of others</li>
           </ul>
 
-          <h2>9. Termination</h2>
+          <h2>10. Termination</h2>
           <p>
             We reserve the right to suspend or terminate your account for violations of these
             terms. You may delete your account at any time through your account settings.
           </p>
 
-          <h2>10. Disclaimer of Warranties</h2>
+          <h2>11. Disclaimer of Warranties</h2>
           <p>
             The Service is provided &quot;as is&quot; without warranties of any kind. We do not guarantee
             uninterrupted or error-free service.
           </p>
 
-          <h2>11. Limitation of Liability</h2>
+          <h2>12. Limitation of Liability</h2>
           <p>
             cele.bio shall not be liable for indirect, incidental, or consequential damages
             arising from your use of the Service.
           </p>
 
-          <h2>12. Changes to Terms</h2>
+          <h2>13. Changes to Terms</h2>
           <p>
             We may update these terms at any time. Continued use of the Service after changes
             constitutes acceptance of the new terms.
           </p>
 
-          <h2>13. Contact</h2>
+          <h2>14. Contact</h2>
           <p>
             For questions about these Terms of Service, contact us at{' '}
             <a href="mailto:legal@cele.bio" className="text-brand-600 hover:text-brand-700">

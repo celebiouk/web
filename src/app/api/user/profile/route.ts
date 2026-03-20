@@ -73,6 +73,17 @@ export async function PATCH(request: Request) {
       'social_links',
       'page_theme',
       'template_slug',
+      'payout_country_code',
+      'payout_provider',
+      'payout_processor_fee_borne_by_creator',
+      'payout_schedule',
+      'manual_bank_account_name',
+      'manual_bank_account_number',
+      'manual_bank_name',
+      'manual_bank_code',
+      'manual_bank_iban',
+      'manual_bank_swift',
+      'manual_payout_notes',
     ];
 
     const sanitizedUpdates: Record<string, unknown> = {};

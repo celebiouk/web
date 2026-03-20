@@ -7,9 +7,10 @@
  */
 
 import { NextResponse } from 'next/server';
-import { createConnectPaymentIntent, calculatePlatformFee } from '@/lib/stripe';
+import { createConnectPaymentIntent, createPlatformPaymentIntent, calculatePlatformFee } from '@/lib/stripe';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
+import { buildPaystackReference, initializePaystackTransaction } from '@/lib/paystack';
 
 // Lazy initialization for Supabase admin client
 function getSupabaseAdmin() {
@@ -122,13 +123,13 @@ export async function POST(request: Request) {
     // Get creator profile
     const { data: creator, error: creatorError } = await supabaseAdmin
       .from('profiles')
-      .select('stripe_account_id, subscription_tier')
+      .select('stripe_account_id, subscription_tier, payout_provider, paystack_subaccount_code, payout_country_code')
       .eq('id', product.creator_id)
       .single();
 
-    if (creatorError || !creator?.stripe_account_id) {
+    if (creatorError || !creator) {
       return NextResponse.json(
-        { error: 'Creator has not set up payments' },
+        { error: 'Creator payment profile is not configured' },
         { status: 400 }
       );
     }
@@ -216,6 +217,7 @@ export async function POST(request: Request) {
 
     // Calculate platform fee
     const platformFee = calculatePlatformFee(chargeAmountCents, creator.subscription_tier);
+    const payoutProvider = (creator.payout_provider || 'stripe') as 'stripe' | 'paystack' | 'manual_bank';
 
     const existingCustomers = await stripe.customers.list({
       email: buyerEmail,
@@ -229,20 +231,104 @@ export async function POST(request: Request) {
 
     const resolvedCustomerId = typeof customer === 'string' ? customer : customer.id;
 
-    // Create Payment Intent with Connect
-    const paymentIntent = await createConnectPaymentIntent({
-      amountCents: chargeAmountCents,
-      creatorStripeAccountId: creator.stripe_account_id,
-      platformFeeCents: platformFee,
-      customerId: resolvedCustomerId,
-      metadata: {
-        productId,
-        creatorId: product.creator_id,
-        buyerEmail,
-        productTitle: product.title,
-        affiliate_ref: affiliateRef,
-      },
-    });
+    if (payoutProvider === 'paystack') {
+      if (!creator.paystack_subaccount_code) {
+        return NextResponse.json(
+          { error: 'Creator has not completed Paystack setup' },
+          { status: 400 }
+        );
+      }
+
+      if ((product.currency || 'usd').toLowerCase() !== 'ngn') {
+        return NextResponse.json(
+          { error: 'Paystack checkout currently supports NGN-priced products only' },
+          { status: 400 }
+        );
+      }
+
+      const reference = buildPaystackReference(productId);
+      const paystackInit = await initializePaystackTransaction({
+        email: buyerEmail,
+        amountKobo: chargeAmountCents,
+        reference,
+        subaccountCode: creator.paystack_subaccount_code,
+        transactionChargeKobo: platformFee,
+        metadata: {
+          productId,
+          creatorId: product.creator_id,
+          buyerEmail,
+          productTitle: product.title,
+          affiliate_ref: affiliateRef,
+          offer_applied: activeOffer.enabled,
+        },
+      });
+
+      const { data: paystackOrder, error: paystackOrderError } = await supabaseAdmin
+        .from('orders')
+        .insert({
+          product_id: productId,
+          creator_id: product.creator_id,
+          buyer_email: buyerEmail,
+          amount_cents: chargeAmountCents,
+          platform_fee_cents: platformFee,
+          stripe_payment_intent_id: reference,
+          offer_applied: activeOffer.enabled,
+          offer_discount_cents: activeOffer.discountCents,
+          offer_bonus_product_id: resolvedBonusProductId,
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (paystackOrderError) {
+        console.error('Paystack order creation error:', paystackOrderError);
+        return NextResponse.json(
+          { error: 'Failed to initialize order for Paystack checkout' },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        provider: 'paystack',
+        authorizationUrl: paystackInit.data.authorization_url,
+        reference,
+        orderId: paystackOrder?.id,
+        amountCents: chargeAmountCents,
+        offerApplied: activeOffer.enabled,
+      });
+    }
+
+    const metadata = {
+      productId,
+      creatorId: product.creator_id,
+      buyerEmail,
+      productTitle: product.title,
+      affiliate_ref: affiliateRef,
+    };
+
+    if (payoutProvider === 'stripe' && !creator.stripe_account_id) {
+      return NextResponse.json(
+        { error: 'Creator has not set up Stripe payouts yet' },
+        { status: 400 }
+      );
+    }
+
+    const paymentIntent = payoutProvider === 'manual_bank'
+      ? await createPlatformPaymentIntent({
+          amountCents: chargeAmountCents,
+          customerId: resolvedCustomerId,
+          metadata: {
+            ...metadata,
+            payout_provider: 'manual_bank',
+          },
+        })
+      : await createConnectPaymentIntent({
+          amountCents: chargeAmountCents,
+          creatorStripeAccountId: creator.stripe_account_id,
+          platformFeeCents: platformFee,
+          customerId: resolvedCustomerId,
+          metadata,
+        });
 
     // Create pending order
     const { data: order, error: orderError } = await supabaseAdmin

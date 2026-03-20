@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
+import { resolvePayoutProvider, type PayoutProvider, PAYSTACK_COUNTRIES } from '@/lib/payout-routing';
 
 type StripeStatus = 'not_connected' | 'pending' | 'complete';
 type PayPalStatus = 'not_connected' | 'pending' | 'connected';
@@ -12,14 +13,53 @@ interface PaymentsState {
   loading: boolean;
   connecting: boolean;
   connectingPayPal: boolean;
+  connectingPaystack: boolean;
+  savingPayoutConfig: boolean;
   openingDashboard: boolean;
   status: StripeStatus;
   paypalStatus: PayPalStatus;
+  payoutCountryCode: string;
+  payoutProvider: PayoutProvider;
+  paystackSubaccountCode: string | null;
+  paystackSubaccountStatus: 'not_connected' | 'pending' | 'connected' | 'failed';
+  manualBankAccountName: string;
+  manualBankAccountNumber: string;
+  manualBankName: string;
+  manualBankCode: string;
+  manualBankIban: string;
+  manualBankSwift: string;
   accountId: string | null;
   paypalAccountId: string | null;
   paypalEmail: string | null;
   error: string | null;
+  success: string | null;
 }
+
+const COUNTRY_OPTIONS = [
+  { code: 'NG', name: 'Nigeria' },
+  { code: 'GH', name: 'Ghana' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'KE', name: 'Kenya' },
+  { code: 'CI', name: 'Côte d’Ivoire' },
+  { code: 'EG', name: 'Egypt' },
+  { code: 'MA', name: 'Morocco' },
+  { code: 'TN', name: 'Tunisia' },
+  { code: 'UG', name: 'Uganda' },
+  { code: 'TZ', name: 'Tanzania' },
+  { code: 'RW', name: 'Rwanda' },
+  { code: 'SN', name: 'Senegal' },
+  { code: 'CM', name: 'Cameroon' },
+  { code: 'US', name: 'United States' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'NL', name: 'Netherlands' },
+  { code: 'AE', name: 'United Arab Emirates' },
+  { code: 'IN', name: 'India' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'BR', name: 'Brazil' },
+];
 
 /**
  * Payments Settings Page
@@ -31,13 +71,26 @@ export default function PaymentsSettingsPage() {
     loading: true,
     connecting: false,
     connectingPayPal: false,
+    connectingPaystack: false,
+    savingPayoutConfig: false,
     openingDashboard: false,
     status: 'not_connected',
     paypalStatus: 'not_connected',
+    payoutCountryCode: '',
+    payoutProvider: 'manual_bank',
+    paystackSubaccountCode: null,
+    paystackSubaccountStatus: 'not_connected',
+    manualBankAccountName: '',
+    manualBankAccountNumber: '',
+    manualBankName: '',
+    manualBankCode: '',
+    manualBankIban: '',
+    manualBankSwift: '',
     accountId: null,
     paypalAccountId: null,
     paypalEmail: null,
     error: null,
+    success: null,
   });
 
   // Check for URL params from callback
@@ -54,11 +107,23 @@ export default function PaymentsSettingsPage() {
         if (!res.ok) throw new Error('Failed to fetch profile');
         
         const data = await res.json();
+        const payoutCountryCode = String(data.payout_country_code || '').toUpperCase();
+        const resolvedProvider = (data.payout_provider || resolvePayoutProvider(payoutCountryCode)) as PayoutProvider;
         setState(prev => ({
           ...prev,
           loading: false,
           status: data.stripe_account_status || 'not_connected',
           paypalStatus: data.paypal_account_status || 'not_connected',
+          payoutCountryCode,
+          payoutProvider: resolvedProvider,
+          paystackSubaccountCode: data.paystack_subaccount_code || null,
+          paystackSubaccountStatus: data.paystack_subaccount_status || 'not_connected',
+          manualBankAccountName: data.manual_bank_account_name || '',
+          manualBankAccountNumber: data.manual_bank_account_number || '',
+          manualBankName: data.manual_bank_name || '',
+          manualBankCode: data.manual_bank_code || '',
+          manualBankIban: data.manual_bank_iban || '',
+          manualBankSwift: data.manual_bank_swift || '',
           accountId: data.stripe_account_id || null,
           paypalAccountId: data.paypal_account_id || null,
           paypalEmail: data.paypal_email || null,
@@ -176,6 +241,111 @@ export default function PaymentsSettingsPage() {
     }
   }, []);
 
+  const resolvedPayoutProvider = resolvePayoutProvider(state.payoutCountryCode);
+
+  const handleSavePayoutConfig = useCallback(async () => {
+    if (!state.payoutCountryCode) {
+      setState(prev => ({ ...prev, error: 'Please select your country first.', success: null }));
+      return;
+    }
+
+    if ((resolvedPayoutProvider === 'manual_bank' || resolvedPayoutProvider === 'paystack') && !state.manualBankAccountNumber) {
+      setState(prev => ({ ...prev, error: 'Please add your bank account number.', success: null }));
+      return;
+    }
+
+    setState(prev => ({ ...prev, savingPayoutConfig: true, error: null, success: null }));
+
+    try {
+      const payload = {
+        payout_country_code: state.payoutCountryCode,
+        payout_provider: resolvedPayoutProvider,
+        payout_processor_fee_borne_by_creator: true,
+        payout_schedule: resolvedPayoutProvider === 'manual_bank' ? 'manual_9_24' : 'automatic',
+        manual_bank_account_name: state.manualBankAccountName || null,
+        manual_bank_account_number: state.manualBankAccountNumber || null,
+        manual_bank_name: state.manualBankName || null,
+        manual_bank_code: state.manualBankCode || null,
+        manual_bank_iban: state.manualBankIban || null,
+        manual_bank_swift: state.manualBankSwift || null,
+      };
+
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save payout settings');
+      }
+
+      setState(prev => ({
+        ...prev,
+        payoutProvider: resolvedPayoutProvider,
+        success: 'Payout routing saved successfully.',
+      }));
+    } catch (error) {
+      console.error('Save payout config error:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to save payout settings',
+        success: null,
+      }));
+    } finally {
+      setState(prev => ({ ...prev, savingPayoutConfig: false }));
+    }
+  }, [
+    resolvedPayoutProvider,
+    state.manualBankAccountName,
+    state.manualBankAccountNumber,
+    state.manualBankCode,
+    state.manualBankIban,
+    state.manualBankName,
+    state.manualBankSwift,
+    state.payoutCountryCode,
+  ]);
+
+  const handleConnectPaystack = useCallback(async () => {
+    setState(prev => ({ ...prev, connectingPaystack: true, error: null, success: null }));
+
+    try {
+      const res = await fetch('/api/paystack/connect-subaccount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          countryCode: state.payoutCountryCode,
+          accountName: state.manualBankAccountName,
+          accountNumber: state.manualBankAccountNumber,
+          bankCode: state.manualBankCode,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to connect Paystack');
+      }
+
+      setState(prev => ({
+        ...prev,
+        payoutProvider: 'paystack',
+        paystackSubaccountCode: data.subaccountCode || null,
+        paystackSubaccountStatus: 'connected',
+        success: 'Paystack connected. Payout split is now automatic for your account.',
+      }));
+    } catch (error) {
+      console.error('Connect paystack error:', error);
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'Failed to connect Paystack',
+        success: null,
+      }));
+    } finally {
+      setState(prev => ({ ...prev, connectingPaystack: false }));
+    }
+  }, [state.manualBankAccountName, state.manualBankAccountNumber, state.manualBankCode, state.payoutCountryCode]);
+
   // Open Stripe dashboard
   const handleOpenDashboard = useCallback(async () => {
     setState(prev => ({ ...prev, openingDashboard: true }));
@@ -251,25 +421,176 @@ export default function PaymentsSettingsPage() {
         </div>
       )}
 
-      {/* Stripe Connect Card */}
+      {state.success && (
+        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          <CheckCircle2 className="h-5 w-5 text-green-600" />
+          {state.success}
+        </div>
+      )}
+
+      {/* Country + Routing Card */}
       <div className="rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
-        {state.status === 'not_connected' ? (
-          <NotConnectedState 
-            onConnect={handleConnect} 
-            connecting={state.connecting} 
-          />
-        ) : state.status === 'pending' ? (
-          <PendingState 
-            onContinue={handleConnect} 
-            connecting={state.connecting} 
-          />
-        ) : (
-          <ConnectedState 
-            onOpenDashboard={handleOpenDashboard}
-            openingDashboard={state.openingDashboard}
-          />
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Payout Routing</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Choose your country. We route payouts automatically: Paystack in NG/GH/ZA/KE/CI, Stripe where supported, manual bank payout otherwise.
+        </p>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
+            <select
+              value={state.payoutCountryCode}
+              onChange={(e) => {
+                const countryCode = e.target.value;
+                setState((prev) => ({
+                  ...prev,
+                  payoutCountryCode: countryCode,
+                  payoutProvider: resolvePayoutProvider(countryCode),
+                  error: null,
+                  success: null,
+                }));
+              }}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">Select your country</option>
+              {COUNTRY_OPTIONS.map((country) => (
+                <option key={country.code} value={country.code}>{country.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Detected Provider</label>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800">
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {resolvedPayoutProvider === 'paystack' ? 'Paystack (automatic split)' : resolvedPayoutProvider === 'stripe' ? 'Stripe Connect' : 'Manual bank payout'}
+              </span>
+              <p className="mt-1 text-xs text-gray-500">
+                Processor fees are borne by creators. Platform fees follow your plan.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {(resolvedPayoutProvider === 'paystack' || resolvedPayoutProvider === 'manual_bank') && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Account name</label>
+              <input
+                value={state.manualBankAccountName}
+                onChange={(e) => setState((prev) => ({ ...prev, manualBankAccountName: e.target.value }))}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="Account holder name"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Account number</label>
+              <input
+                value={state.manualBankAccountNumber}
+                onChange={(e) => setState((prev) => ({ ...prev, manualBankAccountNumber: e.target.value }))}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="Bank account number"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank name</label>
+              <input
+                value={state.manualBankName}
+                onChange={(e) => setState((prev) => ({ ...prev, manualBankName: e.target.value }))}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="Bank name"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {resolvedPayoutProvider === 'paystack' ? 'Bank code (required for Paystack)' : 'Bank/Branch code'}
+              </label>
+              <input
+                value={state.manualBankCode}
+                onChange={(e) => setState((prev) => ({ ...prev, manualBankCode: e.target.value }))}
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                placeholder="Bank code"
+              />
+            </div>
+
+            {resolvedPayoutProvider === 'manual_bank' && (
+              <>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">IBAN (optional)</label>
+                  <input
+                    value={state.manualBankIban}
+                    onChange={(e) => setState((prev) => ({ ...prev, manualBankIban: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="IBAN"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">SWIFT/BIC (optional)</label>
+                  <input
+                    value={state.manualBankSwift}
+                    onChange={(e) => setState((prev) => ({ ...prev, manualBankSwift: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="SWIFT / BIC"
+                  />
+                </div>
+              </>
+            )}
+          </div>
         )}
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleSavePayoutConfig}
+            disabled={state.savingPayoutConfig}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+          >
+            {state.savingPayoutConfig ? 'Saving…' : 'Save Payout Routing'}
+          </button>
+
+          {resolvedPayoutProvider === 'paystack' && (
+            <button
+              onClick={handleConnectPaystack}
+              disabled={state.connectingPaystack || !state.manualBankCode || !state.manualBankAccountNumber}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {state.connectingPaystack ? 'Connecting…' : state.paystackSubaccountStatus === 'connected' ? 'Reconnect Paystack' : 'Connect Paystack Subaccount'}
+            </button>
+          )}
+
+          {resolvedPayoutProvider === 'manual_bank' && (
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+              Manual payouts are scheduled for the 9th and 24th (reminders are sent to admins 2 days before).
+            </span>
+          )}
+        </div>
+
+        <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-300">
+          Fees notice: creators bear Stripe/Paystack processor charges. This is also reflected in Terms of Service.
+          {PAYSTACK_COUNTRIES.length ? ` Paystack countries: ${PAYSTACK_COUNTRIES.join(', ')}.` : ''}
+        </div>
       </div>
+
+      {/* Stripe Connect Card */}
+      {resolvedPayoutProvider === 'stripe' && (
+        <div className="rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
+          {state.status === 'not_connected' ? (
+            <NotConnectedState 
+              onConnect={handleConnect} 
+              connecting={state.connecting} 
+            />
+          ) : state.status === 'pending' ? (
+            <PendingState 
+              onContinue={handleConnect} 
+              connecting={state.connecting} 
+            />
+          ) : (
+            <ConnectedState 
+              onOpenDashboard={handleOpenDashboard}
+              openingDashboard={state.openingDashboard}
+            />
+          )}
+        </div>
+      )}
 
       {/* PayPal Connect Card */}
       <div className="rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
@@ -337,7 +658,7 @@ export default function PaymentsSettingsPage() {
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">Free Tier</h3>
               <p className="text-sm text-gray-500">
-                8% platform fee + Stripe processing fees (~2.9% + 30¢)
+                8% platform fee + processor fees (Stripe/Paystack)
               </p>
             </div>
           </div>
@@ -348,7 +669,7 @@ export default function PaymentsSettingsPage() {
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">Pro Tier</h3>
               <p className="text-sm text-gray-500">
-                0% platform fee — only pay Stripe processing fees
+                0% platform fee — creators only pay processor fees
               </p>
               <Link
                 href="/dashboard/settings/billing"
@@ -367,8 +688,9 @@ export default function PaymentsSettingsPage() {
           Need Help?
         </h2>
         <p className="mb-4 text-sm text-gray-500">
-          Stripe on cele.bio uses a platform-managed Express flow (like Stan-style onboarding). 
-          Use your cele.bio payout settings to access Stripe Express rather than logging in as a standalone Stripe account.
+          Set your country first, then follow the payout route shown in this page:
+          Stripe Connect where supported, Paystack for NG/GH/ZA/KE/CI, and manual bank payout otherwise.
+          For manual payouts, admin processes cleared balances on the 9th and 24th.
         </p>
         <a
           href="https://stripe.com/connect"

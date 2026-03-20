@@ -17,6 +17,7 @@ import {
   Settings,
   FileText,
   TrendingUp,
+  Wallet,
 } from 'lucide-react';
 
 const navigation = [
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { name: 'Revenue', href: '/admin/revenue', icon: DollarSign },
   { name: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
+  { name: 'Payouts', href: '/admin/payouts', icon: Wallet },
   { name: 'Affiliates', href: '/admin/affiliates', icon: UserPlus },
   { name: 'Email', href: '/admin/email', icon: Mail },
   { name: 'Moderation', href: '/admin/moderation', icon: Shield },

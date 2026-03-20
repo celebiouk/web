@@ -183,6 +183,11 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Failed to create payment');
       }
 
+      if (data.provider === 'paystack' && data.authorizationUrl) {
+        window.location.href = data.authorizationUrl;
+        return;
+      }
+
       // Handle free products
       if (data.free) {
         router.push(`/checkout/upsell/${data.orderId}`);

@@ -3,6 +3,7 @@ import { isInternalAdminEmail } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminLoginGate } from '@/components/admin/AdminLoginGate';
+import { ManualPayoutAlertModal } from '@/components/admin/ManualPayoutAlertModal';
 
 export const metadata = {
   title: 'Admin Dashboard | cele.bio',
@@ -38,6 +39,7 @@ export default async function AdminLayout({
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminHeader user={user} />
+        <ManualPayoutAlertModal />
         <main className="flex-1 overflow-y-auto p-6">
           {children}
         </main>
