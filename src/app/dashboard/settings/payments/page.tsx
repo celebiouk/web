@@ -152,7 +152,11 @@ export default function PaymentsSettingsPage() {
     setState(prev => ({ ...prev, connecting: true, error: null }));
 
     try {
-      const res = await fetch('/api/stripe/connect', { method: 'POST' });
+      const res = await fetch('/api/stripe/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ countryCode: state.payoutCountryCode || null }),
+      });
       const data = await res.json();
 
       if (!res.ok) {
@@ -170,7 +174,7 @@ export default function PaymentsSettingsPage() {
         error: message,
       }));
     }
-  }, []);
+  }, [state.payoutCountryCode]);
 
   const resolvedPayoutProvider = resolvePayoutProvider(state.payoutCountryCode);
 
