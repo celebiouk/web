@@ -7,17 +7,14 @@ import { CheckCircle2 } from 'lucide-react';
 import { resolvePayoutProvider, type PayoutProvider, PAYSTACK_COUNTRIES } from '@/lib/payout-routing';
 
 type StripeStatus = 'not_connected' | 'pending' | 'complete';
-type PayPalStatus = 'not_connected' | 'pending' | 'connected';
 
 interface PaymentsState {
   loading: boolean;
   connecting: boolean;
-  connectingPayPal: boolean;
   connectingPaystack: boolean;
   savingPayoutConfig: boolean;
   openingDashboard: boolean;
   status: StripeStatus;
-  paypalStatus: PayPalStatus;
   payoutCountryCode: string;
   payoutProvider: PayoutProvider;
   paystackSubaccountCode: string | null;
@@ -29,8 +26,6 @@ interface PaymentsState {
   manualBankIban: string;
   manualBankSwift: string;
   accountId: string | null;
-  paypalAccountId: string | null;
-  paypalEmail: string | null;
   error: string | null;
   success: string | null;
 }
@@ -70,12 +65,10 @@ export default function PaymentsSettingsPage() {
   const [state, setState] = useState<PaymentsState>({
     loading: true,
     connecting: false,
-    connectingPayPal: false,
     connectingPaystack: false,
     savingPayoutConfig: false,
     openingDashboard: false,
     status: 'not_connected',
-    paypalStatus: 'not_connected',
     payoutCountryCode: '',
     payoutProvider: 'manual_bank',
     paystackSubaccountCode: null,
@@ -87,8 +80,6 @@ export default function PaymentsSettingsPage() {
     manualBankIban: '',
     manualBankSwift: '',
     accountId: null,
-    paypalAccountId: null,
-    paypalEmail: null,
     error: null,
     success: null,
   });
@@ -96,8 +87,6 @@ export default function PaymentsSettingsPage() {
   // Check for URL params from callback
   const connectedParam = searchParams.get('connected');
   const errorParam = searchParams.get('error');
-  const paypalConnectedParam = searchParams.get('paypal');
-  const paypalErrorParam = searchParams.get('paypal_error');
 
   // Fetch current Stripe status
   useEffect(() => {
@@ -113,7 +102,6 @@ export default function PaymentsSettingsPage() {
           ...prev,
           loading: false,
           status: data.stripe_account_status || 'not_connected',
-          paypalStatus: data.paypal_account_status || 'not_connected',
           payoutCountryCode,
           payoutProvider: resolvedProvider,
           paystackSubaccountCode: data.paystack_subaccount_code || null,
@@ -125,8 +113,6 @@ export default function PaymentsSettingsPage() {
           manualBankIban: data.manual_bank_iban || '',
           manualBankSwift: data.manual_bank_swift || '',
           accountId: data.stripe_account_id || null,
-          paypalAccountId: data.paypal_account_id || null,
-          paypalEmail: data.paypal_email || null,
         }));
       } catch (error) {
         console.error('Failed to fetch Stripe status:', error);
@@ -159,21 +145,7 @@ export default function PaymentsSettingsPage() {
         error: errorMessages[errorParam] || 'An error occurred with Stripe.',
       }));
     }
-    if (paypalConnectedParam === 'connected') {
-      setState(prev => ({ ...prev, paypalStatus: 'connected' }));
-    }
-    if (paypalErrorParam) {
-      const errorMessages: Record<string, string> = {
-        missing_code: 'PayPal connection was cancelled or missing authorization code.',
-        update_failed: 'PayPal connected but failed to save account details. Please try again.',
-        callback_failed: 'Failed to complete PayPal setup. Please try again.',
-      };
-      setState(prev => ({
-        ...prev,
-        error: errorMessages[paypalErrorParam] || 'An error occurred with PayPal.',
-      }));
-    }
-  }, [connectedParam, errorParam, paypalConnectedParam, paypalErrorParam]);
+  }, [connectedParam, errorParam]);
 
   // Connect to Stripe
   const handleConnect = useCallback(async () => {
@@ -195,48 +167,6 @@ export default function PaymentsSettingsPage() {
         ...prev,
         connecting: false,
         error: 'Failed to start Stripe onboarding. Please try again.',
-      }));
-    }
-  }, []);
-
-  const handlePayPalConnect = useCallback(async () => {
-    setState(prev => ({ ...prev, connectingPayPal: true, error: null }));
-
-    try {
-      const res = await fetch('/api/paypal/connect', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to connect PayPal');
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('PayPal connect error:', error);
-      setState(prev => ({
-        ...prev,
-        connectingPayPal: false,
-        error: 'Failed to start PayPal onboarding. Please try again.',
-      }));
-    }
-  }, []);
-
-  const handlePayPalDisconnect = useCallback(async () => {
-    setState(prev => ({ ...prev, connectingPayPal: true, error: null }));
-
-    try {
-      const res = await fetch('/api/paypal/disconnect', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to disconnect PayPal');
-      setState(prev => ({
-        ...prev,
-        connectingPayPal: false,
-        paypalStatus: 'not_connected',
-        paypalAccountId: null,
-        paypalEmail: null,
-      }));
-    } catch (error) {
-      console.error('PayPal disconnect error:', error);
-      setState(prev => ({
-        ...prev,
-        connectingPayPal: false,
-        error: 'Failed to disconnect PayPal. Please try again.',
       }));
     }
   }, []);
@@ -388,7 +318,7 @@ export default function PaymentsSettingsPage() {
             Payment Settings
           </h1>
           <p className="text-sm text-gray-500">
-            Connect Stripe or PayPal to receive payments from your customers
+            Set up your payout route to receive payments from your customers
           </p>
         </div>
         <Link
@@ -411,13 +341,6 @@ export default function PaymentsSettingsPage() {
         <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
           <CheckCircle2 className="h-5 w-5 text-green-600" />
           Stripe connected successfully! You can now receive payments.
-        </div>
-      )}
-
-      {paypalConnectedParam === 'connected' && (
-        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          <CheckCircle2 className="h-5 w-5 text-green-600" />
-          PayPal connected successfully! You can now use it as an additional payout option.
         </div>
       )}
 
@@ -591,59 +514,6 @@ export default function PaymentsSettingsPage() {
           )}
         </div>
       )}
-
-      {/* PayPal Connect Card */}
-      <div className="rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">PayPal</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Connect PayPal Business as an additional processor.
-            </p>
-          </div>
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            state.paypalStatus === 'connected'
-              ? 'bg-green-100 text-green-800'
-              : state.paypalStatus === 'pending'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-gray-100 text-gray-700'
-          }`}>
-            {state.paypalStatus === 'connected' ? 'Connected' : state.paypalStatus === 'pending' ? 'Pending' : 'Not connected'}
-          </span>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {state.paypalStatus !== 'connected' ? (
-            <button
-              onClick={handlePayPalConnect}
-              disabled={state.connectingPayPal}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0070BA] px-6 py-3 font-semibold text-white transition-all hover:bg-[#005ea6] disabled:opacity-50"
-            >
-              {state.connectingPayPal ? 'Connecting…' : 'Connect PayPal'}
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => window.open('https://www.paypal.com/businessmanage/account/home', '_blank')}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                Open PayPal Dashboard
-              </button>
-              <button
-                onClick={handlePayPalDisconnect}
-                disabled={state.connectingPayPal}
-                className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50"
-              >
-                {state.connectingPayPal ? 'Disconnecting…' : 'Disconnect'}
-              </button>
-            </>
-          )}
-        </div>
-
-        {state.paypalEmail ? (
-          <p className="mt-3 text-sm text-gray-500">Connected as {state.paypalEmail}</p>
-        ) : null}
-      </div>
 
       {/* Fee Information */}
       <div className="rounded-xl bg-white p-6 shadow-lg dark:bg-gray-900">
