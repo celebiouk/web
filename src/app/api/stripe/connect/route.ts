@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/server';
 import { stripe, createAccountLink } from '@/lib/stripe';
 import { APP_URL } from '@/lib/constants';
 import type { Profile } from '@/types/supabase';
+import { isStripeCountry, normalizeCountryCode } from '@/lib/payout-routing';
 
 export async function POST() {
   try {
@@ -28,11 +29,13 @@ export async function POST() {
     // Get user profile
     const { data, error: profileError } = await supabase
       .from('profiles')
-      .select('stripe_account_id, stripe_account_status, full_name')
+      .select('stripe_account_id, stripe_account_status, full_name, payout_country_code')
       .eq('id', user.id)
       .single();
 
-    const profile = data as Pick<Profile, 'stripe_account_id' | 'stripe_account_status' | 'full_name'> | null;
+    const profile = data as (Pick<Profile, 'stripe_account_id' | 'stripe_account_status' | 'full_name'> & {
+      payout_country_code?: string | null;
+    }) | null;
 
     if (profileError || !profile) {
       return NextResponse.json(
@@ -54,10 +57,25 @@ export async function POST() {
       return NextResponse.json({ url: accountLink.url });
     }
 
+    const payoutCountryCode = normalizeCountryCode(profile.payout_country_code);
+    if (!payoutCountryCode) {
+      return NextResponse.json(
+        { error: 'Set your payout country first in Payment Settings before connecting Stripe.' },
+        { status: 400 }
+      );
+    }
+
+    if (!isStripeCountry(payoutCountryCode)) {
+      return NextResponse.json(
+        { error: `Stripe onboarding is not available for ${payoutCountryCode}. Use the payout bank details route shown in Payment Settings.` },
+        { status: 400 }
+      );
+    }
+
     // Create new Express account
     const account = await stripe.accounts.create({
       type: 'express',
-      country: 'US', // Default to US, can be updated during onboarding
+      country: payoutCountryCode,
       email: user.email,
       capabilities: {
         card_payments: { requested: true },
@@ -95,8 +113,14 @@ export async function POST() {
 
   } catch (error) {
     console.error('Stripe Connect error:', error);
+
+    const errorMessage =
+      error && typeof error === 'object' && 'message' in error
+        ? String((error as { message?: string }).message || '')
+        : '';
+
     return NextResponse.json(
-      { error: 'Failed to initiate Stripe Connect' },
+      { error: errorMessage || 'Failed to initiate Stripe Connect' },
       { status: 500 }
     );
   }

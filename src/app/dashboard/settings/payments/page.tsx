@@ -163,10 +163,11 @@ export default function PaymentsSettingsPage() {
       window.location.href = data.url;
     } catch (error) {
       console.error('Connect error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to start Stripe onboarding. Please try again.';
       setState(prev => ({
         ...prev,
         connecting: false,
-        error: 'Failed to start Stripe onboarding. Please try again.',
+        error: message,
       }));
     }
   }, []);
