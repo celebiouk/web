@@ -43,6 +43,7 @@ import {
   Lock,
   Settings,
 } from 'lucide-react';
+import { isPayoutSetupComplete } from '@/lib/payout-routing';
 
 // Types
 interface Section {
@@ -522,6 +523,26 @@ export default function CourseEditPage() {
   async function togglePublish() {
     if (!course) return;
 
+    const supabase = createClient();
+
+    if (course.status === 'draft') {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert('Please sign in again to continue.');
+        return;
+      }
+
+      const { data: profile } = await (supabase.from('profiles') as any)
+        .select('payout_country_code,payout_provider,stripe_account_id,stripe_account_status,paystack_subaccount_code,paystack_subaccount_status,manual_bank_account_name,manual_bank_account_number,manual_bank_name,manual_bank_code,manual_bank_iban,manual_bank_swift')
+        .eq('id', user.id)
+        .single();
+
+      if (!isPayoutSetupComplete(profile)) {
+        alert('Complete your payout settings before publishing. Go to Dashboard → Settings → Payments.');
+        return;
+      }
+    }
+
     // Validate before publishing
     if (course.status === 'draft') {
       if (lessons.length === 0) {
@@ -531,7 +552,6 @@ export default function CourseEditPage() {
     }
 
     const newStatus = course.status === 'draft' ? 'published' : 'draft';
-    const supabase = createClient();
 
     await (supabase.from('courses') as any)
       .update({ status: newStatus })

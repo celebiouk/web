@@ -22,6 +22,7 @@ import {
 import type { Product, Profile } from '@/types/supabase';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { isPayoutSetupComplete } from '@/lib/payout-routing';
 
 /**
  * Products Dashboard - Premium Design
@@ -93,6 +94,11 @@ export default function ProductsPage() {
   async function togglePublish(productId: string, currentStatus: boolean) {
     setTogglingId(productId);
     try {
+      if (!currentStatus && !isPayoutSetupComplete(profile as any)) {
+        alert('Complete your payout settings before publishing. Go to Dashboard → Settings → Payments.');
+        return;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('products')
@@ -108,7 +114,7 @@ export default function ProductsPage() {
       );
     } catch (err) {
       console.error('Toggle error:', err);
-      alert('Failed to update product');
+      alert('Failed to update product. If publishing, complete payout settings first.');
     } finally {
       setTogglingId(null);
     }
@@ -225,7 +231,7 @@ export default function ProductsPage() {
     });
   }
 
-  const stripeConnected = profile?.stripe_account_id;
+  const payoutSetupComplete = isPayoutSetupComplete(profile as any);
 
   async function handleAddProductClick(event: React.MouseEvent<HTMLAnchorElement>) {
     if (profile?.subscription_tier === 'free' && products.length >= 3) {
@@ -314,22 +320,22 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Stripe Warning */}
-      {!stripeConnected && (
+      {/* Payout setup warning */}
+      {!payoutSetupComplete && (
         <div className="flex items-start gap-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/20">
             <AlertTriangle className="h-5 w-5 text-amber-400" strokeWidth={1.75} />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-amber-200">Connect Stripe to Sell</h3>
+            <h3 className="font-semibold text-amber-200">Add payout bank details to sell</h3>
             <p className="mt-1 text-[13px] text-amber-300/80">
-              You need to connect your Stripe account before you can receive payments.
+              You can create drafts now, but publishing is blocked until payout details are complete.
             </p>
             <Link
               href="/dashboard/settings/payments"
               className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[13px] font-medium text-amber-200 transition-colors hover:bg-amber-500/20"
             >
-              Connect Stripe
+              Add Payout Bank Details
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>

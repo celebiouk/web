@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { uploadFile, validateFile, FILE_TYPES, type UploadProgress } from '@/lib/utils/uploadFile';
 import { FileText, GraduationCap, Users, type LucideIcon } from 'lucide-react';
 import type { ProductType } from '@/types/supabase';
+import { isPayoutSetupComplete } from '@/lib/payout-routing';
 
 const PRODUCT_TYPES: { value: ProductType; label: string; icon: LucideIcon; description: string }[] = [
   {
@@ -60,6 +61,29 @@ export default function NewProductPage() {
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [payoutReady, setPayoutReady] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const supabaseClient = createClient();
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user || !isMounted) return;
+
+      const { data: payoutProfile } = await (supabaseClient.from('profiles') as any)
+        .select('payout_country_code,payout_provider,stripe_account_id,stripe_account_status,paystack_subaccount_code,paystack_subaccount_status,manual_bank_account_name,manual_bank_account_number,manual_bank_name,manual_bank_code,manual_bank_iban,manual_bank_swift')
+        .eq('id', user.id)
+        .single();
+
+      if (isMounted) {
+        setPayoutReady(isPayoutSetupComplete(payoutProfile));
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function handleCoverSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -269,6 +293,27 @@ export default function NewProductPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {payoutReady === false && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+                <p className="text-sm font-medium text-amber-200">
+                  Set up payouts before your first publish.
+                </p>
+                <p className="mt-1 text-xs text-amber-300/80">
+                  You can create this product as a draft now, but publishing is blocked until payout setup is complete.
+                </p>
+                <Link
+                  href="/dashboard/settings/payments"
+                  className="mt-3 inline-flex items-center rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+                >
+                  Complete payout settings
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Product Type */}
         <Card>
           <CardContent className="p-6">

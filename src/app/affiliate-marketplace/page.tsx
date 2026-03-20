@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Input, Spinner } from '@/components/ui';
 import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import { createClient } from '@/lib/supabase/client';
+import { isPayoutSetupComplete } from '@/lib/payout-routing';
 import { 
   Search, 
   Filter, 
@@ -68,6 +69,7 @@ export default function AffiliateMarketplacePage() {
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [user, setUser] = useState<{ id: string } | null>(null);
+  const [canPromote, setCanPromote] = useState<boolean | null>(null);
   const [promotingIds, setPromotingIds] = useState<Set<string>>(new Set());
   const [addingId, setAddingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -82,6 +84,14 @@ export default function AffiliateMarketplacePage() {
     setUser(user);
     
     if (user) {
+      const { data: payoutProfile } = await (supabase as any)
+        .from('profiles')
+        .select('payout_country_code,payout_provider,stripe_account_id,stripe_account_status,paystack_subaccount_code,paystack_subaccount_status,manual_bank_account_name,manual_bank_account_number,manual_bank_name,manual_bank_code,manual_bank_iban,manual_bank_swift')
+        .eq('id', user.id)
+        .single();
+
+      setCanPromote(isPayoutSetupComplete(payoutProfile));
+
       // Load products user is already promoting
       const { data } = await (supabase as any)
         .from('affiliate_promotions')
@@ -142,6 +152,14 @@ export default function AffiliateMarketplacePage() {
 
     if (promotingIds.has(productId)) {
       return; // Already promoting
+    }
+
+    if (canPromote === false) {
+      showToast('Add payout bank details before promoting products as an affiliate.', 'error');
+      setTimeout(() => {
+        router.push('/dashboard/settings/payments?next=/affiliate-marketplace');
+      }, 700);
+      return;
     }
 
     setAddingId(productId);
@@ -226,6 +244,21 @@ export default function AffiliateMarketplacePage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-brand-50 to-white py-16 dark:from-brand-950/20 dark:to-gray-950">
         <div className="container-page text-center">
+          {user && canPromote === false && (
+            <div className="mx-auto mb-6 max-w-2xl rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left">
+              <p className="text-sm font-semibold text-amber-200">Add payout bank details to start affiliate promotions.</p>
+              <p className="mt-1 text-xs text-amber-300/80">
+                You can browse products now. To add any product to your page, complete payouts first.
+              </p>
+              <Link
+                href="/dashboard/settings/payments?next=/affiliate-marketplace"
+                className="mt-3 inline-flex items-center rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+              >
+                Add Payout Bank Details
+              </Link>
+            </div>
+          )}
+
           <div className="inline-flex items-center gap-2 rounded-full bg-success-50 px-4 py-2 text-sm font-medium text-success-700 dark:bg-success-500/10 dark:text-success-400 mb-6">
             <DollarSign className="h-4 w-4" />
             Earn commissions on every sale

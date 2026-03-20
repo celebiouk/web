@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, Button, Input, Textarea, UpgradePrompt } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { useFeatureGate } from '@/lib/hooks/useFeatureGate';
+import { isPayoutSetupComplete } from '@/lib/payout-routing';
 import {
   ArrowLeft,
   Upload,
@@ -51,6 +53,30 @@ export default function NewCoursePage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [payoutReady, setPayoutReady] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    (async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !isMounted) return;
+
+      const { data: payoutProfile } = await (supabase.from('profiles') as any)
+        .select('payout_country_code,payout_provider,stripe_account_id,stripe_account_status,paystack_subaccount_code,paystack_subaccount_status,manual_bank_account_name,manual_bank_account_number,manual_bank_name,manual_bank_code,manual_bank_iban,manual_bank_swift')
+        .eq('id', user.id)
+        .single();
+
+      if (isMounted) {
+        setPayoutReady(isPayoutSetupComplete(payoutProfile));
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (!canAccessCourses) {
     return (
@@ -188,6 +214,27 @@ export default function NewCoursePage() {
         <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
           {error}
         </div>
+      )}
+
+      {payoutReady === false && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+              <p className="text-sm font-medium text-amber-200">
+                Set up payouts before your first publish.
+              </p>
+              <p className="mt-1 text-xs text-amber-300/80">
+                You can create this course as a draft now, but publishing is blocked until payout setup is complete.
+              </p>
+              <Link
+                href="/dashboard/settings/payments"
+                className="mt-3 inline-flex items-center rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+              >
+                Complete payout settings
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">

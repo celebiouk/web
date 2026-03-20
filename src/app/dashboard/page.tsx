@@ -20,6 +20,7 @@ import {
 import type { Profile } from '@/types/supabase';
 import { ensureUpgradeNudge } from '@/lib/nudges';
 import { cn } from '@/lib/utils';
+import { isPayoutSetupComplete } from '@/lib/payout-routing';
 
 export const metadata = {
   title: 'Dashboard',
@@ -50,6 +51,7 @@ export default async function DashboardPage() {
     .single();
 
   const profile = data as Profile | null;
+  const payoutSetupComplete = isPayoutSetupComplete(profile as any);
 
   // Get products count
   const { count: productsCount } = await supabase
@@ -120,9 +122,9 @@ export default async function DashboardPage() {
       href: '/dashboard/products',
     },
     {
-      id: 'stripe',
-      label: 'Connect Stripe',
-      isCompleted: Boolean(profile?.stripe_account_id),
+      id: 'payout',
+      label: 'Add payout bank details',
+      isCompleted: payoutSetupComplete,
       href: '/dashboard/settings/payments',
     },
     {

@@ -1,5 +1,20 @@
 export type PayoutProvider = 'stripe' | 'paystack' | 'manual_bank';
 
+export type PayoutProfileLike = {
+  payout_country_code?: string | null;
+  payout_provider?: PayoutProvider | null;
+  stripe_account_id?: string | null;
+  stripe_account_status?: 'not_connected' | 'pending' | 'complete' | null;
+  paystack_subaccount_code?: string | null;
+  paystack_subaccount_status?: 'not_connected' | 'pending' | 'connected' | 'failed' | null;
+  manual_bank_account_name?: string | null;
+  manual_bank_account_number?: string | null;
+  manual_bank_name?: string | null;
+  manual_bank_code?: string | null;
+  manual_bank_iban?: string | null;
+  manual_bank_swift?: string | null;
+};
+
 export const PAYSTACK_COUNTRIES = ['NG', 'GH', 'ZA', 'KE', 'CI'] as const;
 
 // Stripe-connected account availability (rolling list; keep updated as Stripe expands)
@@ -33,6 +48,27 @@ export function resolvePayoutProvider(countryCode: string | null | undefined): P
   if (isStripeCountry(normalized)) return 'stripe';
 
   return 'manual_bank';
+}
+
+export function isPayoutSetupComplete(profile: PayoutProfileLike | null | undefined): boolean {
+  if (!profile) return false;
+
+  const countryCode = normalizeCountryCode(profile.payout_country_code);
+  if (!countryCode) return false;
+
+  const provider = (profile.payout_provider || resolvePayoutProvider(countryCode)) as PayoutProvider;
+
+  if (provider === 'stripe') {
+    return Boolean(profile.stripe_account_id) && profile.stripe_account_status === 'complete';
+  }
+
+  if (provider === 'paystack') {
+    return Boolean(profile.paystack_subaccount_code) && profile.paystack_subaccount_status === 'connected';
+  }
+
+  return Boolean(profile.manual_bank_account_name)
+    && Boolean(profile.manual_bank_account_number)
+    && Boolean(profile.manual_bank_name || profile.manual_bank_code || profile.manual_bank_iban || profile.manual_bank_swift);
 }
 
 export function nextManualPayoutDate(fromDate = new Date()): Date {
