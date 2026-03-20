@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import {
   LayoutDashboard,
   Users,
@@ -47,12 +48,7 @@ export function AdminSidebar() {
         {/* Logo */}
         <div className="flex h-16 items-center border-b border-gray-200 px-6 dark:border-gray-800">
           <Link href="/admin" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-              <Shield className="h-5 w-5" />
-            </div>
-            <span className="text-lg font-bold text-gray-900 dark:text-white">
-              Admin
-            </span>
+            <BrandWordmark className="text-lg font-bold text-gray-900 dark:text-white" dotClassName="text-brand-600" />
           </Link>
         </div>
 
