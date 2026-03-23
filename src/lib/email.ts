@@ -186,7 +186,7 @@ function generateBuyerConfirmationEmail(data: BookingEmailData): string {
     <!-- Footer -->
     <div style="text-align: center; margin-top: 24px;">
       <p style="margin: 0; font-size: 12px; color: #a1a1aa;">
-        Powered by <a href="https://cele.bio" style="color: #6366f1; text-decoration: none;">cele.bio</a>
+        Powered by <a href="https://cele.bio" style="color: #6366f1; text-decoration: none;">bio</a>
       </p>
     </div>
   </div>

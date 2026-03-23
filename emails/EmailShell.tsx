@@ -77,13 +77,13 @@ export function EmailShell({
               <Column align="center">
                 <Link href={appUrl} style={logoLink}>
                   <Img
-                    src={`${appUrl}/fav.png`}
-                    alt="cele.bio"
+                    src={`${appUrl}/celelogo.png`}
+                    alt="bio"
                     width="44"
                     height="44"
                     style={logoImage}
                   />
-                  <Text style={logoText}>cele<span style={logoDot}>.</span>bio</Text>
+                  <Text style={logoText}>bio</Text>
                 </Link>
               </Column>
             </Row>
@@ -118,11 +118,11 @@ export function EmailShell({
             )}
             
             <Text style={footerText}>
-              Made with ♥ by cele.bio — The creator monetization platform
+              Made with ♥ by bio — The creator monetization platform
             </Text>
             
             <Text style={footerLinks}>
-              <Link href={appUrl} style={footerLink}>Visit cele.bio</Link>
+              <Link href={appUrl} style={footerLink}>Visit bio</Link>
               {' · '}
               <Link href={`${appUrl}/terms`} style={footerLink}>Terms</Link>
               {' · '}
@@ -130,7 +130,7 @@ export function EmailShell({
             </Text>
             
             <Text style={footerMuted}>
-              © {new Date().getFullYear()} cele.bio. All rights reserved.
+              © {new Date().getFullYear()} bio. All rights reserved.
             </Text>
           </Section>
         </Container>

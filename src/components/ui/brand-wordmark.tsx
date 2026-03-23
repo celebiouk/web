@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import logoImage from '@/app/logo.png';
+import logoImage from '@/app/celelogo.png';
 import { cn } from '@/lib/utils';
 
 type BrandWordmarkProps = {
@@ -10,15 +10,14 @@ type BrandWordmarkProps = {
 
 export function BrandWordmark({ className, dotClassName, iconClassName }: BrandWordmarkProps) {
   return (
-    <span className={cn('inline-flex items-center leading-none', className)}>
+    <span className={cn('inline-flex items-center gap-1.5 leading-none', className)}>
       <Image
         src={logoImage}
-        alt="Cele.bio logo"
-        className={cn('-mr-[0.08em] h-[1.15em] w-[1.15em] shrink-0 align-middle', iconClassName)}
-        style={{ marginRight: '-0.08em' }}
+        alt="bio logo"
+        className={cn('h-[1.25em] w-[1.25em] shrink-0 align-middle', iconClassName)}
       />
-      <span className="align-middle">
-        ele<span className={dotClassName}>.bio</span>
+      <span className={cn('align-middle', dotClassName)}>
+        bio
       </span>
     </span>
   );

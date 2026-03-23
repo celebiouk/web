@@ -6,7 +6,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Package, Users, Star, Clock, ChevronRight, ExternalLink, ShoppingBag, Zap, Award } from 'lucide-react';
-import logoImage from '@/app/logo.png';
+import logoImage from '@/app/celelogo.png';
 import { PLACEHOLDER_TESTIMONIALS, FONT_FAMILIES, type Testimonial, type PageTheme, type CreatorCourse, type CreatorPageData, type CreatorProduct } from '@/types/creator-page';
 
 // Format price from cents to display string
@@ -580,7 +580,7 @@ export function TrustBadges({
   );
 }
 
-// Powered by cele.bio footer
+// Powered by bio footer
 export function PoweredByFooter({
   show = true,
   theme = 'light',
@@ -609,12 +609,12 @@ export function PoweredByFooter({
           <span className="relative inline-flex items-center font-medium">
             <Image
               src={logoImage}
-              alt="Cele.bio logo"
+              alt="bio logo"
               width={16}
               height={16}
               className="absolute left-0 top-1/2 -z-10 -translate-y-1/2 rounded opacity-70"
             />
-            <span className="relative pl-0.5">cele.bio</span>
+            <span className="relative pl-0.5">bio</span>
           </span>{' '}
           — Build your own for free.
         </span>
