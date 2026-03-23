@@ -109,9 +109,9 @@ export function TemplateRenderer({
   return (
     <>
       {hasHeaderBanner ? (
-        <section className="relative w-full">
+        <section className="relative w-full px-0 md:px-4">
           {/* Banner image — overflow-hidden only here so avatar can hang below */}
-          <div className="relative aspect-video w-full overflow-hidden bg-gray-100 dark:bg-gray-900">
+          <div className="relative mx-auto h-[220px] w-full max-w-[1120px] overflow-hidden bg-gray-100 sm:h-[280px] md:h-[340px] md:rounded-2xl lg:h-[380px] xl:h-[420px] dark:bg-gray-900">
             <Image
               src={data.profile.banner_url as string}
               alt="Page header banner"
@@ -125,13 +125,13 @@ export function TemplateRenderer({
           {/* Avatar overlay — fully visible, centered at the bottom edge of the banner */}
           {showAvatarOnBanner && data.profile.avatar_url ? (
             <div className="pointer-events-none absolute bottom-0 left-1/2 z-10 -translate-x-1/2 translate-y-1/2">
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg dark:border-gray-950 dark:bg-gray-950">
+              <div className="relative h-32 w-32 overflow-hidden rounded-full border-4 border-white bg-white shadow-lg dark:border-gray-950 dark:bg-gray-950">
                 <Image
                   src={data.profile.avatar_url}
                   alt={`${data.profile.full_name} avatar`}
                   fill
                   className="object-cover"
-                  sizes="96px"
+                  sizes="128px"
                 />
               </div>
             </div>
@@ -140,11 +140,11 @@ export function TemplateRenderer({
       ) : null}
 
       <div
-        className={`page-content-shell ${contentBackgroundStyle ? 'has-custom-background' : ''}`}
+        className={`page-content-shell ${contentBackgroundStyle ? 'has-custom-background' : ''} ${hasHeaderBanner ? 'mx-auto w-full max-w-[1120px] md:px-4' : ''}`}
         style={contentBackgroundStyle}
       >
         {hasHeaderBanner && hasSocialLinks ? (
-          <div className={`flex justify-center px-4 ${showAvatarOnBanner && data.profile.avatar_url ? 'pb-5 pt-14' : 'pb-5 pt-4'}`}>
+          <div className={`flex justify-center px-4 ${showAvatarOnBanner && data.profile.avatar_url ? 'pb-5 pt-20' : 'pb-5 pt-4'}`}>
             <SocialLinks
               links={data.profile.social_links}
               variant="banner"
