@@ -30,6 +30,11 @@ interface PaymentsState {
   success: string | null;
 }
 
+interface PaystackBankOption {
+  name: string;
+  code: string;
+}
+
 const ISO_COUNTRY_CODES = [
   'AD','AE','AF','AG','AI','AL','AM','AO','AQ','AR','AS','AT','AU','AW','AX','AZ',
   'BA','BB','BD','BE','BF','BG','BH','BI','BJ','BL','BM','BN','BO','BQ','BR','BS','BT','BV','BW','BY','BZ',
@@ -75,6 +80,8 @@ const COUNTRY_OPTIONS = ISO_COUNTRY_CODES
  */
 export default function PaymentsSettingsPage() {
   const searchParams = useSearchParams();
+  const [paystackBanks, setPaystackBanks] = useState<PaystackBankOption[]>([]);
+  const [loadingPaystackBanks, setLoadingPaystackBanks] = useState(false);
   const [state, setState] = useState<PaymentsState>({
     loading: true,
     connecting: false,
@@ -190,6 +197,41 @@ export default function PaymentsSettingsPage() {
   }, [state.payoutCountryCode]);
 
   const resolvedPayoutProvider = resolvePayoutProvider(state.payoutCountryCode);
+
+  useEffect(() => {
+    async function fetchPaystackBanks() {
+      if (resolvedPayoutProvider !== 'paystack' || !state.payoutCountryCode) {
+        setPaystackBanks([]);
+        return;
+      }
+
+      setLoadingPaystackBanks(true);
+      try {
+        const res = await fetch(`/api/paystack/banks?countryCode=${encodeURIComponent(state.payoutCountryCode)}`, {
+          cache: 'no-store',
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to load banks');
+        }
+
+        const banks = Array.isArray(data.banks) ? data.banks : [];
+        setPaystackBanks(
+          banks.map((bank: { name?: string; code?: string }) => ({
+            name: String(bank.name || ''),
+            code: String(bank.code || ''),
+          })).filter((bank: PaystackBankOption) => bank.name && bank.code)
+        );
+      } catch (error) {
+        console.error('Failed to fetch Paystack banks:', error);
+        setPaystackBanks([]);
+      } finally {
+        setLoadingPaystackBanks(false);
+      }
+    }
+
+    void fetchPaystackBanks();
+  }, [resolvedPayoutProvider, state.payoutCountryCode]);
 
   const handleSavePayoutConfig = useCallback(async () => {
     if (!state.payoutCountryCode) {
@@ -433,26 +475,63 @@ export default function PaymentsSettingsPage() {
                 placeholder="Bank account number"
               />
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank name</label>
-              <input
-                value={state.manualBankName}
-                onChange={(e) => setState((prev) => ({ ...prev, manualBankName: e.target.value }))}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                placeholder="Bank name"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {resolvedPayoutProvider === 'paystack' ? 'Bank code (required for Paystack)' : 'Bank/Branch code'}
-              </label>
-              <input
-                value={state.manualBankCode}
-                onChange={(e) => setState((prev) => ({ ...prev, manualBankCode: e.target.value }))}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                placeholder="Bank code"
-              />
-            </div>
+            {resolvedPayoutProvider === 'paystack' ? (
+              <>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Select bank</label>
+                  <select
+                    value={state.manualBankCode}
+                    onChange={(e) => {
+                      const selectedCode = e.target.value;
+                      const selectedBank = paystackBanks.find((bank) => bank.code === selectedCode);
+                      setState((prev) => ({
+                        ...prev,
+                        manualBankCode: selectedCode,
+                        manualBankName: selectedBank?.name || prev.manualBankName,
+                      }));
+                    }}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    disabled={loadingPaystackBanks}
+                  >
+                    <option value="">{loadingPaystackBanks ? 'Loading banks…' : 'Select your bank'}</option>
+                    {paystackBanks.map((bank) => (
+                      <option key={bank.code} value={bank.code}>{bank.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank code</label>
+                  <input
+                    value={state.manualBankCode}
+                    onChange={(e) => setState((prev) => ({ ...prev, manualBankCode: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="Auto-filled from bank selection"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">If your bank is not listed, you can paste your Paystack bank code manually.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank name</label>
+                  <input
+                    value={state.manualBankName}
+                    onChange={(e) => setState((prev) => ({ ...prev, manualBankName: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="Bank name"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank/Branch code</label>
+                  <input
+                    value={state.manualBankCode}
+                    onChange={(e) => setState((prev) => ({ ...prev, manualBankCode: e.target.value }))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                    placeholder="Bank code"
+                  />
+                </div>
+              </>
+            )}
 
             {resolvedPayoutProvider === 'manual_bank' && (
               <>

@@ -67,6 +67,53 @@ export type PaystackSubaccountResponse = {
   };
 };
 
+export type PaystackBank = {
+  name: string;
+  code: string;
+  active?: boolean;
+  country?: string;
+  currency?: string;
+};
+
+type PaystackBanksResponse = {
+  status: boolean;
+  message: string;
+  data: PaystackBank[];
+};
+
+const PAYSTACK_BANK_FILTERS: Record<string, { country?: string; currency?: string }> = {
+  NG: { country: 'nigeria', currency: 'NGN' },
+  GH: { country: 'ghana', currency: 'GHS' },
+  ZA: { country: 'south africa', currency: 'ZAR' },
+  KE: { country: 'kenya', currency: 'KES' },
+  CI: { country: "cote d'ivoire", currency: 'XOF' },
+};
+
+function buildBanksPath(countryCode?: string | null) {
+  const filter = PAYSTACK_BANK_FILTERS[String(countryCode || '').toUpperCase()] || {};
+  const query = new URLSearchParams();
+  if (filter.country) query.set('country', filter.country);
+  if (filter.currency) query.set('currency', filter.currency);
+  const qs = query.toString();
+  return qs ? `/bank?${qs}` : '/bank';
+}
+
+export async function listPaystackBanks(countryCode?: string | null): Promise<PaystackBank[]> {
+  const primaryPath = buildBanksPath(countryCode);
+
+  try {
+    const response = await paystackRequest<PaystackBanksResponse>(primaryPath);
+    return (response.data || [])
+      .filter((bank) => Boolean(bank.code) && Boolean(bank.name) && bank.active !== false)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    const fallback = await paystackRequest<PaystackBanksResponse>('/bank');
+    return (fallback.data || [])
+      .filter((bank) => Boolean(bank.code) && Boolean(bank.name) && bank.active !== false)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+}
+
 export async function createPaystackSubaccount(params: {
   businessName: string;
   accountNumber: string;
