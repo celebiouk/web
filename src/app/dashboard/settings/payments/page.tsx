@@ -498,17 +498,24 @@ export default function PaymentsSettingsPage() {
                       <option key={bank.code} value={bank.code}>{bank.name}</option>
                     ))}
                   </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    You only need to select your bank. We handle the bank code automatically.
+                  </p>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank code</label>
-                  <input
-                    value={state.manualBankCode}
-                    onChange={(e) => setState((prev) => ({ ...prev, manualBankCode: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    placeholder="Auto-filled from bank selection"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">If your bank is not listed, you can paste your Paystack bank code manually.</p>
-                </div>
+                {paystackBanks.length === 0 && !loadingPaystackBanks && (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Bank code (advanced fallback)</label>
+                    <input
+                      value={state.manualBankCode}
+                      onChange={(e) => setState((prev) => ({ ...prev, manualBankCode: e.target.value }))}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                      placeholder="Only use if bank list fails"
+                    />
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                      We couldn&apos;t load the bank list right now. You can paste your bank code manually or refresh this page.
+                    </p>
+                  </div>
+                )}
               </>
             ) : (
               <>
