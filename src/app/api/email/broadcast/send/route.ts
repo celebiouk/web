@@ -10,7 +10,7 @@ const sendSchema = z.object({
   preview_text: z.string().max(300).optional(),
   body_html: z.string().min(1).optional(),
   segment: z.object({
-    type: z.enum(['all', 'tag', 'product', 'course_students', 'buyers', 'platform_users', 'platform_pro', 'platform_free']),
+    type: z.enum(['all', 'tag', 'product', 'course_students', 'buyers', 'platform_users', 'platform_pro', 'platform_free', 'platform_subscribers']),
     value: z.string().optional(),
   }).optional(),
   sendNow: z.boolean().default(true),
@@ -76,13 +76,57 @@ async function resolveRecipients(supabase: Awaited<ReturnType<typeof createServi
 
 async function resolvePlatformRecipients(
   supabase: Awaited<ReturnType<typeof createServiceClient>>,
-  segmentType: 'platform_users' | 'platform_pro' | 'platform_free'
+  segmentType: 'platform_users' | 'platform_pro' | 'platform_free' | 'platform_subscribers'
 ) {
-  const { data: authUsers } = await ((supabase as any).schema('auth').from('users') as any)
-    .select('id,email')
-    .not('email', 'is', null);
+  if (segmentType === 'platform_subscribers') {
+    const { data } = await (supabase.from('email_subscribers') as any)
+      .select('id,email,first_name')
+      .eq('is_active', true);
 
-  const authRows = Array.isArray(authUsers) ? authUsers : [];
+    const deduped = new Map<string, { id: string; email: string; first_name?: string }>();
+    for (const row of (Array.isArray(data) ? data : [])) {
+      const email = String((row as { email?: string }).email || '').trim().toLowerCase();
+      if (!email) continue;
+
+      if (!deduped.has(email)) {
+        deduped.set(email, {
+          id: String((row as { id: string }).id),
+          email,
+          first_name: (row as { first_name?: string | null }).first_name || undefined,
+        });
+      }
+    }
+
+    return Array.from(deduped.values());
+  }
+
+  const authRows: { id: string; email: string }[] = [];
+  let page = 1;
+
+  while (true) {
+    const { data, error } = await (supabase as any).auth.admin.listUsers({
+      page,
+      perPage: 1000,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const users = (data?.users || []) as { id: string; email?: string | null }[];
+    for (const user of users) {
+      const email = String(user.email || '').trim().toLowerCase();
+      if (!email) continue;
+      authRows.push({ id: String(user.id), email });
+    }
+
+    if (users.length < 1000) {
+      break;
+    }
+
+    page += 1;
+  }
+
   let allowedUserIds: Set<string> | null = null;
 
   if (segmentType === 'platform_pro' || segmentType === 'platform_free') {
@@ -96,8 +140,28 @@ async function resolvePlatformRecipients(
     }
 
     const { data: tierRows } = await tierQuery;
-    const ids = Array.isArray(tierRows) ? tierRows.map((row: { id: string }) => row.id) : [];
-    allowedUserIds = new Set(ids);
+    const profileTierIds = Array.isArray(tierRows) ? tierRows.map((row: { id: string }) => String(row.id)) : [];
+
+    const { data: activeSubscriptions } = await (supabase.from('subscriptions') as any)
+      .select('user_id,status')
+      .in('status', ['active', 'trialing']);
+
+    const activeSubscriptionIds = new Set(
+      (Array.isArray(activeSubscriptions) ? activeSubscriptions : [])
+        .map((row: { user_id?: string | null }) => String(row.user_id || '').trim())
+        .filter(Boolean)
+    );
+
+    const proIds = new Set<string>([...profileTierIds, ...Array.from(activeSubscriptionIds)]);
+
+    if (segmentType === 'platform_pro') {
+      allowedUserIds = proIds;
+    } else {
+      const freeIds = authRows
+        .map((row) => String(row.id))
+        .filter((id) => !proIds.has(id));
+      allowedUserIds = new Set(freeIds);
+    }
   }
 
   const deduped = new Map<string, { id: string; email: string; first_name?: string }>();
@@ -199,7 +263,7 @@ export async function POST(request: Request) {
 
     if (body.testEmail) {
       recipients = [{ id: null, email: body.testEmail, first_name: 'Test' }];
-    } else if (segmentType === 'platform_users' || segmentType === 'platform_pro' || segmentType === 'platform_free') {
+    } else if (segmentType === 'platform_users' || segmentType === 'platform_pro' || segmentType === 'platform_free' || segmentType === 'platform_subscribers') {
       if (!isAdminSender) {
         return NextResponse.json({ error: 'Only internal admins can send platform-wide broadcasts.' }, { status: 403 });
       }
@@ -207,6 +271,10 @@ export async function POST(request: Request) {
       recipients = await resolvePlatformRecipients(serviceSupabase as any, segmentType);
     } else {
       recipients = await resolveRecipients(serviceSupabase as any, user.id, broadcast.segment || { type: 'all' });
+    }
+
+    if (!body.testEmail && recipients.length === 0) {
+      return NextResponse.json({ error: 'No recipients found for the selected segment.' }, { status: 400 });
     }
 
     const isProUser = (creatorProfile?.subscription_tier || 'free') === 'pro' || isInternalAdminEmail(user.email);

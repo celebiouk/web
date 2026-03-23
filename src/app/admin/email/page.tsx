@@ -18,7 +18,7 @@ type Broadcast = {
   preview_text: string | null;
   body_html: string;
   status: 'draft' | 'scheduled' | 'sending' | 'sent';
-  segment: { type: 'all' | 'tag' | 'product' | 'course_students' | 'buyers' | 'platform_users' | 'platform_pro' | 'platform_free'; value?: string };
+  segment: { type: 'all' | 'tag' | 'product' | 'course_students' | 'buyers' | 'platform_users' | 'platform_pro' | 'platform_free' | 'platform_subscribers'; value?: string };
   recipient_count: number;
   sent_at: string | null;
   scheduled_at: string | null;
@@ -93,7 +93,7 @@ export default function AdminEmailPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
 
   const [composeData, setComposeData] = useState({
-    segmentType: 'all' as 'all' | 'tag' | 'product' | 'course_students' | 'buyers' | 'platform_users' | 'platform_pro' | 'platform_free',
+    segmentType: 'platform_users' as 'all' | 'tag' | 'product' | 'course_students' | 'buyers' | 'platform_users' | 'platform_pro' | 'platform_free' | 'platform_subscribers',
     segmentValue: '',
     subject: '',
     previewText: '',
@@ -136,6 +136,9 @@ export default function AdminEmailPage() {
       if (subscribersRes.ok) {
         const subscribersJson = await subscribersRes.json();
         setSubscribers((subscribersJson.subscribers || []) as Subscriber[]);
+      } else {
+        const subscribersJson = await subscribersRes.json().catch(() => ({}));
+        setActionMessage(subscribersJson.error || 'Failed to load platform users for email.');
       }
     } catch {
       setActionMessage('Failed to load email data.');
@@ -279,7 +282,7 @@ export default function AdminEmailPage() {
         <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-500 text-white"><Users className="h-6 w-6" /></div>
           <div>
-            <p className="text-sm text-gray-500">Active Subscribers</p>
+            <p className="text-sm text-gray-500">Platform Users</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">{subscribers.length}</p>
           </div>
         </div>
@@ -406,10 +409,11 @@ export default function AdminEmailPage() {
                   onChange={(e) => setComposeData({ ...composeData, segmentType: e.target.value as typeof composeData.segmentType })}
                   className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                  <option value="all">All subscribers</option>
-                  <option value="platform_users">All platform users (admin)</option>
-                  <option value="platform_pro">Platform Pro users (admin)</option>
-                  <option value="platform_free">Platform Free users (admin)</option>
+                  <option value="platform_users">All registered users (free + paid)</option>
+                  <option value="platform_pro">Paid users only (Pro)</option>
+                  <option value="platform_free">Free users only</option>
+                  <option value="platform_subscribers">Subscribers only</option>
+                  <option value="all">All creator subscribers</option>
                   <option value="tag">By tag</option>
                   <option value="buyers">Buyers of product</option>
                   <option value="course_students">Course students</option>
@@ -422,7 +426,7 @@ export default function AdminEmailPage() {
                   value={composeData.segmentValue}
                   onChange={(e) => setComposeData({ ...composeData, segmentValue: e.target.value })}
                   placeholder="Tag or product/course ID"
-                  disabled={composeData.segmentType === 'all' || composeData.segmentType === 'platform_users' || composeData.segmentType === 'platform_pro' || composeData.segmentType === 'platform_free'}
+                  disabled={composeData.segmentType === 'all' || composeData.segmentType === 'platform_users' || composeData.segmentType === 'platform_pro' || composeData.segmentType === 'platform_free' || composeData.segmentType === 'platform_subscribers'}
                   className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 />
               </div>

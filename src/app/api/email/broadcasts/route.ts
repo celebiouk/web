@@ -7,7 +7,7 @@ const createBroadcastSchema = z.object({
   preview_text: z.string().max(300).optional(),
   body_html: z.string().min(1),
   segment: z.object({
-    type: z.enum(['all', 'tag', 'product', 'course_students', 'buyers', 'platform_users', 'platform_pro', 'platform_free']),
+    type: z.enum(['all', 'tag', 'product', 'course_students', 'buyers', 'platform_users', 'platform_pro', 'platform_free', 'platform_subscribers']),
     value: z.string().optional(),
   }),
   status: z.enum(['draft', 'scheduled']).default('draft'),

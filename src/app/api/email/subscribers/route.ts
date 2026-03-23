@@ -37,17 +37,31 @@ export async function GET(request: Request) {
       }
 
       const serviceSupabase = await createServiceClient();
-      let authUsersQuery = ((serviceSupabase as any).schema('auth').from('users') as any)
-        .select('id,email')
-        .not('email', 'is', null);
+      const authUsers: { id: string; email: string }[] = [];
+      let page = 1;
 
-      if (search) {
-        authUsersQuery = authUsersQuery.ilike('email', `%${search}%`);
-      }
+      while (true) {
+        const { data, error } = await (serviceSupabase as any).auth.admin.listUsers({
+          page,
+          perPage: 1000,
+        });
 
-      const { data: authUsers, error: authUsersError } = await authUsersQuery;
-      if (authUsersError) {
-        return NextResponse.json({ error: 'Failed to load platform users' }, { status: 500 });
+        if (error) {
+          return NextResponse.json({ error: 'Failed to load platform users' }, { status: 500 });
+        }
+
+        const users = (data?.users || []) as { id: string; email?: string | null }[];
+        for (const authUser of users) {
+          const email = String(authUser.email || '').trim().toLowerCase();
+          if (!email) continue;
+          authUsers.push({ id: String(authUser.id), email });
+        }
+
+        if (users.length < 1000) {
+          break;
+        }
+
+        page += 1;
       }
 
       const deduped = new Map<string, { id: string; email: string }>();
@@ -57,7 +71,12 @@ export async function GET(request: Request) {
         deduped.set(email, { id: String((row as { id: string }).id), email });
       }
 
-      return NextResponse.json({ subscribers: Array.from(deduped.values()) });
+      const records = Array.from(deduped.values());
+      const filtered = search
+        ? records.filter((record) => record.email.includes(search.toLowerCase()))
+        : records;
+
+      return NextResponse.json({ subscribers: filtered });
     }
 
     let query = (supabase.from('email_subscribers') as any)
