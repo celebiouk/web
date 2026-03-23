@@ -126,7 +126,7 @@ export function buildBroadcastHtml(params: {
           <div class="heroInner">
             <div class="brandRow">
               <a href="https://cele.bio" class="brand">
-                <img src="${brandLogoUrl}" alt="bio" width="34" height="34" style="display:block;border-radius:9px;border:1px solid rgba(255,255,255,0.25);" />
+                <img src="${brandLogoUrl}" alt="cele.bio" width="34" height="34" style="display:block;border-radius:9px;border:1px solid rgba(255,255,255,0.25);" />
               </a>
               <span class="tag">Creator Update</span>
             </div>
@@ -142,9 +142,9 @@ export function buildBroadcastHtml(params: {
           </div>
           <div class="divider"></div>
           <div class="footer">
-            Sent with bio • Creator email tools for beautiful storefront businesses.<br />
+            Sent with cele.bio • Creator email tools for beautiful storefront businesses.<br />
             <div class="footerLinks">
-              <a href="https://cele.bio">Visit bio</a>
+              <a href="https://cele.bio">Visit cele.bio</a>
               <a href="https://cele.bio/pricing">Pricing</a>
               <a href="https://cele.bio/privacy">Privacy</a>
             </div>
@@ -230,7 +230,7 @@ export function buildCampaignEmailHtml(params: {
           <div class="heroInner">
             <div class="brandRow">
               <a href="https://cele.bio" class="brand">
-                <img src="${brandLogoUrl}" alt="bio" width="34" height="34" style="display:block;border-radius:9px;border:1px solid rgba(255,255,255,0.25);" />
+                <img src="${brandLogoUrl}" alt="cele.bio" width="34" height="34" style="display:block;border-radius:9px;border:1px solid rgba(255,255,255,0.25);" />
               </a>
               <span class="tag">Creator Update</span>
             </div>
@@ -246,9 +246,9 @@ export function buildCampaignEmailHtml(params: {
           </div>
           <div class="divider"></div>
           <div class="footer">
-            Sent with bio • Creator email tools for beautiful storefront businesses.<br />
+            Sent with cele.bio • Creator email tools for beautiful storefront businesses.<br />
             <div class="footerLinks">
-              <a href="https://cele.bio">Visit bio</a>
+              <a href="https://cele.bio">Visit cele.bio</a>
               <a href="https://cele.bio/pricing">Pricing</a>
               <a href="https://cele.bio/privacy">Privacy</a>
             </div>

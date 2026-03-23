@@ -3,7 +3,7 @@
  */
 
 // App metadata
-export const APP_NAME = 'bio';
+export const APP_NAME = 'Cele.bio';
 export const APP_DESCRIPTION = 'Turn your knowledge into beautiful digital products and monetize your audience in minutes.';
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
 

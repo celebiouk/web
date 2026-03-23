@@ -580,7 +580,7 @@ export function TrustBadges({
   );
 }
 
-// Powered by bio footer
+// Powered by cele.bio footer
 export function PoweredByFooter({
   show = true,
   theme = 'light',
@@ -609,12 +609,12 @@ export function PoweredByFooter({
           <span className="relative inline-flex items-center font-medium">
             <Image
               src={logoImage}
-              alt="bio logo"
+              alt="Cele.bio logo"
               width={16}
               height={16}
               className="absolute left-0 top-1/2 -z-10 -translate-y-1/2 rounded opacity-70"
             />
-            <span className="relative pl-0.5">bio</span>
+            <span className="relative pl-0.5">cele.bio</span>
           </span>{' '}
           — Build your own for free.
         </span>

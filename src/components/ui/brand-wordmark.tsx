@@ -10,14 +10,14 @@ type BrandWordmarkProps = {
 
 export function BrandWordmark({ className, dotClassName, iconClassName }: BrandWordmarkProps) {
   return (
-    <span className={cn('inline-flex items-center gap-1.5 leading-none', className)}>
+    <span className={cn('inline-flex items-center leading-none', className)}>
       <Image
         src={logoImage}
-        alt="bio logo"
-        className={cn('h-[1.25em] w-[1.25em] shrink-0 align-middle', iconClassName)}
+        alt="Cele.bio logo"
+        className={cn('h-[1.35em] w-auto shrink-0 align-middle', iconClassName)}
       />
-      <span className={cn('align-middle', dotClassName)}>
-        bio
+      <span className="align-middle -ml-0.5">
+        <span className={dotClassName}>.</span>bio
       </span>
     </span>
   );
