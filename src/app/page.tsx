@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import { useTheme } from '@/components/providers/theme-provider';
+import { TemplateRenderer } from '@/components/templates/TemplateRenderer';
+import type { CreatorPageData, TemplateSlug } from '@/types/creator-page';
 import { 
   ShoppingBag, 
   CalendarCheck, 
@@ -446,17 +448,75 @@ function ComparisonTable() {
 // TEMPLATE SHOWCASE
 // ============================================
 function TemplateShowcase() {
+  const previewData: CreatorPageData = {
+    profile: {
+      id: 'homepage-preview',
+      username: 'yourname',
+      full_name: 'Your Name',
+      bio: 'Creator, coach, and digital product maker helping you grow your business.',
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
+      banner_url: null,
+      social_links: [
+        { platform: 'instagram', url: '#' },
+        { platform: 'twitter', url: '#' },
+        { platform: 'youtube', url: '#' },
+      ],
+      subscription_tier: 'pro',
+      testimonials_enabled: true,
+    },
+    products: [
+      {
+        id: '1',
+        title: 'Ultimate Creator Guide',
+        description: 'Everything you need to start making money online',
+        price: 49,
+        type: 'digital',
+        cover_image_url: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=400&h=300&fit=crop',
+        is_published: true,
+      },
+      {
+        id: '2',
+        title: 'Video Editing Masterclass',
+        description: 'Learn professional video editing from scratch',
+        price: 99,
+        type: 'course',
+        cover_image_url: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=300&fit=crop',
+        is_published: true,
+      },
+    ],
+    coaching: {
+      id: 'coaching-1',
+      title: '1:1 Strategy Call',
+      description: 'Personal coaching session to accelerate your growth',
+      duration_minutes: 60,
+      price: 150,
+      is_published: true,
+    },
+    courses: [],
+    theme: {
+      primary_color: '#6366f1',
+      background_color: '#ffffff',
+      text_color: '#1f2937',
+      font_family: 'inter',
+      dark_mode: false,
+    },
+    social_proof: {
+      total_students: 1234,
+      product_count: 5,
+    },
+  };
+
   const templates = [
-    { name: 'Minimal Clean', slug: 'minimal-clean', category: 'Coaches', color: 'bg-gray-100' },
-    { name: 'Bold Creator', slug: 'bold-creator', category: 'Influencers', color: 'bg-brand-100' },
-    { name: 'Course Academy', slug: 'course-academy', category: 'Educators', color: 'bg-blue-100' },
-    { name: 'Dark Premium', slug: 'dark-premium', category: 'Artists', color: 'bg-gray-900' },
-    { name: 'Warm & Approachable', slug: 'warm-approachable', category: 'Wellness', color: 'bg-orange-100' },
-    { name: 'Corporate Pro', slug: 'corporate-pro', category: 'Business', color: 'bg-slate-100' },
-    { name: 'Vibrant Social', slug: 'vibrant-social', category: 'Gen-Z', color: 'bg-pink-100' },
-    { name: 'Editorial', slug: 'editorial', category: 'Writers', color: 'bg-amber-100' },
-    { name: 'Tech Vibe', slug: 'tech-vibe', category: 'Dev Educators', color: 'bg-cyan-100' },
-    { name: 'Luxury', slug: 'luxury', category: 'High-ticket', color: 'bg-yellow-100' },
+    { name: 'Minimal Clean', slug: 'minimal-clean' as TemplateSlug, category: 'Coaches' },
+    { name: 'Bold Creator', slug: 'bold-creator' as TemplateSlug, category: 'Influencers' },
+    { name: 'Course Academy', slug: 'course-academy' as TemplateSlug, category: 'Educators' },
+    { name: 'Dark Premium', slug: 'dark-premium' as TemplateSlug, category: 'Artists' },
+    { name: 'Warm & Approachable', slug: 'warm-approachable' as TemplateSlug, category: 'Wellness' },
+    { name: 'Corporate Pro', slug: 'corporate-pro' as TemplateSlug, category: 'Business' },
+    { name: 'Vibrant Social', slug: 'vibrant-social' as TemplateSlug, category: 'Gen-Z' },
+    { name: 'Editorial', slug: 'editorial' as TemplateSlug, category: 'Writers' },
+    { name: 'Tech Vibe', slug: 'tech-vibe' as TemplateSlug, category: 'Dev Educators' },
+    { name: 'Luxury', slug: 'luxury' as TemplateSlug, category: 'High-ticket' },
   ];
 
   return (
@@ -477,9 +537,14 @@ function TemplateShowcase() {
               key={i}
               className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:shadow-xl hover:shadow-brand-500/10 hover:-translate-y-1 dark:border-gray-800 dark:bg-gray-900"
             >
-              <div className={`aspect-[3/4] ${template.color} relative`}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Palette className="h-12 w-12 text-gray-400 dark:text-gray-600" />
+              <div className="aspect-[3/4] relative overflow-hidden bg-white dark:bg-zinc-950">
+                <div className="absolute inset-0 origin-top-left scale-[0.33]" style={{ width: '300%', height: '300%', transformOrigin: 'top left' }}>
+                  <TemplateRenderer
+                    templateSlug={template.slug}
+                    data={previewData}
+                    isPreview={true}
+                    showPoweredBy={false}
+                  />
                 </div>
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                   <Button size="sm" variant="outline" className="bg-white">
