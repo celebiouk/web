@@ -130,6 +130,7 @@ export function TemplateRenderer({
                   src={data.profile.avatar_url}
                   alt={`${data.profile.full_name} avatar`}
                   fill
+                  unoptimized
                   className="object-cover"
                   sizes="128px"
                 />

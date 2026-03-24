@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/client';
+import imageCompression from 'browser-image-compression';
 
 export type UploadProgress = {
   loaded: number;
@@ -15,6 +16,33 @@ export type UploadResult = {
   path: string;
   publicUrl?: string;
 };
+
+/**
+ * Compress an image file before upload
+ */
+async function compressImage(file: File): Promise<File> {
+  // Only compress images
+  if (!file.type.startsWith('image/')) {
+    return file;
+  }
+
+  try {
+    const options = {
+      maxSizeMB: 1, // Max 1MB after compression
+      maxWidthOrHeight: 2048, // Max dimension 2048px
+      useWebWorker: true,
+      fileType: 'image/jpeg', // Convert to JPEG for better compression
+    };
+
+    const compressedFile = await imageCompression(file, options);
+    console.log(`Compressed ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+    
+    return compressedFile;
+  } catch (error) {
+    console.warn('Image compression failed, using original:', error);
+    return file;
+  }
+}
 
 /**
  * Upload a file to Supabase Storage
@@ -29,22 +57,28 @@ export async function uploadFile(
 ): Promise<UploadResult> {
   const supabase = createClient();
   
+  // Compress images for avatars, banners, and product covers
+  let fileToUpload = file;
+  if (bucket === 'avatars' || bucket === 'banners' || bucket === 'product-covers') {
+    fileToUpload = await compressImage(file);
+  }
+  
   // Generate unique filename
   const timestamp = Date.now();
-  const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const sanitizedName = fileToUpload.name.replace(/[^a-zA-Z0-9.-]/g, '_');
   const fileName = `${timestamp}-${sanitizedName}`;
   const filePath = options?.folder 
     ? `${options.folder}/${fileName}` 
     : fileName;
 
   if (options?.onProgress) {
-    options.onProgress({ loaded: 0, total: file.size, percentage: 0 });
+    options.onProgress({ loaded: 0, total: fileToUpload.size, percentage: 0 });
   }
 
   // Simple upload without progress
   const { error } = await supabase.storage
     .from(bucket)
-    .upload(filePath, file, {
+    .upload(filePath, fileToUpload, {
       cacheControl: '3600',
       upsert: false,
     });
@@ -54,7 +88,7 @@ export async function uploadFile(
   }
 
   if (options?.onProgress) {
-    options.onProgress({ loaded: file.size, total: file.size, percentage: 100 });
+    options.onProgress({ loaded: fileToUpload.size, total: fileToUpload.size, percentage: 100 });
   }
 
   // Get public URL for public buckets
