@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ banks });
   } catch (error) {
     console.error('Paystack banks list error:', error);
-    return NextResponse.json({ error: 'Failed to load banks' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to load banks';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -222,9 +222,17 @@ export default function PaymentsSettingsPage() {
             code: String(bank.code || ''),
           })).filter((bank: PaystackBankOption) => bank.name && bank.code)
         );
+        setState((prev) => ({ ...prev, error: null }));
       } catch (error) {
         console.error('Failed to fetch Paystack banks:', error);
         setPaystackBanks([]);
+        setState((prev) => ({
+          ...prev,
+          error:
+            error instanceof Error
+              ? `Unable to load bank list: ${error.message}`
+              : 'Unable to load bank list. Please try again or enter bank code manually.',
+        }));
       } finally {
         setLoadingPaystackBanks(false);
       }

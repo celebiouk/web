@@ -89,6 +89,27 @@ const PAYSTACK_BANK_FILTERS: Record<string, { country?: string; currency?: strin
   CI: { country: "cote d'ivoire", currency: 'XOF' },
 };
 
+function normalizeBanks(banks: PaystackBank[]) {
+  return (banks || [])
+    .filter((bank) => Boolean(bank.code) && Boolean(bank.name) && bank.active !== false)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function filterFallbackBanksByCountry(banks: PaystackBank[], countryCode?: string | null) {
+  const normalizedCountryCode = String(countryCode || '').toUpperCase();
+  const filter = PAYSTACK_BANK_FILTERS[normalizedCountryCode];
+  if (!filter) return banks;
+
+  const targetCountry = String(filter.country || '').toLowerCase();
+  const targetCurrency = String(filter.currency || '').toUpperCase();
+
+  return banks.filter((bank) => {
+    const bankCountry = String(bank.country || '').toLowerCase();
+    const bankCurrency = String(bank.currency || '').toUpperCase();
+    return (targetCountry && bankCountry === targetCountry) || (targetCurrency && bankCurrency === targetCurrency);
+  });
+}
+
 function buildBanksPath(countryCode?: string | null) {
   const filter = PAYSTACK_BANK_FILTERS[String(countryCode || '').toUpperCase()] || {};
   const query = new URLSearchParams();
@@ -103,15 +124,16 @@ export async function listPaystackBanks(countryCode?: string | null): Promise<Pa
 
   try {
     const response = await paystackRequest<PaystackBanksResponse>(primaryPath);
-    return (response.data || [])
-      .filter((bank) => Boolean(bank.code) && Boolean(bank.name) && bank.active !== false)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const filteredBanks = normalizeBanks(response.data || []);
+    if (filteredBanks.length > 0) return filteredBanks;
   } catch {
-    const fallback = await paystackRequest<PaystackBanksResponse>('/bank');
-    return (fallback.data || [])
-      .filter((bank) => Boolean(bank.code) && Boolean(bank.name) && bank.active !== false)
-      .sort((a, b) => a.name.localeCompare(b.name));
+    // Fall through to broad fetch below
   }
+
+  const fallback = await paystackRequest<PaystackBanksResponse>('/bank');
+  const allBanks = normalizeBanks(fallback.data || []);
+  const countryMatchedBanks = filterFallbackBanksByCountry(allBanks, countryCode);
+  return countryMatchedBanks.length > 0 ? countryMatchedBanks : allBanks;
 }
 
 export async function createPaystackSubaccount(params: {
