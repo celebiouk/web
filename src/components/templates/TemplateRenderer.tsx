@@ -145,7 +145,10 @@ export function TemplateRenderer({
         style={contentBackgroundStyle}
       >
         {hasHeaderBanner && hasSocialLinks ? (
-          <div className={`flex justify-center px-4 ${showAvatarOnBanner && data.profile.avatar_url ? 'pb-5 pt-20' : 'pb-5 pt-4'}`}>
+          <div
+            className={`flex justify-center px-4 ${showAvatarOnBanner && data.profile.avatar_url ? 'pb-5 pt-20' : 'pb-5 pt-4'}`}
+            style={{ backgroundColor: data.theme?.primary_color || undefined }}
+          >
             <SocialLinks
               links={data.profile.social_links}
               variant="banner"
