@@ -92,7 +92,7 @@ export function ProfileSetupForm({ userId, initialProfile }: ProfileSetupFormPro
     setIsLoading(true);
 
     try {
-      let finalAvatarUrl = avatarUrl;
+      let finalAvatarUrl = avatarUrl && !avatarUrl.startsWith('blob:') ? avatarUrl : initialProfile.avatarUrl;
 
       // Upload avatar if a new file was selected
       if (avatarFile) {
@@ -125,7 +125,7 @@ export function ProfileSetupForm({ userId, initialProfile }: ProfileSetupFormPro
           full_name: fullName.trim(),
           username: username.toLowerCase().trim(),
           bio: bio.trim() || null,
-          avatar_url: finalAvatarUrl,
+          avatar_url: finalAvatarUrl && !finalAvatarUrl.startsWith('blob:') ? finalAvatarUrl : null,
           onboarding_completed: true,
         })
         .eq('id', userId);

@@ -29,7 +29,10 @@ export default async function CreatorOGImage({
 
   const name = profile?.full_name || username;
   const bio = profile?.bio || `Check out ${name}'s page on Cele.bio`;
-  const avatarUrl = profile?.avatar_url;
+  const avatarUrl =
+    typeof profile?.avatar_url === 'string' && profile.avatar_url.startsWith('blob:')
+      ? null
+      : profile?.avatar_url;
 
   // Truncate bio to ~120 chars for readability
   const truncatedBio = bio.length > 120 ? bio.slice(0, 117) + '...' : bio;

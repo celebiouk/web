@@ -83,6 +83,11 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
     notFound();
   }
 
+  const safeAvatarUrl =
+    typeof profile.avatar_url === 'string' && profile.avatar_url.startsWith('blob:')
+      ? null
+      : profile.avatar_url;
+
   // Fetch creator's published products
   const { data: products } = await supabase
     .from('products')
@@ -189,7 +194,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       full_name: profile.full_name || '',
       username: profile.username || '',
       bio: profile.bio,
-      avatar_url: profile.avatar_url,
+      avatar_url: safeAvatarUrl,
       banner_url: (profile as any).banner_url || null,
       show_avatar_on_banner: (profile as any).show_avatar_on_banner ?? true,
       page_background_type: (profile as any).page_background_type || 'none',
