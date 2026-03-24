@@ -140,7 +140,7 @@ export function TemplateRenderer({
       ) : null}
 
       <div
-        className={`page-content-shell ${contentBackgroundStyle ? 'has-custom-background' : ''} ${hasHeaderBanner ? 'mx-auto w-full max-w-[1120px] md:px-4' : ''}`}
+        className={`page-content-shell w-full ${contentBackgroundStyle ? 'has-custom-background' : ''}`}
         style={contentBackgroundStyle}
       >
         {hasHeaderBanner && hasSocialLinks ? (
@@ -161,6 +161,13 @@ export function TemplateRenderer({
         />
       </div>
       <style jsx>{`
+        .page-content-shell.has-custom-background {
+          min-height: 100vh;
+          background-size: cover !important;
+          background-position: center !important;
+          background-repeat: no-repeat !important;
+        }
+
         .page-content-shell.has-custom-background > :global(div:first-child) {
           background: transparent !important;
           background-color: transparent !important;
