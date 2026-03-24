@@ -317,11 +317,11 @@ export default function DashboardPreviewPage() {
           {viewMode === 'mobile' ? (
             <div className="mx-auto w-fit">
               {/* Phone mockup container */}
-              <div className="relative mx-auto h-[680px] w-[340px] rounded-[2.5rem] border-[14px] border-gray-800 bg-gray-800 p-1 shadow-xl dark:border-gray-700">
+              <div className="relative mx-auto h-[876px] w-[422px] rounded-[2.5rem] border-[14px] border-gray-800 bg-gray-800 p-1 shadow-xl dark:border-gray-700">
                 {/* Notch */}
                 <div className="absolute left-1/2 top-0 z-10 h-7 w-32 -translate-x-1/2 rounded-b-2xl bg-gray-800 dark:bg-gray-700" />
                 {/* Screen */}
-                <div className="h-full w-full overflow-auto rounded-[1.5rem] bg-white">
+                <div className="h-[844px] w-[390px] overflow-auto rounded-[1.5rem] bg-white">
                   <Suspense fallback={<MobilePreviewSkeleton />}>
                     <TemplateRenderer
                       templateSlug={selectedTemplate}
