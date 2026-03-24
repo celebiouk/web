@@ -95,6 +95,7 @@ export type CreatorPageData = {
   email_form?: {
     title: string;
     description: string;
+    enabled?: boolean;
   };
   social_proof?: {
     total_students: number;

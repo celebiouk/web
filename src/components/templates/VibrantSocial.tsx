@@ -35,6 +35,14 @@ export function VibrantSocial({
   const heroProofItems = getSalesProofItems(data);
   const themeStyles = getThemeStyles(theme);
 
+  const displayName = (profile.full_name || 'Your Name')
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+  const displayUsername = profile.username ? `@${profile.username}` : '@yourusername';
+
   // Vibrant Gen-Z palette
   const vibrantPrimary = theme.primary_color || '#8B5CF6';
   const vibrantSecondary = '#EC4899';
@@ -102,8 +110,11 @@ export function VibrantSocial({
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              @{profile.full_name?.toLowerCase().replace(/\s/g, '') || 'yourname'}
+              {displayName}
             </h1>
+            <p className="mb-2 text-center text-base font-semibold" style={{ color: vibrantPrimary }}>
+              {displayUsername}
+            </p>
 
             {/* Bio */}
             <p className="mb-5 text-center text-sm text-slate-600">

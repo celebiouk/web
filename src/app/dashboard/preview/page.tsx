@@ -321,16 +321,18 @@ export default function DashboardPreviewPage() {
                 {/* Notch */}
                 <div className="absolute left-1/2 top-0 z-10 h-7 w-32 -translate-x-1/2 rounded-b-2xl bg-gray-800 dark:bg-gray-700" />
                 {/* Screen */}
-                <div className="h-[844px] w-[390px] overflow-auto rounded-[1.5rem] bg-white">
+                <div className="h-[844px] w-[390px] overflow-hidden rounded-[1.5rem] bg-white">
+                  <div className="h-full overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   <Suspense fallback={<MobilePreviewSkeleton />}>
                     <TemplateRenderer
                       templateSlug={selectedTemplate}
                       data={pageData}
-                      isPreview={true}
+                      isPreview={false}
                       onSectionClick={handleSectionClick}
                       showPoweredBy={pageData.profile.subscription_tier !== 'pro'}
                     />
                   </Suspense>
+                  </div>
                 </div>
               </div>
             </div>
@@ -341,7 +343,7 @@ export default function DashboardPreviewPage() {
                 <TemplateRenderer
                   templateSlug={selectedTemplate}
                   data={pageData}
-                  isPreview={true}
+                  isPreview={false}
                   onSectionClick={handleSectionClick}
                   showPoweredBy={pageData.profile.subscription_tier !== 'pro'}
                 />

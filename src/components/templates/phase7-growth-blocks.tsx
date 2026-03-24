@@ -38,21 +38,10 @@ export function Phase7GrowthBlocks({ data }: { data: CreatorPageData }) {
   }
 
   const bundles = data.bundles || [];
-  const students = data.social_proof?.total_students || 0;
-  const productCount = data.social_proof?.product_count || data.products.length;
+  const showFreeGuide = data.email_form?.enabled ?? false;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8">
-      <Card>
-        <CardContent className="flex flex-wrap items-center justify-center gap-6 p-4 text-sm">
-          <span className="font-semibold text-gray-900 dark:text-white">{students.toLocaleString()} students</span>
-          <span className="text-gray-400">•</span>
-          <span className="font-semibold text-gray-900 dark:text-white">{productCount} products</span>
-          <span className="text-gray-400">•</span>
-          <span className="font-semibold text-gray-900 dark:text-white">New offers every month</span>
-        </CardContent>
-      </Card>
-
       {bundles.length > 0 && (
         <section>
           <h2 className="mb-3 text-xl font-bold text-gray-900 dark:text-white">Bundles</h2>
@@ -96,33 +85,35 @@ export function Phase7GrowthBlocks({ data }: { data: CreatorPageData }) {
         </section>
       )}
 
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{data.email_form?.title || 'Get my free guide'}</h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{data.email_form?.description || 'Join my list for updates, tips, and offers.'}</p>
+      {showFreeGuide ? (
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{data.email_form?.title || 'Get my free guide'}</h2>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{data.email_form?.description || 'Join my list for updates, tips, and offers.'}</p>
 
-          <form className="mt-4 grid gap-3 sm:grid-cols-3" onSubmit={submitEmail}>
-            <input
-              className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none ring-brand-300 focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
-              placeholder="First name"
-              value={firstName}
-              onChange={(event) => setFirstName(event.target.value)}
-            />
-            <input
-              type="email"
-              className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none ring-brand-300 focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
-              placeholder="Email address"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-            <Button type="submit" disabled={status === 'loading'}>{status === 'loading' ? 'Joining...' : 'Join free'}</Button>
-          </form>
+            <form className="mt-4 grid gap-3 sm:grid-cols-3" onSubmit={submitEmail}>
+              <input
+                className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none ring-brand-300 focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
+                placeholder="First name"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+              />
+              <input
+                type="email"
+                className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none ring-brand-300 focus:ring-2 dark:border-gray-700 dark:bg-gray-900"
+                placeholder="Email address"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+              <Button type="submit" disabled={status === 'loading'}>{status === 'loading' ? 'Joining...' : 'Join free'}</Button>
+            </form>
 
-          {status === 'success' ? <p className="mt-3 text-sm text-emerald-600">You’re in. Check your inbox.</p> : null}
-          {status === 'error' ? <p className="mt-3 text-sm text-red-500">Could not subscribe right now. Try again.</p> : null}
-        </CardContent>
-      </Card>
+            {status === 'success' ? <p className="mt-3 text-sm text-emerald-600">You’re in. Check your inbox.</p> : null}
+            {status === 'error' ? <p className="mt-3 text-sm text-red-500">Could not subscribe right now. Try again.</p> : null}
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

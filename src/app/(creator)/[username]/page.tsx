@@ -173,6 +173,11 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
   }));
 
   const totalStudents = courses.reduce((sum, course) => sum + (course.student_count || 0), 0);
+  const leadMagnetProductId = (profile as any).lead_magnet_product_id as string | null | undefined;
+  const leadMagnetProduct = leadMagnetProductId
+    ? allProducts.find((product) => product.id === leadMagnetProductId)
+    : null;
+  const hasFreeGuide = Boolean(leadMagnetProduct && Number(leadMagnetProduct.price) === 0);
 
   const { data: testimonialsRaw } = await (supabase.from('testimonials') as any)
     .select('buyer_name,buyer_avatar_url,content')
@@ -239,6 +244,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
     email_form: {
       title: profile.email_form_title || 'Get my free guide',
       description: profile.email_form_description || 'Join my list for updates, tips, and offers.',
+      enabled: hasFreeGuide,
     },
     social_proof: {
       total_students: totalStudents,

@@ -830,15 +830,17 @@ export default function PageEditorPage() {
               <div className="mx-auto w-fit">
                 <div className="relative mx-auto h-[876px] w-[422px] rounded-[2.5rem] border-[14px] border-gray-800 bg-gray-800 p-1 shadow-xl dark:border-gray-700">
                   <div className="absolute left-1/2 top-0 z-10 h-7 w-32 -translate-x-1/2 rounded-b-2xl bg-gray-800 dark:bg-gray-700" />
-                  <div className="h-[844px] w-[390px] overflow-auto rounded-[1.5rem] bg-white">
+                  <div className="h-[844px] w-[390px] overflow-hidden rounded-[1.5rem] bg-white">
+                    <div className="h-full overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <Suspense fallback={<PreviewSkeleton />}>
                       <TemplateRenderer
                         templateSlug={selectedTemplate}
                         data={livePageData}
-                        isPreview={true}
+                        isPreview={false}
                         showPoweredBy={livePageData.profile.subscription_tier !== 'pro'}
                       />
                     </Suspense>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -849,7 +851,7 @@ export default function PageEditorPage() {
                   <TemplateRenderer
                     templateSlug={selectedTemplate}
                     data={livePageData}
-                    isPreview={true}
+                    isPreview={false}
                     showPoweredBy={livePageData.profile.subscription_tier !== 'pro'}
                   />
                 </Suspense>

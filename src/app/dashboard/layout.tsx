@@ -75,7 +75,7 @@ export default async function DashboardLayout({
  * Mobile bottom navigation bar
  */
 import Link from 'next/link';
-import { Home, LayoutGrid, Package, Settings } from 'lucide-react';
+import { Home, LayoutGrid, Package, Receipt, Settings } from 'lucide-react';
 
 function MobileNav({ username }: { username: string }) {
   return (
@@ -100,6 +100,13 @@ function MobileNav({ username }: { username: string }) {
       >
         <Package className="h-5 w-5" strokeWidth={1.75} />
         <span className="text-[10px] font-medium">Products</span>
+      </Link>
+      <Link
+        href="/dashboard/sales"
+        className="flex flex-col items-center gap-1 px-4 py-2 text-zinc-400 transition-colors hover:text-zinc-200"
+      >
+        <Receipt className="h-5 w-5" strokeWidth={1.75} />
+        <span className="text-[10px] font-medium">Sales</span>
       </Link>
       <Link
         href="/dashboard/settings"
