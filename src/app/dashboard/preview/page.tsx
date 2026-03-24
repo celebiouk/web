@@ -321,16 +321,24 @@ export default function DashboardPreviewPage() {
                 {/* Notch */}
                 <div className="absolute left-1/2 top-0 z-10 h-7 w-32 -translate-x-1/2 rounded-b-2xl bg-gray-800 dark:bg-gray-700" />
                 {/* Screen */}
-                <div className="h-[844px] w-[390px] overflow-auto rounded-[1.5rem] bg-white">
-                  <Suspense fallback={<MobilePreviewSkeleton />}>
-                    <TemplateRenderer
-                      templateSlug={selectedTemplate}
-                      data={pageData}
-                      isPreview={true}
-                      onSectionClick={handleSectionClick}
-                      showPoweredBy={pageData.profile.subscription_tier !== 'pro'}
+                <div className="h-[844px] w-[390px] overflow-hidden rounded-[1.5rem] bg-white">
+                  {pageData.profile.username ? (
+                    <iframe
+                      title="Published mobile preview"
+                      src={`/${pageData.profile.username}`}
+                      className="h-full w-full border-0"
                     />
-                  </Suspense>
+                  ) : (
+                    <Suspense fallback={<MobilePreviewSkeleton />}>
+                      <TemplateRenderer
+                        templateSlug={selectedTemplate}
+                        data={pageData}
+                        isPreview={true}
+                        onSectionClick={handleSectionClick}
+                        showPoweredBy={pageData.profile.subscription_tier !== 'pro'}
+                      />
+                    </Suspense>
+                  )}
                 </div>
               </div>
             </div>
