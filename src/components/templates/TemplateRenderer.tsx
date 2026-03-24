@@ -146,8 +146,11 @@ export function TemplateRenderer({
       >
         {hasHeaderBanner && hasSocialLinks ? (
           <div
-            className={`flex justify-center px-4 ${showAvatarOnBanner && data.profile.avatar_url ? 'pb-5 pt-20' : 'pb-5 pt-4'}`}
-            style={{ backgroundColor: data.theme?.primary_color || undefined }}
+            className={`w-full flex justify-center px-4 ${showAvatarOnBanner && data.profile.avatar_url ? 'pb-5 pt-20' : 'pb-5 pt-4'}`}
+            style={{
+              backgroundColor: data.theme?.primary_color || '#6366f1',
+              backgroundImage: 'none',
+            }}
           >
             <SocialLinks
               links={data.profile.social_links}
