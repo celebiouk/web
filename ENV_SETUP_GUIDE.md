@@ -6,6 +6,66 @@ This file lists all the environment variables you need to add to Vercel. Copy ea
 
 ## 🚨 CRITICAL - Add These First (App won't work without them)
 
+### Supabase Project URL
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+```
+**What it does:** Connects your frontend and backend API routes to your Supabase project. Without this, auth, data reads/writes, and storage uploads all fail.
+
+**How to get it:** Supabase Dashboard → Project Settings → API → Project URL
+
+---
+
+### Supabase Anon Key
+```
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxxxxxxxxxxxxxxx
+```
+**What it does:** Public key used by the browser for login/signup and normal app queries (still protected by RLS). Without it, users can’t authenticate or load dashboard data.
+
+**How to get it:** Supabase Dashboard → Project Settings → API → anon public key
+
+---
+
+### Supabase Service Role Key
+```
+SUPABASE_SERVICE_ROLE_KEY=eyJxxxxxxxxxxxxxxxx
+```
+**What it does:** Server-only admin key used by secure API routes (webhooks, emails, background jobs). Without it, Stripe webhooks, cron tasks, and system automations fail.
+
+**How to get it:** Supabase Dashboard → Project Settings → API → service_role key
+
+---
+
+### Stripe Secret Key
+```
+STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxxx
+```
+**What it does:** Powers all secure Stripe server operations (create payment intents, subscriptions, portal sessions, connect account actions). Without it, checkout and billing break.
+
+**How to get it:** Stripe Dashboard → Developers → API Keys → Secret key
+
+---
+
+### Stripe Webhook Secret
+```
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxx
+```
+**What it does:** Verifies webhook signatures from Stripe. Without this, successful payments won’t be marked completed reliably and automations (delivery, subscription updates) can fail.
+
+**How to get it:** Stripe Dashboard → Developers → Webhooks → your endpoint → Signing secret
+
+---
+
+### Resend API Key
+```
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
+```
+**What it does:** Sends transactional and marketing emails (receipts, booking emails, onboarding, broadcasts). Without it, email features silently fail.
+
+**How to get it:** Resend Dashboard → API Keys → Create API key
+
+---
+
 ### Stripe Publishable Key
 ```
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_51SlHYlAnKvlQ6AItBFoO5Nhr0Bpn9L5EBtZrJfN74lG4GnT26aleI7QFIxfXo2JXFHgASH07V3dmudbpZBvJRH2c00jkCnIcOZ
@@ -187,10 +247,16 @@ CREATORLAB_REDIRECT_URIS=https://staging.creatorlab.com/callback,https://app.cre
 Copy this checklist and check off as you add each variable to Vercel:
 
 **Critical (Must Have):**
+- [ ] `NEXT_PUBLIC_SUPABASE_URL`
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- [ ] `SUPABASE_SERVICE_ROLE_KEY`
+- [ ] `STRIPE_SECRET_KEY`
 - [ ] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- [ ] `STRIPE_WEBHOOK_SECRET`
 - [ ] `STRIPE_CONNECT_CLIENT_ID`
 - [ ] `STRIPE_PRO_MONTHLY_PRICE_ID`
 - [ ] `STRIPE_PRO_YEARLY_PRICE_ID`
+- [ ] `RESEND_API_KEY`
 - [ ] `CRON_SECRET`
 - [ ] `NEXT_PUBLIC_APP_URL`
 
