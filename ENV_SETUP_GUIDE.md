@@ -175,6 +175,33 @@ RESEND_FROM_EMAIL=Cele.bio <noreply@cele.bio>
 
 ## 💡 OPTIONAL - Add Only If You Need These Features
 
+### TikTok Login Kit (Sandbox / App Review Testing)
+```
+TIKTOK_CLIENT_ID=your_tiktok_client_key
+TIKTOK_CLIENT_SECRET=your_tiktok_client_secret
+```
+**What it does:** Enables “Continue with TikTok” OAuth login using app-managed OAuth routes (`/api/auth/tiktok/start` and `/api/auth/callback/tiktok`).
+
+**How to get it (Sandbox/Test app):**
+1. Go to TikTok Developer Portal
+2. Open your Login Kit app (sandbox/testing app)
+3. Copy **Client Key** → `TIKTOK_CLIENT_ID`
+4. Copy **Client Secret** → `TIKTOK_CLIENT_SECRET`
+
+**Redirect URI must match exactly:**
+- Local app callback: `http://localhost:3000/api/auth/callback/tiktok`
+- Production app callback: `https://www.cele.bio/api/auth/callback/tiktok`
+
+**Scope to request (only):**
+- `user.info.basic`
+
+**TikTok OAuth endpoints used by app:**
+- Authorization URL: `https://www.tiktok.com/v2/auth/authorize/`
+- Token URL: `https://open.tiktokapis.com/v2/oauth/token/`
+- Userinfo URL: `https://open.tiktokapis.com/v2/user/info/`
+
+---
+
 ### Paystack (For African Countries: Nigeria, Ghana, Kenya, South Africa, Ivory Coast)
 ```
 PAYSTACK_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxxx
@@ -266,6 +293,8 @@ Copy this checklist and check off as you add each variable to Vercel:
 - [ ] `RESEND_FROM_EMAIL`
 
 **Optional (Only if needed):**
+- [ ] `TIKTOK_CLIENT_ID`
+- [ ] `TIKTOK_CLIENT_SECRET`
 - [ ] `PAYSTACK_SECRET_KEY`
 - [ ] `PAYPAL_CLIENT_ID`
 - [ ] `PAYPAL_CLIENT_SECRET`
@@ -307,6 +336,14 @@ npm run billing:setup
 
 ### Check what env vars are currently set in Vercel
 Go to: https://vercel.com/[your-username]/cele-bio/settings/environment-variables
+
+### Local TikTok sandbox test boot
+```bash
+npm install
+npm run dev
+```
+
+Then open `http://localhost:3000/login` and click **Continue with TikTok**.
 
 ---
 

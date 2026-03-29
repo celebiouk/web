@@ -15,11 +15,29 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const oauthError = searchParams.get('error');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const oauthErrorMessage = (() => {
+    if (!oauthError) return null;
+
+    switch (oauthError) {
+      case 'tiktok_not_configured':
+        return 'TikTok Login Kit is not configured yet. Add TIKTOK_CLIENT_ID and TIKTOK_CLIENT_SECRET, then try again.';
+      case 'tiktok_auth_failed':
+        return 'TikTok login failed. Please try again.';
+      case 'verification_failed':
+        return 'Email verification failed. Please request a new verification link.';
+      case 'auth_callback_error':
+        return 'Authentication failed. Please try again.';
+      default:
+        return 'Login failed. Please try again.';
+    }
+  })();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,9 +93,9 @@ function LoginForm() {
         <OAuthDivider />
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+          {(oauthErrorMessage || error) && (
             <div className="rounded-lg bg-error-50 p-4 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
-              {error}
+              {oauthErrorMessage || error}
             </div>
           )}
 

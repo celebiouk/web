@@ -22,16 +22,26 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
     setError(null);
 
     try {
+      if (provider === 'tiktok') {
+        const next = redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : '';
+        window.location.href = `/api/auth/tiktok/start${next}`;
+        return;
+      }
+
       const supabase = createClient();
+      const callbackPath = '/auth/callback';
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: provider as SupabaseProvider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
-          queryParams: provider === 'google' ? {
-            access_type: 'offline',
-            prompt: 'consent',
-          } : undefined,
+          redirectTo: `${window.location.origin}${callbackPath}${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
+          queryParams:
+            provider === 'google'
+              ? {
+                  access_type: 'offline',
+                  prompt: 'consent',
+                }
+              : undefined,
         },
       });
 
