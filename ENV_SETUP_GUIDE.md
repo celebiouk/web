@@ -175,22 +175,27 @@ RESEND_FROM_EMAIL=Cele.bio <noreply@cele.bio>
 
 ## 💡 OPTIONAL - Add Only If You Need These Features
 
-### TikTok Login Kit (Sandbox / App Review Testing)
+### TikTok Login Kit (Production)
 ```
 TIKTOK_CLIENT_ID=your_tiktok_client_key
 TIKTOK_CLIENT_SECRET=your_tiktok_client_secret
+TIKTOK_REDIRECT_URI=https://www.cele.bio/api/auth/callback/tiktok
+TIKTOK_OAUTH_SCOPE=user.info.basic
 ```
-**What it does:** Enables “Continue with TikTok” OAuth login using app-managed OAuth routes (`/api/auth/tiktok/start` and `/api/auth/callback/tiktok`).
+**What it does:** Enables “Continue with TikTok” OAuth login using app-managed OAuth routes (`/api/auth/tiktok/start` and `/api/auth/callback/tiktok`) with a canonical production callback URL.
 
-**How to get it (Sandbox/Test app):**
+**How to get it (Production app):**
 1. Go to TikTok Developer Portal
-2. Open your Login Kit app (sandbox/testing app)
+2. Open your Login Kit production app
 3. Copy **Client Key** → `TIKTOK_CLIENT_ID`
 4. Copy **Client Secret** → `TIKTOK_CLIENT_SECRET`
+5. Set `TIKTOK_REDIRECT_URI` to your approved production callback URL (recommended: `https://www.cele.bio/api/auth/callback/tiktok`)
+6. Keep `TIKTOK_OAUTH_SCOPE=user.info.basic` unless a new approved scope is required
 
 **Redirect URI must match exactly:**
 - Local app callback: `http://localhost:3000/api/auth/callback/tiktok`
 - Production app callback: `https://www.cele.bio/api/auth/callback/tiktok`
+- Optional non-www callback (if used): `https://cele.bio/api/auth/callback/tiktok`
 
 **Scope to request (only):**
 - `user.info.basic`

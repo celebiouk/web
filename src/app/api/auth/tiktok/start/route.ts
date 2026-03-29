@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getTikTokOAuthScope, getTikTokRedirectUri } from '@/lib/integrations/tiktok-oauth';
 
 function safeRedirectPath(nextParam: string | null): string {
   if (!nextParam || !nextParam.startsWith('/')) return '/dashboard';
@@ -10,7 +11,8 @@ export async function GET(request: Request) {
   const next = safeRedirectPath(searchParams.get('next'));
 
   const clientKey = process.env.TIKTOK_CLIENT_ID;
-  const redirectUri = `${origin}/api/auth/callback/tiktok`;
+  const redirectUri = getTikTokRedirectUri(request.url);
+  const scope = getTikTokOAuthScope();
 
   if (!clientKey) {
     return NextResponse.redirect(`${origin}/login?error=tiktok_not_configured`);
@@ -26,7 +28,7 @@ export async function GET(request: Request) {
   const url = new URL('https://www.tiktok.com/v2/auth/authorize/');
   url.searchParams.set('client_key', clientKey);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'user.info.basic');
+  url.searchParams.set('scope', scope);
   url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('state', state);
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { getTikTokRedirectUri } from '@/lib/integrations/tiktok-oauth';
 
 type TikTokUserInfoResponse = {
   data?: {
@@ -132,7 +133,7 @@ export async function GET(request: Request) {
   const state = searchParams.get('state');
   const next = safeRedirectPath(searchParams.get('next'));
 
-  const redirectUri = `${origin}/api/auth/callback/tiktok`;
+  const redirectUri = getTikTokRedirectUri(request.url);
   const clientKey = process.env.TIKTOK_CLIENT_ID;
   const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
 
