@@ -243,7 +243,7 @@ export async function GET(request: Request) {
     });
   }
 
-  const { data: existingProfile } = await (supabase.from('profiles') as any)
+  const { data: existingProfile } = await (admin.from('profiles') as any)
     .select('full_name,avatar_url,onboarding_completed,username')
     .eq('id', user.id)
     .maybeSingle();
@@ -259,8 +259,12 @@ export async function GET(request: Request) {
   }
 
   if (Object.keys(updates).length > 0) {
-    await (supabase.from('profiles') as any)
+    const { error: upsertProfileError } = await (admin.from('profiles') as any)
       .upsert({ id: user.id, ...updates }, { onConflict: 'id' });
+
+    if (upsertProfileError) {
+      console.error('TikTok profile upsert failed:', upsertProfileError);
+    }
   }
 
   const clearState = NextResponse.redirect(`${origin}${decodedNext}`);

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { ProfileSetupForm } from '@/components/onboarding/profile-setup-form';
 import type { Profile } from '@/types/supabase';
 
@@ -23,12 +23,24 @@ export default async function SetupProfilePage() {
     redirect('/login');
   }
 
-  const metadata = (user.user_metadata || {}) as Record<string, unknown>;
+  let latestMetadata = (user.user_metadata || {}) as Record<string, unknown>;
+  try {
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const service = await createServiceClient();
+      const { data: authUser } = await service.auth.admin.getUserById(user.id);
+      if (authUser?.user?.user_metadata) {
+        latestMetadata = authUser.user.user_metadata as Record<string, unknown>;
+      }
+    }
+  } catch {
+    latestMetadata = (user.user_metadata || {}) as Record<string, unknown>;
+  }
+
   const metadataAvatar = [
-    metadata.avatar_url,
-    metadata.picture,
-    metadata.avatar,
-    metadata.profile_image,
+    latestMetadata.avatar_url,
+    latestMetadata.picture,
+    latestMetadata.avatar,
+    latestMetadata.profile_image,
   ].find((value) => typeof value === 'string' && value.trim().length > 0) as string | undefined;
 
   // Get current profile
