@@ -85,6 +85,14 @@ Repeat the same recording using:
 
 ## Common Failures + Quick Fix
 
+- **Error: non_sandbox_target**
+   - Your app is in Sandbox, but the TikTok account used in consent is not an authorized Sandbox target user (or you are not testing inside the selected sandbox config).
+   - In TikTok Developer Portal, switch your app to **Sandbox** mode and open the sandbox you are actively testing.
+   - Go to **Sandbox settings** → **Target users** → **Add account**, then log in with the exact TikTok account you will use in the login test.
+   - Ensure **Login Kit** is enabled in that same sandbox, and redirect URIs are configured in that sandbox configuration.
+   - Wait up to 1 hour for target-user authorization to propagate, then retry in an incognito window.
+   - If you need login for non-target users, you must move to Production flow and complete TikTok review.
+
 - **Error: redirect mismatch**
    - Fix TikTok portal redirect URI to exact app callback URL (`/api/auth/callback/tiktok`).
 - **Error: TikTok not configured**
