@@ -57,18 +57,46 @@ async function fetchTikTokUserInfo(accessToken: string) {
       return null;
     }
 
+    const fromObject = (value: unknown) => {
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return value.trim();
+      }
+
+      if (Array.isArray(value)) {
+        const first = value.find((item) => typeof item === 'string' && item.trim().length > 0);
+        return typeof first === 'string' ? first.trim() : null;
+      }
+
+      if (value && typeof value === 'object') {
+        const map = value as Record<string, unknown>;
+        const nested = [map.url, map.href, map.src].find((item) => typeof item === 'string' && item.trim().length > 0);
+        return typeof nested === 'string' ? nested.trim() : null;
+      }
+
+      return null;
+    };
+
     const candidates = [
       user.avatar_url,
       user.avatar_url_200,
       user.avatar_url_100,
       user.avatar_large_url,
+      user.avatar_thumb,
+      user.avatar_medium,
+      user.avatar_large,
       user.profile_image,
       user.avatar,
       user.picture,
     ];
 
-    const firstString = candidates.find((value) => typeof value === 'string' && value.trim().length > 0);
-    return typeof firstString === 'string' ? firstString.trim() : null;
+    for (const candidate of candidates) {
+      const extracted = fromObject(candidate);
+      if (extracted) {
+        return extracted;
+      }
+    }
+
+    return null;
   };
 
   try {
@@ -157,6 +185,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=tiktok_auth_failed`);
   }
 
+  const providerProfile = await fetchTikTokUserInfo(accessToken);
+
   const syntheticEmail = `tiktok_${openId}@celebio.local`;
   const derivedPassword = `Tk!${crypto.createHash('sha256').update(`${openId}:${clientSecret}`).digest('hex').slice(0, 40)}`;
 
@@ -168,6 +198,10 @@ export async function GET(request: Request) {
     user_metadata: {
       provider: 'tiktok',
       tiktok_open_id: openId,
+      display_name: providerProfile.displayName,
+      full_name: providerProfile.displayName,
+      avatar_url: providerProfile.avatarUrl,
+      picture: providerProfile.avatarUrl,
     },
   });
 
@@ -193,10 +227,21 @@ export async function GET(request: Request) {
   }
 
   const metadataFallback = resolveProfileFields(user as { user_metadata?: Record<string, unknown> });
-  const providerProfile = await fetchTikTokUserInfo(accessToken);
 
   const finalDisplayName = providerProfile.displayName || metadataFallback.displayName;
   const finalAvatarUrl = providerProfile.avatarUrl || metadataFallback.avatarUrl;
+
+  if (finalDisplayName || finalAvatarUrl) {
+    await admin.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        ...(user.user_metadata || {}),
+        provider: 'tiktok',
+        tiktok_open_id: openId,
+        ...(finalDisplayName ? { display_name: finalDisplayName, full_name: finalDisplayName } : {}),
+        ...(finalAvatarUrl ? { avatar_url: finalAvatarUrl, picture: finalAvatarUrl } : {}),
+      },
+    });
+  }
 
   const { data: existingProfile } = await (supabase.from('profiles') as any)
     .select('full_name,avatar_url,onboarding_completed,username')
