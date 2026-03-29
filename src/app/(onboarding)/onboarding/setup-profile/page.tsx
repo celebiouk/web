@@ -23,6 +23,14 @@ export default async function SetupProfilePage() {
     redirect('/login');
   }
 
+  const metadata = (user.user_metadata || {}) as Record<string, unknown>;
+  const metadataAvatar = [
+    metadata.avatar_url,
+    metadata.picture,
+    metadata.avatar,
+    metadata.profile_image,
+  ].find((value) => typeof value === 'string' && value.trim().length > 0) as string | undefined;
+
   // Get current profile
   const { data } = await supabase
     .from('profiles')
@@ -59,7 +67,7 @@ export default async function SetupProfilePage() {
           fullName: profile?.full_name || '',
           username: profile?.username || '',
           bio: profile?.bio || '',
-          avatarUrl: profile?.avatar_url || null,
+          avatarUrl: profile?.avatar_url || metadataAvatar || null,
         }}
       />
     </div>

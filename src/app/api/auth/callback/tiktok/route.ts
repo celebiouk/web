@@ -7,7 +7,11 @@ type TikTokUserInfoResponse = {
     user?: {
       display_name?: string;
       avatar_url?: string;
+      avatar_url_100?: string;
+      avatar_url_200?: string;
+      avatar_large_url?: string;
       profile_image?: string;
+      [key: string]: unknown;
     };
   };
 };
@@ -48,23 +52,46 @@ function resolveProfileFields(user: {
 }
 
 async function fetchTikTokUserInfo(accessToken: string) {
+  const pickAvatar = (user?: Record<string, unknown>) => {
+    if (!user) {
+      return null;
+    }
+
+    const candidates = [
+      user.avatar_url,
+      user.avatar_url_200,
+      user.avatar_url_100,
+      user.avatar_large_url,
+      user.profile_image,
+      user.avatar,
+      user.picture,
+    ];
+
+    const firstString = candidates.find((value) => typeof value === 'string' && value.trim().length > 0);
+    return typeof firstString === 'string' ? firstString.trim() : null;
+  };
+
   try {
-    const response = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=display_name,avatar_url', {
+    const response = await fetch(
+      'https://open.tiktokapis.com/v2/user/info/?fields=display_name,avatar_url,avatar_url_100,avatar_url_200,avatar_large_url,profile_image',
+      {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
       cache: 'no-store',
-    });
+      }
+    );
 
     if (!response.ok) {
       return { displayName: null, avatarUrl: null };
     }
 
     const payload = (await response.json()) as TikTokUserInfoResponse;
+    const user = payload.data?.user as Record<string, unknown> | undefined;
     return {
       displayName: payload.data?.user?.display_name?.trim() || null,
-      avatarUrl: payload.data?.user?.avatar_url?.trim() || payload.data?.user?.profile_image?.trim() || null,
+      avatarUrl: pickAvatar(user),
     };
   } catch {
     return { displayName: null, avatarUrl: null };
