@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  Trash2,
 } from 'lucide-react';
 import { GrantProModal } from './GrantProModal';
 
@@ -41,6 +42,10 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [grantModalUser, setGrantModalUser] = useState<User | null>(null);
+  const [suspendConfirmUser, setSuspendConfirmUser] = useState<User | null>(null);
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null);
+  const [deleteUsernameInput, setDeleteUsernameInput] = useState('');
+  const [deleteCommandInput, setDeleteCommandInput] = useState('');
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleAction = async (userId: string, action: string, data?: Record<string, unknown>) => {
@@ -90,6 +95,11 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
     params.set('page', page.toString());
     router.push(`/admin/users?${params.toString()}`);
   };
+
+  const canConfirmDelete =
+    Boolean(deleteConfirmUser?.username) &&
+    deleteUsernameInput.trim() === deleteConfirmUser?.username &&
+    deleteCommandInput.trim() === 'Delete this account';
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
@@ -222,7 +232,15 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
                               View Details
                             </Link>
                             <button
-                              onClick={() => handleAction(user.id, user.is_suspended ? 'unsuspend' : 'suspend')}
+                              onClick={() => {
+                                if (user.is_suspended) {
+                                  void handleAction(user.id, 'unsuspend');
+                                  return;
+                                }
+
+                                setActionMenuOpen(null);
+                                setSuspendConfirmUser(user);
+                              }}
                               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                             >
                               {user.is_suspended ? (
@@ -252,6 +270,18 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
                                   Grant Pro Access
                                 </>
                               )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setActionMenuOpen(null);
+                                setDeleteConfirmUser(user);
+                                setDeleteUsernameInput('');
+                                setDeleteCommandInput('');
+                              }}
+                              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete Account
                             </button>
                           </div>
                         </>
@@ -312,6 +342,134 @@ export function UsersTable({ users, currentPage, totalPages }: UsersTableProps) 
           }
         }}
       />
+
+      {suspendConfirmUser && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => {
+              if (!loading) {
+                setSuspendConfirmUser(null);
+              }
+            }}
+          />
+          <div className="relative z-10 w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Suspend Account</h3>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              Are you sure you want to suspend this account?
+            </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {suspendConfirmUser.full_name || suspendConfirmUser.username || 'This user'} will not be able to use the account while suspended.
+            </p>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setSuspendConfirmUser(null)}
+                disabled={loading === suspendConfirmUser.id}
+                className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await handleAction(suspendConfirmUser.id, 'suspend');
+                  if (ok) {
+                    setSuspendConfirmUser(null);
+                  }
+                }}
+                disabled={loading === suspendConfirmUser.id}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Yes Suspend
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmUser && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => {
+              if (!loading) {
+                setDeleteConfirmUser(null);
+              }
+            }}
+          />
+
+          <div className="relative z-10 w-full max-w-lg rounded-xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-800 dark:bg-gray-900">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Delete Account</h3>
+            <p className="mt-3 text-base text-gray-700 dark:text-gray-300">
+              This will permanently delete the account and related resources. This action cannot be undone.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  To confirm, type the username <span className="font-semibold">&quot;{deleteConfirmUser.username || 'missing-username'}&quot;</span>
+                </label>
+                <input
+                  type="text"
+                  value={deleteUsernameInput}
+                  onChange={(event) => setDeleteUsernameInput(event.target.value)}
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  placeholder={deleteConfirmUser.username || 'username'}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  To confirm, type <span className="font-semibold">&quot;Delete this account&quot;</span>
+                </label>
+                <input
+                  type="text"
+                  value={deleteCommandInput}
+                  onChange={(event) => setDeleteCommandInput(event.target.value)}
+                  className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  placeholder="Delete this account"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/10 dark:text-red-400">
+              Deleting this account cannot be undone.
+            </div>
+
+            <div className="mt-6 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmUser(null)}
+                disabled={loading === deleteConfirmUser.id}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await handleAction(deleteConfirmUser.id, 'delete_account', {
+                    confirmUsername: deleteUsernameInput.trim(),
+                    confirmCommand: deleteCommandInput.trim(),
+                  });
+
+                  if (ok) {
+                    setDeleteConfirmUser(null);
+                    setDeleteUsernameInput('');
+                    setDeleteCommandInput('');
+                  }
+                }}
+                disabled={loading === deleteConfirmUser.id || !canConfirmDelete}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

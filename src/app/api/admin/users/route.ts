@@ -39,12 +39,25 @@ export async function POST(request: Request) {
 
     switch (action) {
       case 'suspend': {
-        const { data: updatedProfile, error } = await adminSupabase
+        const suspendedAt = new Date().toISOString();
+        let { data: updatedProfile, error } = await adminSupabase
           .from('profiles')
-          .update({ is_suspended: true, suspended_at: new Date().toISOString() })
+          .update({ is_suspended: true, suspended_at: suspendedAt })
           .eq('id', userId)
           .select('id')
           .maybeSingle();
+
+        if (error && String(error.message || '').toLowerCase().includes('suspended_at')) {
+          const retry = await adminSupabase
+            .from('profiles')
+            .update({ is_suspended: true })
+            .eq('id', userId)
+            .select('id')
+            .maybeSingle();
+          updatedProfile = retry.data;
+          error = retry.error;
+        }
+
         if (error) throw error;
         if (!updatedProfile) {
           return NextResponse.json({ error: 'Could not suspend user profile' }, { status: 400 });
@@ -53,12 +66,24 @@ export async function POST(request: Request) {
       }
 
       case 'unsuspend': {
-        const { data: updatedProfile, error } = await adminSupabase
+        let { data: updatedProfile, error } = await adminSupabase
           .from('profiles')
           .update({ is_suspended: false, suspended_at: null })
           .eq('id', userId)
           .select('id')
           .maybeSingle();
+
+        if (error && String(error.message || '').toLowerCase().includes('suspended_at')) {
+          const retry = await adminSupabase
+            .from('profiles')
+            .update({ is_suspended: false })
+            .eq('id', userId)
+            .select('id')
+            .maybeSingle();
+          updatedProfile = retry.data;
+          error = retry.error;
+        }
+
         if (error) throw error;
         if (!updatedProfile) {
           return NextResponse.json({ error: 'Could not unsuspend user profile' }, { status: 400 });
@@ -115,6 +140,48 @@ export async function POST(request: Request) {
         if (!updatedProfile) {
           return NextResponse.json({ error: 'Could not delete user profile' }, { status: 400 });
         }
+        break;
+      }
+
+      case 'delete_account': {
+        const confirmUsername = typeof data?.confirmUsername === 'string' ? data.confirmUsername.trim() : '';
+        const confirmCommand = typeof data?.confirmCommand === 'string' ? data.confirmCommand.trim() : '';
+
+        const { data: profile, error: profileError } = await adminSupabase
+          .from('profiles')
+          .select('id, username')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (profileError) {
+          throw profileError;
+        }
+
+        if (!profile) {
+          return NextResponse.json({ error: 'User profile not found' }, { status: 404 });
+        }
+
+        if (!profile.username || confirmUsername !== profile.username) {
+          return NextResponse.json({ error: 'Username confirmation does not match' }, { status: 400 });
+        }
+
+        if (confirmCommand !== 'Delete this account') {
+          return NextResponse.json({ error: 'Delete command confirmation does not match' }, { status: 400 });
+        }
+
+        const { error: deleteAuthError } = await adminSupabase.auth.admin.deleteUser(userId);
+
+        if (deleteAuthError) {
+          const { error: deleteProfileError } = await adminSupabase
+            .from('profiles')
+            .delete()
+            .eq('id', userId);
+
+          if (deleteProfileError) {
+            throw deleteAuthError;
+          }
+        }
+
         break;
       }
 

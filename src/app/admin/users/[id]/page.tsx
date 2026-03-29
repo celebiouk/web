@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { UserActionsPanel } from '@/components/admin/users/UserActionsPanel';
+import { isInternalAdminEmail } from '@/lib/admin';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -10,9 +11,16 @@ interface PageProps {
 export default async function AdminUserDetailsPage({ params }: PageProps) {
   const { id } = await params;
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: profile } = await (supabase.from('profiles') as any)
-    .select('id, full_name, username, avatar_url, subscription_tier, is_suspended, created_at')
+  if (!user || !isInternalAdminEmail(user.email)) {
+    notFound();
+  }
+
+  const adminSupabase = await createServiceClient();
+
+  const { data: profile } = await (adminSupabase.from('profiles') as any)
+    .select('*')
     .eq('id', id)
     .maybeSingle();
 
@@ -21,13 +29,13 @@ export default async function AdminUserDetailsPage({ params }: PageProps) {
   }
 
   const [{ count: productsCount }, { count: ordersCount }, { data: subscription }] = await Promise.all([
-    (supabase.from('products') as any)
+    (adminSupabase.from('products') as any)
       .select('*', { count: 'exact', head: true })
       .eq('creator_id', id),
-    (supabase.from('orders') as any)
+    (adminSupabase.from('orders') as any)
       .select('*', { count: 'exact', head: true })
       .eq('creator_id', id),
-    (supabase.from('subscriptions') as any)
+    (adminSupabase.from('subscriptions') as any)
       .select('status, plan, current_period_end')
       .eq('user_id', id)
       .order('created_at', { ascending: false })
