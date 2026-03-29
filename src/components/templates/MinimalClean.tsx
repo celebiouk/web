@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { TemplateProps } from './TemplateRenderer';
@@ -29,6 +30,7 @@ export function MinimalClean({
   showPoweredBy = true,
 }: TemplateProps) {
   const { profile, products, coaching, courses, theme } = data;
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const testimonials = getTestimonials(data.testimonials);
   const digitalProducts = products.filter((p) => p.type !== 'coaching' && p.is_published);
   const primaryOffer = digitalProducts[0] || null;
@@ -62,13 +64,24 @@ export function MinimalClean({
           {profile.avatar_url ? (
             <div className="mb-6 inline-block">
               <div className="relative">
-                <Image
-                  src={profile.avatar_url}
-                  alt={profile.full_name}
-                  width={140}
-                  height={140}
-                  className="rounded-full object-cover ring-4 ring-white shadow-2xl"
-                />
+                {avatarLoadFailed ? (
+                  <div
+                    className="flex h-[140px] w-[140px] items-center justify-center rounded-full bg-white text-4xl font-semibold text-gray-500 ring-4 ring-white shadow-2xl"
+                    aria-label="Avatar placeholder"
+                  >
+                    {(profile.full_name || 'U').charAt(0).toUpperCase()}
+                  </div>
+                ) : (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name}
+                    width={140}
+                    height={140}
+                    className="rounded-full object-cover ring-4 ring-white shadow-2xl"
+                    referrerPolicy="no-referrer"
+                    onError={() => setAvatarLoadFailed(true)}
+                  />
+                )}
                 {/* Status indicator */}
                 <div 
                   className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white shadow-lg flex items-center justify-center"
