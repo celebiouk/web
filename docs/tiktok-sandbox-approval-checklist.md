@@ -31,7 +31,7 @@ Use this if you want Supabase-managed TikTok OAuth instead of app-managed OAuth 
    - Leave **Discovery URL** empty
 
 7. Click **Create and enable provider**.
-8. Copy the **Callback URL** shown at the bottom of the form.
+8. Copy the **Callback URL** shown at the bottom of the form. https://xrmyqpmcgcwodeitfdoj.supabase.co/auth/v1/callback
 9. Go to TikTok Developer Portal (sandbox app) and add that callback URL as an allowed Redirect URI.
 10. Save in TikTok portal and return to Supabase.
 
@@ -56,9 +56,11 @@ Use this if you want Supabase-managed TikTok OAuth instead of app-managed OAuth 
    - `http://localhost:3000/api/auth/callback/tiktok`
 4. Confirm production redirect URI (if recording on prod) is also added:
    - `https://www.cele.bio/api/auth/callback/tiktok`
+   - `https://cele.bio/api/auth/callback/tiktok`
 5. Confirm Supabase Redirect URLs include:
    - `http://localhost:3000/api/auth/callback/tiktok`
    - `https://www.cele.bio/api/auth/callback/tiktok`
+   - `https://cele.bio/api/auth/callback/tiktok`
 6. Confirm app requests only scope:
    - `user.info.basic`
 
