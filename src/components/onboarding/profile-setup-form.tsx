@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button, Input, Textarea, Avatar } from '@/components/ui';
@@ -33,6 +32,7 @@ export function ProfileSetupForm({ userId, initialProfile }: ProfileSetupFormPro
   const [bio, setBio] = useState(initialProfile.bio);
   const [avatarUrl, setAvatarUrl] = useState(initialProfile.avatarUrl);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,6 +64,7 @@ export function ProfileSetupForm({ userId, initialProfile }: ProfileSetupFormPro
       // Create a preview URL
       const previewUrl = URL.createObjectURL(file);
       setAvatarUrl(previewUrl);
+      setAvatarLoadFailed(false);
       setError(null);
     }
   };
@@ -167,12 +168,13 @@ export function ProfileSetupForm({ userId, initialProfile }: ProfileSetupFormPro
           className="group relative"
         >
           <div className="relative h-24 w-24 overflow-hidden rounded-full ring-4 ring-gray-100 transition-all group-hover:ring-brand-100 dark:ring-gray-800 dark:group-hover:ring-brand-900">
-            {avatarUrl ? (
-              <Image
+            {avatarUrl && !avatarLoadFailed ? (
+              <img
                 src={avatarUrl}
                 alt="Avatar preview"
-                fill
-                className="object-cover"
+                className="h-full w-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={() => setAvatarLoadFailed(true)}
               />
             ) : (
               <Avatar name={fullName || 'User'} size="xl" />
