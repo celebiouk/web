@@ -9,6 +9,18 @@ import type { Database } from '@/types/supabase';
  */
 export async function middleware(request: NextRequest) {
   try {
+    const incomingUrl = request.nextUrl;
+    const oauthCode = incomingUrl.searchParams.get('code');
+    const otpTokenHash = incomingUrl.searchParams.get('token_hash');
+    const otpType = incomingUrl.searchParams.get('type');
+
+    // Recovery path: if OAuth/email callback params land on homepage, forward to auth callback route.
+    if (incomingUrl.pathname === '/' && (oauthCode || (otpTokenHash && otpType))) {
+      const callbackUrl = incomingUrl.clone();
+      callbackUrl.pathname = '/auth/callback';
+      return NextResponse.redirect(callbackUrl);
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const hasSupabaseEnv = Boolean(supabaseUrl && supabaseAnonKey);
