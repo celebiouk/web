@@ -30,6 +30,18 @@ This file lists all environment variables currently used by cele.bio for product
 
 - `RESEND_API_KEY`
 
+## Google OAuth (required for Google sign-in)
+
+- No runtime `GOOGLE_*` env vars are required by this app.
+- Configure Google provider credentials in Supabase Dashboard:
+	- Authentication → Providers → Google (client ID + client secret)
+- Add redirect allowlist entries in Supabase URL Configuration:
+	- `https://www.cele.bio/auth/callback`
+	- `https://cele.bio/auth/callback`
+	- `http://localhost:3000/auth/callback` (optional dev)
+- Ensure Google Cloud Authorized Redirect URI includes:
+	- `https://<YOUR_SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback`
+
 ## Cron routes (required)
 
 - `CRON_SECRET`
@@ -74,6 +86,9 @@ PAYPAL_REDIRECT_URI=https://cele.bio/api/paypal/connect/callback
 PAYPAL_MODE=live
 
 RESEND_API_KEY=
+
+# Recommended canonical domain for OAuth callback consistency
+# NEXT_PUBLIC_APP_URL=https://www.cele.bio
 
 CRON_SECRET=
 

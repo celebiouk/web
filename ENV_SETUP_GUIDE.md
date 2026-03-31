@@ -207,6 +207,35 @@ TIKTOK_OAUTH_SCOPE=user.info.basic
 
 ---
 
+### Google Sign-In (Supabase OAuth)
+```
+# No GOOGLE_* env vars required in Vercel for app runtime.
+# Configure Google OAuth credentials inside Supabase Auth Provider settings.
+```
+**What it does:** Enables "Continue with Google" via Supabase OAuth flow and redirects users back to the app callback route.
+
+**Where to configure (required):**
+1. Supabase Dashboard → Authentication → Providers → Google
+2. Enable provider and paste Google Client ID/Secret from Google Cloud
+3. Supabase Dashboard → Authentication → URL Configuration
+4. Add callback URLs:
+    - `https://www.cele.bio/auth/callback`
+    - `https://cele.bio/auth/callback`
+    - `http://localhost:3000/auth/callback` (optional dev)
+
+**Google Cloud OAuth client requirement:**
+- Add Supabase callback URI to Authorized redirect URIs:
+   - `https://<YOUR_SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback`
+
+**Recommended app env:**
+- `NEXT_PUBLIC_APP_URL=https://www.cele.bio`
+
+**Common errors:**
+- `provider is not enabled`: Google provider is disabled or missing client credentials in Supabase.
+- `redirect_uri_mismatch`: Callback URLs do not match exactly across Google Cloud and Supabase.
+
+---
+
 ### Paystack (For African Countries: Nigeria, Ghana, Kenya, South Africa, Ivory Coast)
 ```
 PAYSTACK_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxxx

@@ -10,6 +10,26 @@ interface OAuthButtonsProps {
   redirectTo?: string;
 }
 
+function normalizeBaseUrl(url: string): string {
+  return url.endsWith('/') ? url.slice(0, -1) : url;
+}
+
+function mapOAuthError(provider: Provider, message: string): string {
+  const normalized = message.toLowerCase();
+
+  if (provider === 'google') {
+    if (normalized.includes('provider is not enabled')) {
+      return 'Google sign-in is not configured yet. Enable Google in Supabase Auth > Providers and add your Google OAuth client ID/secret there.';
+    }
+
+    if (normalized.includes('redirect_uri_mismatch') || normalized.includes('redirect uri mismatch')) {
+      return 'Google redirect URL mismatch. Add your exact callback URL to Supabase Auth URL Configuration and Google Cloud OAuth settings.';
+    }
+  }
+
+  return message;
+}
+
 /**
  * OAuth social login buttons for Google and TikTok
  */
@@ -30,11 +50,19 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
 
       const supabase = createClient();
       const callbackPath = '/auth/callback';
+      const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+      const isLocalDev =
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1';
+      const callbackBaseUrl =
+        provider === 'google' && configuredAppUrl && !isLocalDev
+          ? normalizeBaseUrl(configuredAppUrl)
+          : window.location.origin;
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: provider as SupabaseProvider,
         options: {
-          redirectTo: `${window.location.origin}${callbackPath}${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
+          redirectTo: `${callbackBaseUrl}${callbackPath}${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`,
           queryParams:
             provider === 'google'
               ? {
@@ -46,7 +74,7 @@ export function OAuthButtons({ redirectTo }: OAuthButtonsProps) {
       });
 
       if (error) {
-        setError(error.message);
+        setError(mapOAuthError(provider, error.message));
         setLoadingProvider(null);
       }
     } catch {

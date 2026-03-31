@@ -16,6 +16,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
   const oauthError = searchParams.get('error');
+  const oauthErrorDescription = searchParams.get('error_description');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,17 +26,29 @@ function LoginForm() {
   const oauthErrorMessage = (() => {
     if (!oauthError) return null;
 
+    const decodedDescription = oauthErrorDescription
+      ? decodeURIComponent(oauthErrorDescription.replace(/\+/g, ' ')).toLowerCase()
+      : null;
+
     switch (oauthError) {
       case 'tiktok_not_configured':
         return 'TikTok Login Kit is not configured yet. Add TIKTOK_CLIENT_ID and TIKTOK_CLIENT_SECRET, then try again.';
       case 'tiktok_auth_failed':
         return 'TikTok login failed. Please try again.';
+      case 'server_error':
+        if (decodedDescription?.includes('provider is not enabled')) {
+          return 'Google sign-in is not configured yet. Enable Google in Supabase Auth > Providers and add your Google OAuth client ID/secret.';
+        }
+        if (decodedDescription?.includes('redirect_uri_mismatch') || decodedDescription?.includes('redirect uri mismatch')) {
+          return 'Google redirect URL mismatch. Re-check callback URLs in Supabase Auth URL Configuration and Google Cloud OAuth.';
+        }
+        return 'OAuth provider error. Please try again.';
       case 'verification_failed':
         return 'Email verification failed. Please request a new verification link.';
       case 'auth_callback_error':
         return 'Authentication failed. Please try again.';
       default:
-        return 'Login failed. Please try again.';
+        return oauthErrorDescription ? decodeURIComponent(oauthErrorDescription.replace(/\+/g, ' ')) : 'Login failed. Please try again.';
     }
   })();
 
