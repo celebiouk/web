@@ -1,6 +1,6 @@
 # Google OAuth — Production Go-Live Checklist
 
-Use this checklist to move Google sign-in from testing to stable production.
+Use this checklist to move Google sign-in from testing to stable production safely.
 
 ## 1) Google Cloud Console (Production OAuth Client)
 
