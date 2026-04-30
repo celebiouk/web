@@ -95,6 +95,9 @@ function Navbar() {
           <Link href="#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
             Pricing
           </Link>
+          <Link href="#templates" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+            Templates
+          </Link>
           <Link href="/affiliate-marketplace" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
             Affiliate Marketplace
           </Link>
@@ -175,7 +178,7 @@ function HeroSection() {
 
           {/* Trust Signals */}
           <p className="mt-8 text-sm text-gray-500 dark:text-gray-400">
-            Trusted by 1,000+ creators · No credit card required · Set up in 5 minutes
+            Join 1,000+ creators already selling · No credit card required · Set up in 5 minutes
           </p>
         </div>
       </div>
