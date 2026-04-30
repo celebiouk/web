@@ -129,7 +129,7 @@ export async function GET(request: Request) {
 
     // Step 6: Save to database
     const supabaseAdmin = getSupabaseAdmin();
-    await (supabaseAdmin.from('instagram_connections') as any).upsert({
+    await (supabaseAdmin as any).from('instagram_connections').upsert({
       creator_id: userId,
       ig_user_id: igUserId,
       ig_username: igUsername,

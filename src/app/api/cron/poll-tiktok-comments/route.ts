@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
   try {
     // Load all creators with a TikTok connection who have at least one active trigger
-    const { data: connections } = await (supabase.from('tiktok_automation_connections') as any)
+    const { data: connections } = await (supabase as any).from('tiktok_automation_connections')
       .select('creator_id, tiktok_open_id, access_token, refresh_token, token_expires_at, refresh_token_expires_at');
 
     if (!connections?.length) {
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
     for (const conn of connections as TikTokConnection[]) {
       // Skip if no active triggers
-      const { data: triggers } = await (supabase.from('tiktok_automation_triggers') as any)
+      const { data: triggers } = await (supabase as any).from('tiktok_automation_triggers')
         .select('*')
         .eq('creator_id', conn.creator_id)
         .eq('is_active', true);
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         const refreshed = await refreshTikTokToken(conn.refresh_token);
         if (refreshed) {
           accessToken = refreshed.access_token;
-          await (supabase.from('tiktok_automation_connections') as any)
+          await (supabase as any).from('tiktok_automation_connections')
             .update({
               access_token: refreshed.access_token,
               refresh_token: refreshed.refresh_token ?? conn.refresh_token,
@@ -69,7 +69,7 @@ export async function GET(request: Request) {
 
       for (const video of videos) {
         // Get the last cursor we processed for this video
-        const { data: cursorRow } = await (supabase.from('tiktok_video_cursors') as any)
+        const { data: cursorRow } = await (supabase as any).from('tiktok_video_cursors')
           .select('last_cursor')
           .eq('creator_id', conn.creator_id)
           .eq('video_id', video.id)
@@ -124,7 +124,7 @@ export async function GET(request: Request) {
 
           if (replySent) repliesSent++;
 
-          await (supabase.from('tiktok_automation_logs') as any).insert({
+          await (supabase as any).from('tiktok_automation_logs').insert({
             creator_id: conn.creator_id,
             trigger_id: matched.id,
             video_id: video.id,
@@ -139,7 +139,7 @@ export async function GET(request: Request) {
 
         // Advance cursor so we never re-process these comments
         if (nextCursor > lastCursor) {
-          await (supabase.from('tiktok_video_cursors') as any).upsert({
+          await (supabase as any).from('tiktok_video_cursors').upsert({
             creator_id: conn.creator_id,
             video_id: video.id,
             last_cursor: nextCursor,

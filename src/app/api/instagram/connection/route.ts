@@ -6,7 +6,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data } = await (supabase.from('instagram_connections') as any)
+  const { data } = await (supabase as any).from('instagram_connections')
     .select('ig_username, page_name, created_at')
     .eq('creator_id', user.id)
     .maybeSingle();
@@ -19,7 +19,7 @@ export async function DELETE() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  await (supabase.from('instagram_connections') as any)
+  await (supabase as any).from('instagram_connections')
     .delete()
     .eq('creator_id', user.id);
 

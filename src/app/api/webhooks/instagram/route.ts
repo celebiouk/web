@@ -77,7 +77,7 @@ async function handleCommentTrigger({
   commenterUsername: string | null;
 }) {
   // Find the creator who owns this IG account
-  const { data: connection } = await (supabaseAdmin.from('instagram_connections') as any)
+  const { data: connection } = await (supabaseAdmin as any).from('instagram_connections')
     .select('creator_id, access_token')
     .eq('ig_user_id', igUserId)
     .maybeSingle();
@@ -85,7 +85,7 @@ async function handleCommentTrigger({
   if (!connection) return;
 
   // Load their active triggers
-  const { data: triggers } = await (supabaseAdmin.from('instagram_triggers') as any)
+  const { data: triggers } = await (supabaseAdmin as any).from('instagram_triggers')
     .select('*')
     .eq('creator_id', connection.creator_id)
     .eq('is_active', true);
@@ -149,7 +149,7 @@ async function handleCommentTrigger({
   }
 
   // Log the automation run
-  await (supabaseAdmin.from('instagram_automation_logs') as any).insert({
+  await (supabaseAdmin as any).from('instagram_automation_logs').insert({
     creator_id: connection.creator_id,
     trigger_id: matched.id,
     comment_id: commentId,

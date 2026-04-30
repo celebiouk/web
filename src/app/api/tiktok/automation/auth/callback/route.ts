@@ -92,7 +92,7 @@ export async function GET(request: Request) {
     }
 
     const supabaseAdmin = getSupabaseAdmin();
-    await (supabaseAdmin.from('tiktok_automation_connections') as any).upsert({
+    await (supabaseAdmin as any).from('tiktok_automation_connections').upsert({
       creator_id: userId,
       tiktok_open_id: openId,
       tiktok_username: tiktokUsername,

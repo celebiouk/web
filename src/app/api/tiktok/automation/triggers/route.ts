@@ -14,7 +14,7 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { data, error } = await (supabase.from('tiktok_automation_triggers') as any)
+  const { data, error } = await (supabase as any).from('tiktok_automation_triggers')
     .select('*')
     .eq('creator_id', user.id)
     .order('created_at', { ascending: false });
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   const parsed = TriggerSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
 
-  const { data, error } = await (supabase.from('tiktok_automation_triggers') as any)
+  const { data, error } = await (supabase as any).from('tiktok_automation_triggers')
     .insert({ ...parsed.data, creator_id: user.id })
     .select()
     .single();
@@ -57,7 +57,7 @@ export async function PATCH(request: Request) {
   const parsed = TriggerSchema.partial().safeParse(rest);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
 
-  const { data, error } = await (supabase.from('tiktok_automation_triggers') as any)
+  const { data, error } = await (supabase as any).from('tiktok_automation_triggers')
     .update({ ...parsed.data, updated_at: new Date().toISOString() })
     .eq('id', id)
     .eq('creator_id', user.id)
@@ -77,7 +77,7 @@ export async function DELETE(request: Request) {
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
-  const { error } = await (supabase.from('tiktok_automation_triggers') as any)
+  const { error } = await (supabase as any).from('tiktok_automation_triggers')
     .delete()
     .eq('id', id)
     .eq('creator_id', user.id);
