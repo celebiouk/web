@@ -104,10 +104,10 @@ function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Theme Toggle Button */}
+          {/* Theme Toggle — hidden on mobile */}
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-1.5 text-sm font-medium text-gray-700 backdrop-blur-sm transition-all hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="hidden md:flex items-center gap-2 rounded-full border border-gray-200 bg-white/80 px-3 py-1.5 text-sm font-medium text-gray-700 backdrop-blur-sm transition-all hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-300 dark:hover:bg-gray-700"
             aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {resolvedTheme === 'dark' ? (
@@ -122,12 +122,12 @@ function Navbar() {
               </>
             )}
           </button>
-          
+
           <Link href="/login">
             <Button variant="ghost" size="sm">Log in</Button>
           </Link>
           <Link href="/signup">
-            <Button size="sm">Start Free — No Card Needed</Button>
+            <Button size="sm">Start Free</Button>
           </Link>
         </div>
       </div>
