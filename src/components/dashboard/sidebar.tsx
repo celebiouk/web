@@ -24,6 +24,7 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  Instagram,
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -48,6 +49,7 @@ const NAV_ITEMS = [
   { label: 'Courses', href: '/dashboard/courses', icon: GraduationCap, requiresPro: true },
   { label: 'Affiliates', href: '/dashboard/affiliates', icon: Users, requiresPro: true },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { label: 'IG Automation', href: '/dashboard/instagram-automation', icon: Instagram },
 ] as const;
 
 /**
