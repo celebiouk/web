@@ -18,7 +18,7 @@
     },
     {
       "path": "/api/cron/poll-tiktok-comments",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 12 * * *"
     }
   ]
 }
