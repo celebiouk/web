@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Sparkles,
   Instagram,
+  Music2,
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -50,6 +51,7 @@ const NAV_ITEMS = [
   { label: 'Affiliates', href: '/dashboard/affiliates', icon: Users, requiresPro: true },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'IG Automation', href: '/dashboard/instagram-automation', icon: Instagram },
+  { label: 'TikTok Automation', href: '/dashboard/tiktok-automation', icon: Music2 },
 ] as const;
 
 /**
