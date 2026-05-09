@@ -179,26 +179,31 @@ function getInitials(name?: string): string {
 // ── Cover ───────────────────────────────────────────────────────────────────
 
 function Cover({ block, ds, tokens }: { block: Extract<Block, { type: 'cover' }>; ds: DesignSystem; tokens: DesignTokens }) {
-  // Build a rich cover panel that wraps in a colored container — feels like an actual book cover
-  const coverBg = ds.slug === 'modern-startup'
-    ? `linear-gradient(135deg, ${tokens.accent} 0%, ${blend(tokens.accent, '#A78BFA', 0.4)} 60%, ${blend(tokens.accent, '#EC4899', 0.6)} 100%)`
-    : ds.slug === 'futuristic-ai'
-    ? `radial-gradient(circle at 70% 30%, ${tokens.accent}40, transparent 50%), linear-gradient(135deg, ${tokens.surface} 0%, ${tokens.page} 100%)`
-    : ds.slug === 'luxury-black-gold'
-    ? `linear-gradient(135deg, ${tokens.page} 0%, ${tokens.surface} 100%)`
-    : ds.slug === 'wellness-soft'
-    ? `linear-gradient(135deg, ${tokens.surface} 0%, ${tokens.surfaceMuted} 100%)`
-    : ds.slug === 'corporate-clean'
-    ? `linear-gradient(180deg, ${tokens.surface} 0%, ${tokens.surfaceMuted} 100%)`
-    : `linear-gradient(135deg, ${tokens.surface} 0%, ${tokens.surfaceMuted} 60%, ${tokens.surface} 100%)`;
+  // Real photograph as cover background — Lorem Picsum returns a deterministic
+  // image based on the seed, so the same ebook always shows the same cover.
+  const seed = encodeURIComponent(block.title.slice(0, 40).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'celebio');
+  const photoUrl = `https://picsum.photos/seed/${seed}/1600/2000`;
 
-  // Choose readable text color over the cover BG.
-  const onCoverText = ds.slug === 'modern-startup' ? '#FFFFFF'
-    : ds.slug === 'wellness-soft' || ds.slug === 'minimal-editorial' || ds.slug === 'corporate-clean'
-      ? tokens.text
-      : tokens.text;
-  const onCoverMuted = ds.slug === 'modern-startup' ? 'rgba(255,255,255,0.85)' : tokens.textMuted;
-  const onCoverFaint = ds.slug === 'modern-startup' ? 'rgba(255,255,255,0.65)' : tokens.textSubtle;
+  // The overlay is what makes text readable on top of the photo, AND it carries
+  // the design system's brand color into the cover. Different recipe per system.
+  const overlayGradient = ds.slug === 'modern-startup'
+    ? `linear-gradient(135deg, ${tokens.accent}E6 0%, ${blend(tokens.accent, '#EC4899', 0.5)}CC 100%)`
+    : ds.slug === 'futuristic-ai'
+    ? `linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(5,5,7,0.92) 100%), radial-gradient(circle at 70% 30%, ${tokens.accent}55, transparent 60%)`
+    : ds.slug === 'luxury-black-gold'
+    ? `linear-gradient(180deg, rgba(10,9,8,0.55) 0%, rgba(10,9,8,0.95) 100%)`
+    : ds.slug === 'wellness-soft'
+    ? `linear-gradient(180deg, rgba(193,154,117,0.4) 0%, rgba(58,46,34,0.85) 100%)`
+    : ds.slug === 'corporate-clean'
+    ? `linear-gradient(180deg, rgba(15,23,42,0.45) 0%, rgba(15,23,42,0.92) 100%)`
+    : /* minimal-editorial */ `linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.85) 100%)`;
+
+  // On a photo-darkened background, white-ish text is the most readable choice
+  // for every design system.
+  const onCoverText = '#FFFFFF';
+  const onCoverMuted = 'rgba(255,255,255,0.88)';
+  const onCoverFaint = 'rgba(255,255,255,0.65)';
+  const accentOnCover = ds.slug === 'luxury-black-gold' || ds.slug === 'wellness-soft' ? tokens.accent : '#FFFFFF';
 
   const initials = getInitials(block.author);
 
@@ -208,23 +213,50 @@ function Cover({ block, ds, tokens }: { block: Extract<Block, { type: 'cover' }>
         position: 'relative',
         overflow: 'hidden',
         borderRadius: ds.blockRadius,
-        background: coverBg,
-        padding: '5rem 2.5rem 4rem',
         marginBottom: '1rem',
-        minHeight: '32rem',
+        minHeight: '38rem',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
+        boxShadow: '0 30px 60px -20px rgba(0,0,0,0.5), 0 18px 36px -18px rgba(0,0,0,0.4)',
       }}
     >
-      <CoverDecoration ds={ds} tokens={tokens} />
+      {/* Layer 1: Real photograph */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url('${photoUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          // Subtle desaturation for editorial look on certain design systems
+          filter: ds.slug === 'corporate-clean' || ds.slug === 'minimal-editorial' ? 'grayscale(0.2) contrast(1.05)' :
+                  ds.slug === 'luxury-black-gold' ? 'grayscale(0.6) contrast(1.1) brightness(0.9)' :
+                  'none',
+        }}
+      />
+
+      {/* Layer 2: Gradient overlay — brand color + readability */}
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: overlayGradient }} />
+
+      {/* Layer 3: Decorative SVG art on top of overlay */}
+      <CoverDecoration ds={ds} tokens={{ ...tokens, accent: accentOnCover }} />
       {(ds.slug === 'minimal-editorial' || ds.slug === 'luxury-black-gold' || ds.slug === 'corporate-clean') && (
-        <CoverHalftone tokens={tokens} />
+        <CoverHalftone tokens={{ ...tokens, accent: accentOnCover }} />
       )}
 
-      <div style={{ position: 'relative' }}>
-        {/* Edition kicker */}
-        <p style={{ margin: 0, fontSize: '0.7rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: ds.slug === 'modern-startup' ? 'rgba(255,255,255,0.85)' : tokens.accent, fontFamily: ds.fontMono || ds.fontBody }}>
+      <div style={{ position: 'relative', padding: '5rem 2.5rem 4rem' }}>
+        {/* Edition kicker (always light over the photographic backdrop) */}
+        <p style={{
+          margin: 0,
+          fontSize: '0.7rem',
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          color: accentOnCover,
+          fontFamily: ds.fontMono || ds.fontBody,
+          fontWeight: 600,
+        }}>
           {block.edition || 'CeleStudio Edition'}
         </p>
 
@@ -260,7 +292,7 @@ function Cover({ block, ds, tokens }: { block: Extract<Block, { type: 'cover' }>
           </p>
         )}
 
-        {/* Author chip with avatar */}
+        {/* Author chip with avatar — glassmorphic so it reads over the photo */}
         {block.author && (
           <div style={{
             marginTop: '3rem',
@@ -269,9 +301,10 @@ function Cover({ block, ds, tokens }: { block: Extract<Block, { type: 'cover' }>
             gap: '0.75rem',
             padding: '0.4rem 0.75rem 0.4rem 0.4rem',
             borderRadius: '999px',
-            background: ds.slug === 'modern-startup' ? 'rgba(255,255,255,0.18)' : tokens.surfaceMuted,
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            background: 'rgba(255,255,255,0.18)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
           }}>
             <div style={{
               width: '1.75rem',
@@ -323,8 +356,56 @@ function Cover({ block, ds, tokens }: { block: Extract<Block, { type: 'cover' }>
 
 function ChapterIntro({ block, ds, tokens }: { block: Extract<Block, { type: 'chapter_intro' }>; ds: DesignSystem; tokens: DesignTokens }) {
   const num = String(block.chapterNumber).padStart(2, '0');
+  // Each chapter gets its own deterministic photo — different from the cover
+  // because we seed by chapter number + title.
+  const seed = encodeURIComponent(`${block.title.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-ch${num}` || `chapter-${num}`);
+  const photoUrl = `https://picsum.photos/seed/${seed}/1600/600`;
   return (
     <div style={{ position: 'relative', padding: '4rem 0 1rem' }}>
+      {/* Chapter hero image — horizontal strip with gradient fade */}
+      <figure style={{
+        position: 'relative',
+        margin: '0 0 3.5rem',
+        height: '14rem',
+        borderRadius: ds.blockRadius,
+        overflow: 'hidden',
+        boxShadow: '0 16px 32px -16px rgba(0,0,0,0.35)',
+      }}>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url('${photoUrl}')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: ds.slug === 'corporate-clean' || ds.slug === 'minimal-editorial' ? 'grayscale(0.15)' :
+                  ds.slug === 'luxury-black-gold' ? 'grayscale(0.5) brightness(0.85)' :
+                  'none',
+        }} />
+        {/* Bottom-fade overlay so the chapter number badge can sit on top */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: `linear-gradient(180deg, transparent 40%, ${tokens.page}E0 100%)`,
+        }} />
+        {/* Chapter number badge sitting on the bottom-right of the photo */}
+        <div style={{
+          position: 'absolute',
+          right: '1.25rem',
+          bottom: '1.25rem',
+          padding: '0.5rem 0.875rem',
+          background: tokens.surface,
+          borderRadius: ds.blockRadius,
+          border: `1px solid ${tokens.border}`,
+          fontFamily: ds.fontMono || ds.fontBody,
+          fontSize: '0.7rem',
+          fontWeight: 700,
+          letterSpacing: '0.25em',
+          color: tokens.accent,
+          textTransform: 'uppercase',
+        }}>
+          Ch · {num}
+        </div>
+      </figure>
       {/* Massive watermark chapter number behind everything */}
       <div
         aria-hidden="true"
