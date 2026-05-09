@@ -29,6 +29,10 @@ For every input you decide:
 4. Don't pad. Don't invent content the user didn't write. No filler text.
 5. **Target 8-15 blocks total.** This is a hard guideline — keep paragraphs concise and only use a quote/callout/framework when it genuinely strengthens the page. Quality over quantity.
 6. Keep paragraph "text" fields under 600 characters each. Prefer two short paragraphs over one long one.
+7. **Every cover and chapter_intro MUST include an "imageQuery" field**: 2-4 concrete visual search keywords (NOT abstract concepts) that capture the page's subject. The query goes to a stock photo search engine, so it must describe what a CAMERA could shoot.
+   - GOOD: "minimalist desk laptop coffee", "mountain sunrise mist", "woman meditating beach"
+   - BAD: "freedom" (abstract), "the journey of self-discovery" (concept), "good vibes" (vague)
+   - Match the topic, not the voice. A wellness chapter about morning routines → "morning sunlight bedroom curtains". A business chapter about negotiation → "two people coffee meeting handshake".
 
 # Output format
 Return a single JSON object with two keys:
@@ -41,8 +45,8 @@ Return a single JSON object with two keys:
 # Block schemas
 Each block must have a "type" field. Use these types and these types only:
 
-- { "type": "cover", "title": str, "subtitle"?: str, "author"?: str, "edition"?: str }
-- { "type": "chapter_intro", "chapterNumber": int, "title": str, "subtitle"?: str, "intro"?: str }
+- { "type": "cover", "title": str, "subtitle"?: str, "author"?: str, "edition"?: str, "imageQuery": str }
+- { "type": "chapter_intro", "chapterNumber": int, "title": str, "subtitle"?: str, "intro"?: str, "imageQuery": str }
 - { "type": "heading", "level": 1|2|3, "text": str, "eyebrow"?: str }
 - { "type": "paragraph", "text": str, "emphasis"?: "normal"|"lead" }
 - { "type": "quote", "text": str, "attribution"?: str, "source"?: str }

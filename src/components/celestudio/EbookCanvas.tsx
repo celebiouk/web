@@ -179,10 +179,11 @@ function getInitials(name?: string): string {
 // ── Cover ───────────────────────────────────────────────────────────────────
 
 function Cover({ block, ds, tokens }: { block: Extract<Block, { type: 'cover' }>; ds: DesignSystem; tokens: DesignTokens }) {
-  // Real photograph as cover background — Lorem Picsum returns a deterministic
-  // image based on the seed, so the same ebook always shows the same cover.
+  // Prefer the topical Unsplash photo when present (server-side AI suggested
+  // the search query, server fetched the URL). Fall back to deterministic
+  // Picsum when Unsplash isn't configured or didn't return a result.
   const seed = encodeURIComponent(block.title.slice(0, 40).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'celebio');
-  const photoUrl = `https://picsum.photos/seed/${seed}/1600/2000`;
+  const photoUrl = block.imageUrl || `https://picsum.photos/seed/${seed}/1600/2000`;
 
   // The overlay is what makes text readable on top of the photo, AND it carries
   // the design system's brand color into the cover. Different recipe per system.
@@ -356,10 +357,10 @@ function Cover({ block, ds, tokens }: { block: Extract<Block, { type: 'cover' }>
 
 function ChapterIntro({ block, ds, tokens }: { block: Extract<Block, { type: 'chapter_intro' }>; ds: DesignSystem; tokens: DesignTokens }) {
   const num = String(block.chapterNumber).padStart(2, '0');
-  // Each chapter gets its own deterministic photo — different from the cover
-  // because we seed by chapter number + title.
+  // Prefer AI-suggested topical Unsplash photo, fall back to deterministic Picsum
+  // (seeded with title + chapter number so each chapter is visually distinct).
   const seed = encodeURIComponent(`${block.title.slice(0, 30).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-ch${num}` || `chapter-${num}`);
-  const photoUrl = `https://picsum.photos/seed/${seed}/1600/600`;
+  const photoUrl = block.imageUrl || `https://picsum.photos/seed/${seed}/1600/600`;
   return (
     <div style={{ position: 'relative', padding: '4rem 0 1rem' }}>
       {/* Chapter hero image — horizontal strip with gradient fade */}

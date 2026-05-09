@@ -27,6 +27,8 @@ export interface CoverBlock extends BaseBlock {
   subtitle?: string;
   author?: string;
   edition?: string; // e.g. "First Edition" or "2026"
+  imageQuery?: string; // 2-3 search keywords AI generates for the cover photo
+  imageUrl?: string;   // Resolved photo URL (filled by server after Unsplash lookup)
 }
 
 export interface ChapterIntroBlock extends BaseBlock {
@@ -35,6 +37,8 @@ export interface ChapterIntroBlock extends BaseBlock {
   title: string;
   subtitle?: string;
   intro?: string;
+  imageQuery?: string; // 2-3 search keywords for the chapter hero photo
+  imageUrl?: string;   // Resolved photo URL
 }
 
 export interface HeadingBlock extends BaseBlock {

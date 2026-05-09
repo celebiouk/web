@@ -6,6 +6,7 @@ import type { Block } from '@/lib/celestudio/blocks';
 import { makeBlockId } from '@/lib/celestudio/blocks';
 import { DESIGN_SYSTEMS, type DesignSystemSlug } from '@/lib/celestudio/design-systems';
 import { generateJson, type AITier } from '@/lib/celestudio/ai-client';
+import { enrichBlocksWithImages } from '@/lib/celestudio/unsplash';
 
 export const maxDuration = 60; // Vercel function timeout (Hobby max)
 
@@ -127,10 +128,14 @@ export async function POST(request: Request) {
     id: (block.id && typeof block.id === 'string') ? block.id : makeBlockId(),
   })) as Block[];
 
+  // 6. Enrich cover + chapter blocks with topical photos from Unsplash.
+  // No-op when UNSPLASH_ACCESS_KEY isn't set — renderer falls back to Picsum.
+  const finalBlocks = await enrichBlocksWithImages(normalizedBlocks);
+
   return NextResponse.json({
     title,
     subtitle,
-    blocks: normalizedBlocks,
+    blocks: finalBlocks,
     designSystem: designSystem as DesignSystemSlug,
     tier: aiTier,
   });
