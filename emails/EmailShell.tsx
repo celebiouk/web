@@ -62,9 +62,29 @@ export function EmailShell({
   return (
     <Html>
       <Head>
+        {/* Tells email clients we support both schemes — prevents Gmail from forcibly inverting colors */}
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark" />
         <style>
           {`
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+            /* Gmail Android/iOS dark mode aggressively inverts colors.
+               These selectors (data-ogsc / data-ogsb) target Gmail dark mode
+               specifically and force our brand colors to stay correct. */
+            [data-ogsc] .brand-suffix,
+            [data-ogsb] .brand-suffix {
+              color: #FFFFFF !important;
+            }
+            [data-ogsc] .brand-dot,
+            [data-ogsb] .brand-dot {
+              color: ${colors.cyan} !important;
+            }
+            /* Outlook.com / iOS Mail dark mode */
+            @media (prefers-color-scheme: dark) {
+              .brand-suffix { color: #FFFFFF !important; }
+              .brand-dot { color: ${colors.cyan} !important; }
+            }
           `}
         </style>
       </Head>
@@ -89,8 +109,13 @@ export function EmailShell({
                     height="48"
                     style={logoImage}
                   />
-                  <span style={brandSuffix}>
-                    <span style={logoDot}>.</span>bio
+                  {/*
+                    Class hooks (.brand-suffix / .brand-dot) are targeted by the
+                    [data-ogsc]/[data-ogsb] dark-mode overrides in <Head>. Inline
+                    color is the fallback for clients that respect inline styles.
+                  */}
+                  <span className="brand-suffix" style={brandSuffix}>
+                    <span className="brand-dot" style={logoDot}>.</span>bio
                   </span>
                 </Link>
               </Column>
@@ -174,6 +199,8 @@ const logoLink: React.CSSProperties = {
   display: 'inline-block',
   lineHeight: 1,
   whiteSpace: 'nowrap',
+  // Force link color so Gmail dark mode does not override .bio to dark/blue
+  color: '#FFFFFF',
 };
 
 const logoImage: React.CSSProperties = {
