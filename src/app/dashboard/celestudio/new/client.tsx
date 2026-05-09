@@ -211,8 +211,17 @@ export function NewEbookClient({ authorName }: { authorName: string | null }) {
 }
 
 function humanError(code: unknown, status: number): string {
+  // Special-cased friendly translations
   if (code === 'pro_required' || status === 402) return 'CeleStudio is a Pro feature. Please upgrade to continue.';
   if (status === 429 || status === 503) return 'AI is busy right now. Please try again in a minute.';
-  if (typeof code === 'string') return code;
-  return 'Something went wrong while generating. Please try again.';
+
+  // Pass through any string error message from the server so we can SEE what's wrong
+  if (typeof code === 'string' && code.length > 0) return code;
+
+  // Object error (e.g. Zod validation) — extract a usable message
+  if (code && typeof code === 'object') {
+    try { return `Server error: ${JSON.stringify(code).slice(0, 300)}`; } catch { /* fall through */ }
+  }
+
+  return `Something went wrong (status ${status}). Please try again.`;
 }
