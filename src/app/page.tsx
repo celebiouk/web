@@ -7,12 +7,12 @@ import { BrandWordmark } from '@/components/ui/brand-wordmark';
 import { useTheme } from '@/components/providers/theme-provider';
 import { TemplateRenderer } from '@/components/templates/TemplateRenderer';
 import type { CreatorPageData, TemplateSlug } from '@/types/creator-page';
-import { 
-  ShoppingBag, 
-  CalendarCheck, 
-  GraduationCap, 
-  Palette, 
-  CreditCard, 
+import {
+  ShoppingBag,
+  CalendarCheck,
+  GraduationCap,
+  Palette,
+  CreditCard,
   BarChart3,
   Sparkles,
   Check,
@@ -31,7 +31,10 @@ import {
   DollarSign,
   Play,
   Sun,
-  Moon
+  Moon,
+  BookOpen,
+  Wand2,
+  Quote
 } from 'lucide-react';
 
 // ============================================
@@ -48,6 +51,7 @@ export default function HomePage() {
       <ComparisonTable />
       <TemplateShowcase />
       <FOMOCountdownFeature />
+      <CeleStudioFeature />
       <AffiliateMarketplaceFeature />
       <FeatureDeepDives />
       <AfricaFirstSection />
@@ -313,6 +317,7 @@ function ComparisonTable() {
     { name: '1:1 Bookings', celebio: true, stan: true, beacons: true, gumroad: false, celebioLabel: 'All plans' },
     { name: 'Affiliate Marketplace', celebio: true, stan: false, beacons: false, gumroad: false, celebioLabel: 'Built-in' },
     { name: 'FOMO Countdown Pricing', celebio: true, stan: false, beacons: false, gumroad: false, celebioLabel: 'Built-in' },
+    { name: 'AI Ebook Builder', celebio: true, stan: false, beacons: false, gumroad: false, celebioLabel: 'CeleStudio' },
     { name: 'Email Marketing', celebio: true, stan: false, beacons: true, gumroad: false, celebioLabel: 'Built-in' },
     { name: 'Bundle Builder', celebio: true, stan: false, beacons: false, gumroad: false, celebioLabel: 'Pro' },
     { name: 'African Creator Support', celebio: true, stan: 'warn', beacons: 'warn', gumroad: 'warn' },
@@ -701,6 +706,155 @@ function FOMOCountdownFeature() {
             {/* Decorative elements */}
             <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-orange-500/20 blur-2xl" />
             <div className="absolute -bottom-4 -left-4 h-32 w-32 rounded-full bg-brand-500/20 blur-2xl" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// CELESTUDIO — AI EBOOK BUILDER (CATEGORY-DEFINING DIFFERENTIATOR)
+// ============================================
+function CeleStudioFeature() {
+  return (
+    <section className="section-padding relative overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900/50 dark:via-gray-950 dark:to-gray-900/50">
+      {/* Decorative ambient gradient orbs */}
+      <div className="pointer-events-none absolute -left-32 top-20 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/20" />
+      <div className="pointer-events-none absolute -right-32 bottom-20 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl dark:bg-purple-500/20" />
+
+      <div className="container-page relative">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+          {/* Content */}
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
+              <Sparkles className="h-4 w-4" />
+              Powered by AI · CeleStudio
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white md:text-4xl">
+              Turn plain text into{' '}
+              <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+                stunning ebooks
+              </span>
+              {' '}with AI
+            </h2>
+            <p className="mb-6 text-lg text-gray-600 dark:text-gray-400">
+              Don&apos;t just sell ebooks — design them. Paste raw text, pick a design system,
+              and CeleStudio composes a premium digital publication that looks like it came
+              from a creative agency. Ready to publish in minutes, not weeks.
+            </p>
+
+            <ul className="mb-8 space-y-4">
+              <li className="flex items-start gap-3">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-success-500" />
+                <div>
+                  <strong className="text-gray-900 dark:text-white">Paste, pick, publish:</strong>
+                  <span className="text-gray-600 dark:text-gray-400"> AI structures your content into chapters, quotes, callouts, and frameworks automatically.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-success-500" />
+                <div>
+                  <strong className="text-gray-900 dark:text-white">6 premium design systems:</strong>
+                  <span className="text-gray-600 dark:text-gray-400"> Editorial, Luxury, Modern Startup, Wellness, Futuristic AI, Corporate. Switch instantly.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-success-500" />
+                <div>
+                  <strong className="text-gray-900 dark:text-white">Sell directly on cele.bio:</strong>
+                  <span className="text-gray-600 dark:text-gray-400"> Your finished ebook becomes a product on your storefront in one click.</span>
+                </div>
+              </li>
+            </ul>
+
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/20 dark:bg-indigo-500/10">
+              <p className="text-sm text-indigo-700 dark:text-indigo-300">
+                <strong>No other creator platform has this.</strong> Stan.store, Beacons, Gumroad —
+                they all expect you to design ebooks yourself. CeleStudio does it for you.
+              </p>
+            </div>
+          </div>
+
+          {/* Demo widget — premium ebook preview */}
+          <div className="relative">
+            <div className="relative overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
+              {/* Cover-style header */}
+              <div
+                className="relative px-8 pt-10 pb-12"
+                style={{
+                  background: 'linear-gradient(135deg, #6366F1 0%, #A78BFA 60%, #EC4899 100%)',
+                }}
+              >
+                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/80">
+                  CeleStudio Edition · 2026
+                </span>
+                <h3 className="mt-4 font-serif text-3xl font-semibold leading-tight text-white">
+                  The Quiet Art of<br/>Building in Public
+                </h3>
+                <p className="mt-3 max-w-xs text-sm text-white/85">
+                  An editorial guide for creators who want to ship loudly and live calmly.
+                </p>
+                <div className="mt-6 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-white/75">
+                  <span className="h-px w-8 bg-white/40" />
+                  By Sarah Chen
+                </div>
+              </div>
+
+              {/* Inside-spread preview */}
+              <div className="space-y-4 px-8 py-7">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">
+                    Chapter 02
+                  </span>
+                  <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                </div>
+
+                <h4 className="font-serif text-xl font-semibold text-gray-900 dark:text-white">
+                  Why constraints create better work
+                </h4>
+
+                <p className="text-[13px] leading-relaxed text-gray-600 dark:text-gray-400">
+                  The blank page is the enemy. Designers, writers, and founders who thrive
+                  share one thing in common — they build inside walls.
+                </p>
+
+                {/* Stylized pull quote */}
+                <div className="rounded-xl border-l-2 border-indigo-500 bg-indigo-50 px-4 py-3 dark:bg-indigo-500/10">
+                  <Quote className="mb-1 h-3.5 w-3.5 text-indigo-500" />
+                  <p className="font-serif text-sm italic text-gray-800 dark:text-gray-200">
+                    Constraint is not the opposite of creativity. It is its only home.
+                  </p>
+                </div>
+
+                {/* Mock callout block */}
+                <div className="flex items-start gap-2 rounded-lg bg-gray-50 p-3 dark:bg-gray-800/60">
+                  <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-500" />
+                  <div className="text-[12px] leading-relaxed text-gray-700 dark:text-gray-300">
+                    <strong className="text-gray-900 dark:text-white">Insight:</strong> Pick a
+                    design system before you write. The format will shape the prose.
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer chip */}
+              <div className="border-t border-gray-100 bg-gray-50/50 px-8 py-3 dark:border-gray-800 dark:bg-gray-900/40">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-gray-500">
+                  <span className="flex items-center gap-1.5">
+                    <BookOpen className="h-3 w-3" />
+                    Modern Startup · Design System
+                  </span>
+                  <span className="flex items-center gap-1 font-medium text-indigo-600 dark:text-indigo-400">
+                    <Wand2 className="h-3 w-3" />
+                    AI generated
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Decorative elements behind the card */}
+            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-indigo-500/30 blur-2xl" />
+            <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-purple-500/30 blur-2xl" />
           </div>
         </div>
       </div>
