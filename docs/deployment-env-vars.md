@@ -46,15 +46,6 @@ This file lists all environment variables currently used by cele.bio for product
 
 - `CRON_SECRET`
 
-## CreatorLab import integration (required for CreatorLab OAuth/import)
-
-- `CREATORLAB_CLIENT_ID` (or fallback: `CLIENT_ID`)
-- `CREATORLAB_CLIENT_SECRET` (or fallback: `CLIENT_SECRET`)
-- `CREATORLAB_REDIRECT_URI` (or fallback: `REDIRECT_URI`)
-- `CREATORLAB_REDIRECT_URIS` (optional multi-URI allowlist, comma-separated)
-- `CREATORLAB_IMPORT_WEBHOOK_URL` (optional; required only if webhook delivery is enabled)
-- `CREATORLAB_WEBHOOK_SECRET` (optional; required with webhook URL)
-
 ## Optional features
 
 - `WHEREBY_API_KEY` (booking video room creation)
@@ -92,13 +83,6 @@ RESEND_API_KEY=
 
 CRON_SECRET=
 
-CREATORLAB_CLIENT_ID=
-CREATORLAB_CLIENT_SECRET=
-CREATORLAB_REDIRECT_URI=https://creatorlab.example.com/auth/integrations/celebio/callback
-# CREATORLAB_REDIRECT_URIS=https://creatorlab.example.com/callback,https://staging.creatorlab.example.com/callback
-# CREATORLAB_IMPORT_WEBHOOK_URL=
-# CREATORLAB_WEBHOOK_SECRET=
-
 # Optional
 # WHEREBY_API_KEY=
 # CUSTOM_DOMAIN_CNAME_TARGET=cname.cele.bio
@@ -109,4 +93,3 @@ CREATORLAB_REDIRECT_URI=https://creatorlab.example.com/auth/integrations/celebio
 
 - Never commit real secrets to Git.
 - Set these in your deployment provider (e.g. Vercel) for `Production` (and optionally `Preview`/`Development`).
-- If CreatorLab webhooks are not needed yet, you can leave the webhook variables unset.

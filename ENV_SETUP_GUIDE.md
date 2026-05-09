@@ -293,16 +293,6 @@ CUSTOM_DOMAIN_APEX_IP=76.76.21.21
 
 ---
 
-### CreatorLab Additional Redirect URIs (If you have multiple environments)
-```
-CREATORLAB_REDIRECT_URIS=https://staging.creatorlab.com/callback,https://app.creatorlab.com/callback
-```
-**What it does:** Allows CreatorLab OAuth to work from multiple domains (production, staging, dev). Only needed if CreatorLab has different environments that need to connect to cele.bio.
-
-**How to get it:** Comma-separated list of additional allowed OAuth callback URLs
-
----
-
 ## 📋 Quick Checklist
 
 Copy this checklist and check off as you add each variable to Vercel:
