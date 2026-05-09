@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { SYSTEM_PROMPT, buildUserMessage } from '@/lib/celestudio/ai-prompt';
 import type { Block } from '@/lib/celestudio/blocks';
 import { makeBlockId } from '@/lib/celestudio/blocks';
 import { DESIGN_SYSTEMS, type DesignSystemSlug } from '@/lib/celestudio/design-systems';
+import { generateJson, type AITier } from '@/lib/celestudio/ai-client';
 
 export const maxDuration = 60; // Vercel function timeout (Hobby max)
 
@@ -13,6 +13,7 @@ const RequestSchema = z.object({
   sourceText: z.string().min(50, 'Need at least 50 characters of source text').max(60000),
   designSystem: z.string(),
   authorName: z.string().max(120).optional(),
+  tier: z.enum(['standard', 'premium']).optional(),
 });
 
 export async function POST(request: Request) {
@@ -38,40 +39,28 @@ export async function POST(request: Request) {
   const parsed = RequestSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
 
-  const { sourceText, designSystem, authorName } = parsed.data;
+  const { sourceText, designSystem, authorName, tier } = parsed.data;
   if (!(designSystem in DESIGN_SYSTEMS)) {
     return NextResponse.json({ error: 'Unknown design system' }, { status: 422 });
   }
 
-  // Call Claude
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  // Standard tier by default. "premium" reserved for future polish/advanced flows.
+  const aiTier: AITier = tier ?? 'standard';
+
+  if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({ error: 'AI not configured' }, { status: 500 });
   }
-  const client = new Anthropic({ apiKey });
 
   try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 8000,
-      system: SYSTEM_PROMPT,
-      messages: [
-        { role: 'user', content: buildUserMessage({ sourceText, designSystemSlug: designSystem, authorName }) },
-      ],
+    const raw = await generateJson({
+      systemPrompt: SYSTEM_PROMPT,
+      userMessage: buildUserMessage({ sourceText, designSystemSlug: designSystem, authorName }),
+      tier: aiTier,
     });
-
-    // Extract text from response
-    const textBlock = message.content.find(c => c.type === 'text');
-    if (!textBlock || textBlock.type !== 'text') {
-      return NextResponse.json({ error: 'AI returned empty response' }, { status: 502 });
-    }
-
-    const raw = textBlock.text.trim();
-    const jsonString = stripCodeFences(raw);
 
     let parsedJson: { title?: string; subtitle?: string; blocks?: Block[] };
     try {
-      parsedJson = JSON.parse(jsonString);
+      parsedJson = JSON.parse(raw);
     } catch (err) {
       console.error('AI JSON parse failed:', err, raw.slice(0, 500));
       return NextResponse.json({ error: 'AI returned malformed JSON' }, { status: 502 });
@@ -92,6 +81,7 @@ export async function POST(request: Request) {
       subtitle: parsedJson.subtitle ?? null,
       blocks: normalizedBlocks,
       designSystem: designSystem as DesignSystemSlug,
+      tier: aiTier,
     });
   } catch (err) {
     const error = err as { status?: number; message?: string };
@@ -104,11 +94,4 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ error: 'Generation failed' }, { status: 500 });
   }
-}
-
-// Sometimes models wrap JSON in ```json ... ``` despite instructions. Strip it.
-function stripCodeFences(text: string): string {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (fenced) return fenced[1].trim();
-  return text;
 }
