@@ -9,8 +9,13 @@ import { generateJson, type AITier } from '@/lib/celestudio/ai-client';
 
 export const maxDuration = 60; // Vercel function timeout (Hobby max)
 
+// 25,000 chars (~5,000 words) is the practical input ceiling for the
+// 60s Vercel Hobby timeout. Longer inputs produce longer outputs that
+// cannot finish generating in time.
 const RequestSchema = z.object({
-  sourceText: z.string().min(50, 'Need at least 50 characters of source text').max(60000),
+  sourceText: z.string()
+    .min(50, 'Need at least 50 characters of source text')
+    .max(25000, 'Source text is too long. Please trim to under 25,000 characters (~5,000 words).'),
   designSystem: z.string(),
   authorName: z.string().max(120).optional(),
   tier: z.enum(['standard', 'premium']).optional(),

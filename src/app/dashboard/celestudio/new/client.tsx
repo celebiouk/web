@@ -140,21 +140,32 @@ export function NewEbookClient({ authorName }: { authorName: string | null }) {
           <p className="mt-2 text-sm text-zinc-500 sm:text-base">
             Paste your raw text. Notes, blog posts, transcripts, outlines — any messy form. AI will structure it.
           </p>
+          <p className="mt-1 text-xs text-zinc-600">
+            Sweet spot: 500–3,000 words. Generation takes ~30–50 seconds.
+          </p>
 
           <div className="relative mt-7">
             <textarea
               value={text}
-              onChange={e => setText(e.target.value)}
-              placeholder="Paste your content here. The more you give the AI, the better the output. Aim for at least 500 words for a great result."
+              onChange={e => setText(e.target.value.slice(0, 25000))}
+              placeholder="Paste your content here. Aim for 500–3,000 words for the best result."
               rows={16}
+              maxLength={25000}
               className="w-full resize-y rounded-2xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 text-[15px] leading-relaxed text-zinc-100 placeholder-zinc-600 outline-none focus:border-indigo-500/60 focus:ring-2 focus:ring-indigo-500/20"
             />
             <div className="absolute bottom-3 right-4 flex items-center gap-2 text-xs">
-              <span className={charCount < 50 ? 'text-amber-500' : 'text-zinc-500'}>
-                {charCount.toLocaleString()} chars
+              <span className={
+                charCount < 50 ? 'text-amber-500'
+                : charCount > 18000 ? 'text-amber-500'
+                : 'text-zinc-500'
+              }>
+                {charCount.toLocaleString()} / 25,000 chars
               </span>
               {charCount < 50 && (
                 <span className="text-amber-500">· need {50 - charCount} more</span>
+              )}
+              {charCount > 18000 && charCount <= 25000 && (
+                <span className="text-amber-500">· may time out, consider shortening</span>
               )}
             </div>
           </div>
@@ -214,6 +225,12 @@ function humanError(code: unknown, status: number): string {
   // Special-cased friendly translations
   if (code === 'pro_required' || status === 402) return 'CeleStudio is a Pro feature. Please upgrade to continue.';
   if (status === 429 || status === 503) return 'AI is busy right now. Please try again in a minute.';
+
+  // 504 = Vercel function timeout. The AI took too long to respond.
+  // Specific guidance because this is the most common failure mode on Hobby.
+  if (status === 504) {
+    return 'Generation took too long and was cut off (60s server limit). Please try again with a shorter source text — under 3,000 words is ideal. Your OpenAI credits were used since the AI did the work, sorry.';
+  }
 
   // Pass through any string error message from the server so we can SEE what's wrong
   if (typeof code === 'string' && code.length > 0) return code;

@@ -36,13 +36,18 @@ export interface GenerateJsonOptions {
  * Generate JSON output from the chosen tier model.
  * Forces JSON object response format for reliability.
  * Returns the raw JSON string (caller is responsible for JSON.parse).
+ *
+ * Note: maxTokens defaults to 3500. Larger values risk Vercel Hobby's
+ * 60s function timeout — 3500 output tokens at gpt-4.1-mini speed
+ * (~70 tok/s) takes ~50s, which leaves headroom for cold start + OpenAI
+ * round-trip latency. Do not raise this without also upgrading Vercel.
  */
 export async function generateJson({
   systemPrompt,
   userMessage,
   tier = 'standard',
-  maxTokens = 8000,
-  temperature = 0.7,
+  maxTokens = 3500,
+  temperature = 0.5,
 }: GenerateJsonOptions): Promise<string> {
   const model = MODEL_BY_TIER[tier];
   const client = getClient();

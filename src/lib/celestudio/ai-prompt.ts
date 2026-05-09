@@ -27,7 +27,8 @@ For every input you decide:
 2. Restructure aggressively — but preserve meaning and voice.
 3. Be opinionated about format. If a paragraph lists 5 steps, convert it to a framework or list block.
 4. Don't pad. Don't invent content the user didn't write. No filler text.
-5. Aim for 12–25 blocks for typical input. Fewer blocks for very short input. More for long input.
+5. **Target 8-15 blocks total.** This is a hard guideline — keep paragraphs concise and only use a quote/callout/framework when it genuinely strengthens the page. Quality over quantity.
+6. Keep paragraph "text" fields under 600 characters each. Prefer two short paragraphs over one long one.
 
 # Output format
 Return a single JSON object with two keys:
