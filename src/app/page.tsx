@@ -776,53 +776,141 @@ function CeleStudioFeature() {
             </div>
           </div>
 
-          {/* Demo widget — premium ebook preview */}
+          {/* Demo widget — premium ebook preview, designed like a real book page */}
           <div className="relative">
+            {/* Stacked-pages illusion: 2 thin "pages" peeking out from behind */}
+            <div className="absolute inset-y-2 -right-2 w-full rounded-3xl bg-white shadow-md ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800" aria-hidden="true" />
+            <div className="absolute inset-y-1 -right-1 w-full rounded-3xl bg-white shadow-md ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800" aria-hidden="true" />
+
             <div className="relative overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
-              {/* Cover-style header */}
+              {/* Cover header with abstract editorial illustration */}
               <div
-                className="relative px-8 pt-10 pb-12"
-                style={{
-                  background: 'linear-gradient(135deg, #6366F1 0%, #A78BFA 60%, #EC4899 100%)',
-                }}
+                className="relative overflow-hidden px-8 pt-10 pb-10"
+                style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #A78BFA 55%, #EC4899 100%)' }}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/80">
-                  CeleStudio Edition · 2026
-                </span>
-                <h3 className="mt-4 font-serif text-3xl font-semibold leading-tight text-white">
-                  The Quiet Art of<br/>Building in Public
-                </h3>
-                <p className="mt-3 max-w-xs text-sm text-white/85">
-                  An editorial guide for creators who want to ship loudly and live calmly.
-                </p>
-                <div className="mt-6 inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-white/75">
-                  <span className="h-px w-8 bg-white/40" />
-                  By Sarah Chen
+                {/* Decorative SVG cover art — abstract organic shapes */}
+                <svg
+                  className="pointer-events-none absolute -right-12 -top-8 h-72 w-72 opacity-60"
+                  viewBox="0 0 200 200"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <circle cx="140" cy="60" r="55" fill="white" fillOpacity="0.15" />
+                  <circle cx="160" cy="100" r="32" fill="#FFD700" fillOpacity="0.35" />
+                  <circle cx="120" cy="130" r="20" fill="white" fillOpacity="0.25" />
+                  <path d="M50 180 Q 100 120 180 180" stroke="white" strokeOpacity="0.3" strokeWidth="2" fill="none" />
+                  <path d="M30 160 Q 80 100 170 160" stroke="white" strokeOpacity="0.2" strokeWidth="1" fill="none" />
+                </svg>
+
+                {/* Halftone dot grid in bottom-left for editorial vibe */}
+                <svg
+                  className="pointer-events-none absolute -bottom-2 -left-2 h-24 w-24 opacity-25"
+                  viewBox="0 0 80 80"
+                  aria-hidden="true"
+                >
+                  {Array.from({ length: 6 }).map((_, row) =>
+                    Array.from({ length: 6 }).map((_, col) => (
+                      <circle
+                        key={`${row}-${col}`}
+                        cx={6 + col * 12}
+                        cy={6 + row * 12}
+                        r={1.5 - row * 0.15}
+                        fill="white"
+                      />
+                    ))
+                  )}
+                </svg>
+
+                <div className="relative">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/85">
+                    CeleStudio Edition · 2026
+                  </span>
+                  <h3 className="mt-4 font-serif text-3xl font-semibold leading-[1.05] text-white">
+                    The Quiet Art of<br/>Building in Public
+                  </h3>
+                  <p className="mt-3 max-w-[20rem] text-[13.5px] leading-relaxed text-white/85">
+                    An editorial guide for creators who want to ship loudly and live calmly.
+                  </p>
+
+                  {/* Author chip with circular avatar */}
+                  <div className="mt-6 inline-flex items-center gap-2.5 rounded-full bg-white/15 px-2.5 py-1.5 backdrop-blur-sm">
+                    <div
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-indigo-700"
+                      style={{ background: 'linear-gradient(135deg, #FDE68A 0%, #FCA5A5 100%)' }}
+                    >
+                      SC
+                    </div>
+                    <span className="pr-1 text-[11px] font-semibold tracking-wide text-white">Sarah Chen</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Inside-spread preview */}
-              <div className="space-y-4 px-8 py-7">
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">
+              {/* Inside spread */}
+              <div className="px-8 py-7">
+                {/* Chapter eyebrow */}
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">
                     Chapter 02
                   </span>
                   <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                  <span className="font-mono text-[10px] text-gray-400">047</span>
                 </div>
 
-                <h4 className="font-serif text-xl font-semibold text-gray-900 dark:text-white">
+                <h4 className="mb-3 font-serif text-xl font-semibold text-gray-900 dark:text-white">
                   Why constraints create better work
                 </h4>
 
+                {/* Feature image block — looks like editorial photography */}
+                <figure className="my-5">
+                  <div
+                    className="relative h-32 w-full overflow-hidden rounded-xl"
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #FB923C 0%, #F472B6 50%, #818CF8 100%)',
+                    }}
+                  >
+                    {/* Abstract "photo" content — sun + horizon lines suggesting a landscape */}
+                    <svg
+                      className="absolute inset-0 h-full w-full"
+                      viewBox="0 0 400 130"
+                      preserveAspectRatio="xMidYMid slice"
+                      aria-hidden="true"
+                    >
+                      <circle cx="310" cy="50" r="36" fill="white" fillOpacity="0.55" />
+                      <circle cx="310" cy="50" r="22" fill="white" fillOpacity="0.85" />
+                      <path
+                        d="M0 95 Q 80 75 160 88 T 320 80 T 400 92"
+                        stroke="white"
+                        strokeOpacity="0.5"
+                        strokeWidth="1.5"
+                        fill="none"
+                      />
+                      <path
+                        d="M0 110 Q 100 95 200 105 T 400 108"
+                        stroke="white"
+                        strokeOpacity="0.35"
+                        strokeWidth="1"
+                        fill="none"
+                      />
+                      <rect x="0" y="115" width="400" height="15" fill="black" fillOpacity="0.15" />
+                    </svg>
+                  </div>
+                  <figcaption className="mt-2 flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-gray-500">
+                    <span className="h-px w-6 bg-gray-300 dark:bg-gray-600" />
+                    Field notes from a creator who ships
+                  </figcaption>
+                </figure>
+
+                {/* Body text */}
                 <p className="text-[13px] leading-relaxed text-gray-600 dark:text-gray-400">
                   The blank page is the enemy. Designers, writers, and founders who thrive
                   share one thing in common — they build inside walls.
                 </p>
 
                 {/* Stylized pull quote */}
-                <div className="rounded-xl border-l-2 border-indigo-500 bg-indigo-50 px-4 py-3 dark:bg-indigo-500/10">
+                <div className="my-4 rounded-xl border-l-2 border-indigo-500 bg-indigo-50 px-4 py-3 dark:bg-indigo-500/10">
                   <Quote className="mb-1 h-3.5 w-3.5 text-indigo-500" />
-                  <p className="font-serif text-sm italic text-gray-800 dark:text-gray-200">
+                  <p className="font-serif text-sm italic leading-snug text-gray-800 dark:text-gray-200">
                     Constraint is not the opposite of creativity. It is its only home.
                   </p>
                 </div>
@@ -837,24 +925,22 @@ function CeleStudioFeature() {
                 </div>
               </div>
 
-              {/* Footer chip */}
-              <div className="border-t border-gray-100 bg-gray-50/50 px-8 py-3 dark:border-gray-800 dark:bg-gray-900/40">
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-wider text-gray-500">
-                  <span className="flex items-center gap-1.5">
-                    <BookOpen className="h-3 w-3" />
-                    Modern Startup · Design System
-                  </span>
-                  <span className="flex items-center gap-1 font-medium text-indigo-600 dark:text-indigo-400">
-                    <Wand2 className="h-3 w-3" />
-                    AI generated
-                  </span>
-                </div>
+              {/* Book-style footer with page number */}
+              <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/50 px-8 py-3 text-[10px] uppercase tracking-wider text-gray-500 dark:border-gray-800 dark:bg-gray-900/40">
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className="h-3 w-3" />
+                  Modern Startup · Design System
+                </span>
+                <span className="flex items-center gap-1 font-medium text-indigo-600 dark:text-indigo-400">
+                  <Wand2 className="h-3 w-3" />
+                  AI generated
+                </span>
               </div>
             </div>
 
-            {/* Decorative elements behind the card */}
-            <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-indigo-500/30 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-purple-500/30 blur-2xl" />
+            {/* Ambient gradient orbs around the card */}
+            <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-indigo-500/30 blur-2xl" />
+            <div className="pointer-events-none absolute -bottom-8 -left-8 h-36 w-36 rounded-full bg-pink-500/25 blur-3xl" />
           </div>
         </div>
       </div>
