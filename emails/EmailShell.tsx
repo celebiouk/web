@@ -75,15 +75,23 @@ export function EmailShell({
           <Section style={header}>
             <Row>
               <Column align="center">
+                {/*
+                  Inline-block + vertical-align is the email-safe pattern.
+                  Flexbox is unreliable in Outlook/Gmail; this layout renders
+                  consistently across clients with the logo on the left and ".bio" beside it,
+                  matching the website's BrandWordmark.
+                */}
                 <Link href={appUrl} style={logoLink}>
                   <Img
                     src={`${appUrl}/celelogo.png`}
                     alt="cele.bio"
-                    width="44"
-                    height="44"
+                    width="48"
+                    height="48"
                     style={logoImage}
                   />
-                  <Text style={logoText}>cele<span style={logoDot}>.</span>bio</Text>
+                  <span style={brandSuffix}>
+                    <span style={logoDot}>.</span>bio
+                  </span>
                 </Link>
               </Column>
             </Row>
@@ -163,24 +171,27 @@ const header: React.CSSProperties = {
 
 const logoLink: React.CSSProperties = {
   textDecoration: 'none',
-  display: 'inline-flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: '10px',
+  display: 'inline-block',
+  lineHeight: 1,
+  whiteSpace: 'nowrap',
 };
 
 const logoImage: React.CSSProperties = {
-  display: 'block',
+  display: 'inline-block',
+  verticalAlign: 'middle',
   borderRadius: '12px',
   boxShadow: '0 10px 24px rgba(13, 27, 42, 0.35)',
 };
 
-const logoText: React.CSSProperties = {
+const brandSuffix: React.CSSProperties = {
   color: colors.white,
-  fontSize: '28px',
+  fontSize: '32px',
   fontWeight: 800,
   letterSpacing: '-0.02em',
-  margin: 0,
+  display: 'inline-block',
+  verticalAlign: 'middle',
+  marginLeft: '6px',
+  lineHeight: 1,
 };
 
 const logoDot: React.CSSProperties = {
