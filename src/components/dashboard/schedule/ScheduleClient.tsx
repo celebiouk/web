@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PostComposer } from './PostComposer';
-import { Loader2, Trash2, Plug, Plus, ExternalLink } from 'lucide-react';
+import { Loader2, Trash2, Plus, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
 
 type PlatformId =
   | 'instagram'
@@ -13,14 +14,22 @@ type PlatformId =
   | 'threads'
   | 'facebook';
 
-const PLATFORMS: Array<{ id: PlatformId; label: string }> = [
-  { id: 'instagram', label: 'Instagram' },
-  { id: 'tiktok',    label: 'TikTok' },
-  { id: 'twitter',   label: 'X' },
-  { id: 'youtube',   label: 'YouTube' },
-  { id: 'linkedin',  label: 'LinkedIn' },
-  { id: 'threads',   label: 'Threads' },
-  { id: 'facebook',  label: 'Facebook' },
+interface ConnectedAccount {
+  id: string;
+  platform: PlatformId;
+  platform_username: string | null;
+  display_name: string | null;
+}
+
+// `connectHref` null means the platform's OAuth flow isn't wired up yet.
+const PLATFORMS: Array<{ id: PlatformId; label: string; connectHref: string | null }> = [
+  { id: 'instagram', label: 'Instagram', connectHref: null },
+  { id: 'tiktok',    label: 'TikTok',    connectHref: null },
+  { id: 'twitter',   label: 'X',         connectHref: null },
+  { id: 'youtube',   label: 'YouTube',   connectHref: null },
+  { id: 'linkedin',  label: 'LinkedIn',  connectHref: '/api/social/connect/linkedin' },
+  { id: 'threads',   label: 'Threads',   connectHref: null },
+  { id: 'facebook',  label: 'Facebook',  connectHref: null },
 ];
 
 interface ScheduledPost {
@@ -48,18 +57,38 @@ interface PromotableProduct {
 }
 
 interface ScheduleClientProps {
-  connectedPlatforms: PlatformId[];
+  accounts: ConnectedAccount[];
   products: PromotableProduct[];
 }
 
-export function ScheduleClient({ connectedPlatforms, products }: ScheduleClientProps) {
-  const connectedSet = new Set<PlatformId>(connectedPlatforms);
+export function ScheduleClient({ accounts, products }: ScheduleClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const accountByPlatform = useMemo(() => {
+    const map = new Map<PlatformId, ConnectedAccount>();
+    for (const a of accounts) map.set(a.platform, a);
+    return map;
+  }, [accounts]);
+  const connectedSet = new Set<PlatformId>(accountByPlatform.keys());
+
+  // OAuth callback feedback banner
+  const connectedFlag = searchParams.get('connected');
+  const errorFlag = searchParams.get('error');
+
+  function clearOAuthBanner() {
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.delete('connected');
+    params.delete('error');
+    const qs = params.toString();
+    router.replace(qs ? `/dashboard/schedule?${qs}` : '/dashboard/schedule');
+  }
 
   const [composerOpen, setComposerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [resultsByPost, setResultsByPost] = useState<Record<string, PostResult[]>>({});
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [disconnectingPlatform, setDisconnectingPlatform] = useState<PlatformId | null>(null);
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -101,39 +130,99 @@ export function ScheduleClient({ connectedPlatforms, products }: ScheduleClientP
     }
   }
 
+  async function disconnect(platform: PlatformId) {
+    if (!confirm(`Disconnect ${platform}? Existing scheduled posts targeting this account will fail until you reconnect.`)) return;
+    setDisconnectingPlatform(platform);
+    try {
+      const res = await fetch('/api/social/disconnect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform }),
+      });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const data = await res.json();
+        alert(data?.error ?? 'Failed to disconnect.');
+      }
+    } finally {
+      setDisconnectingPlatform(null);
+    }
+  }
+
   const upcoming = posts.filter((p) => p.status === 'scheduled' || p.status === 'posting');
   const history  = posts.filter((p) => p.status === 'posted' || p.status === 'failed' || p.status === 'cancelled');
 
   return (
     <>
+      {/* OAuth callback banner */}
+      {connectedFlag && (
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <span className="flex-1">{connectedFlag} connected successfully — you can now target it in new posts.</span>
+          <button onClick={clearOAuthBanner} className="text-emerald-400 hover:text-emerald-200">Dismiss</button>
+        </div>
+      )}
+      {errorFlag && (
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span className="flex-1">Connection failed ({errorFlag}). Try again, or check your developer-portal settings.</span>
+          <button onClick={clearOAuthBanner} className="text-red-400 hover:text-red-200">Dismiss</button>
+        </div>
+      )}
+
       {/* Connected accounts grid */}
       <section className="mb-8">
         <h2 className="mb-3 text-sm font-medium text-zinc-300">Connected accounts</h2>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {PLATFORMS.map((p) => {
-            const isConnected = connectedSet.has(p.id);
+            const account = accountByPlatform.get(p.id);
+            const isConnected = Boolean(account);
+            const canConnect = Boolean(p.connectHref);
+            const handle = account?.platform_username ?? account?.display_name ?? null;
+
             return (
               <div
                 key={p.id}
                 className={
-                  'flex flex-col items-center gap-1.5 rounded-lg border px-3 py-3 text-center text-xs ' +
+                  'flex items-center gap-3 rounded-lg border px-3 py-3 ' +
                   (isConnected
                     ? 'border-emerald-500/30 bg-emerald-500/5'
                     : 'border-zinc-800 bg-zinc-900/40')
                 }
               >
-                <Plug className={'h-4 w-4 ' + (isConnected ? 'text-emerald-400' : 'text-zinc-500')} />
-                <span className="font-medium text-zinc-300">{p.label}</span>
-                <span className={'text-[10px] uppercase tracking-wide ' + (isConnected ? 'text-emerald-400' : 'text-zinc-500')}>
-                  {isConnected ? 'Connected' : 'Not yet'}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-zinc-200">{p.label}</p>
+                  <p className="truncate text-[11px] text-zinc-500">
+                    {isConnected
+                      ? (handle ? `@${handle}` : 'Connected')
+                      : canConnect ? 'Not connected' : 'Coming soon (awaiting API approval)'}
+                  </p>
+                </div>
+                {isConnected ? (
+                  <button
+                    onClick={() => disconnect(p.id)}
+                    disabled={disconnectingPlatform === p.id}
+                    className="rounded-md border border-zinc-700 px-2.5 py-1 text-[11px] font-medium text-zinc-400 transition hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-50"
+                  >
+                    {disconnectingPlatform === p.id ? 'Disconnecting…' : 'Disconnect'}
+                  </button>
+                ) : canConnect ? (
+                  <a
+                    href={p.connectHref!}
+                    className="rounded-md bg-indigo-500 px-2.5 py-1 text-[11px] font-medium text-white transition hover:bg-indigo-400"
+                  >
+                    Connect
+                  </a>
+                ) : (
+                  <span className="rounded-md border border-zinc-800 px-2.5 py-1 text-[11px] text-zinc-600">
+                    Soon
+                  </span>
+                )}
               </div>
             );
           })}
         </div>
-        <p className="mt-3 text-xs text-zinc-600">
-          Connect flows arrive as each platform's API approval lands.
-        </p>
       </section>
 
       {/* Action bar */}

@@ -55,17 +55,17 @@ export default async function SchedulePage() {
     from: (t: string) => {
       select: (s: string) => {
         eq: (k: string, v: string) => {
-          eq: (k: string, v: string) => Promise<{ data: { platform: PlatformId }[] | null }>
+          eq: (k: string, v: string) => Promise<{ data: ConnectedAccount[] | null }>
         }
       }
     }
   })
     .from('social_accounts')
-    .select('platform')
+    .select('id,platform,platform_username,display_name')
     .eq('creator_id', user.id)
     .eq('status', 'active');
 
-  const connectedPlatforms = Array.from(new Set((accountRows ?? []).map((a) => a.platform)));
+  const accounts = (accountRows ?? []) as ConnectedAccount[];
 
   // Promotable products for the composer dropdown.
   const { data: products } = await supabase
@@ -89,9 +89,16 @@ export default async function SchedulePage() {
       </div>
 
       <ScheduleClient
-        connectedPlatforms={connectedPlatforms}
+        accounts={accounts}
         products={(products ?? []) as { id: string; title: string }[]}
       />
     </div>
   );
+}
+
+interface ConnectedAccount {
+  id: string;
+  platform: PlatformId;
+  platform_username: string | null;
+  display_name: string | null;
 }

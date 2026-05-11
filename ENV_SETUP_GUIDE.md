@@ -175,6 +175,41 @@ RESEND_FROM_EMAIL=Cele.bio <noreply@cele.bio>
 
 ## 💡 OPTIONAL - Add Only If You Need These Features
 
+### Content Scheduler — LinkedIn (Pro feature)
+```
+LINKEDIN_CLIENT_ID=your_linkedin_client_id
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret
+LINKEDIN_REDIRECT_URI=https://www.cele.bio/api/social/callback/linkedin
+```
+**What it does:** Lets Pro creators connect their LinkedIn profile from the **Schedule** dashboard so cele.bio can publish scheduled posts to their feed. Uses LinkedIn's OpenID Connect for identity + `w_member_social` for posting.
+
+**How to get it (LinkedIn Developer App):**
+1. Go to https://www.linkedin.com/developers/apps → **Create app**
+2. Fill in **App name**, **LinkedIn Page** (your company page — required), **Logo**, etc.
+3. Open the app → **Products** tab and request these products (instant approval for both):
+   - **Sign In with LinkedIn using OpenID Connect**
+   - **Share on LinkedIn**
+4. Open **Auth** tab:
+   - Copy **Client ID** → `LINKEDIN_CLIENT_ID`
+   - Copy **Client Secret** → `LINKEDIN_CLIENT_SECRET`
+   - Under **Authorized redirect URLs**, add (one per line):
+     - `https://www.cele.bio/api/social/callback/linkedin`
+     - `https://cele.bio/api/social/callback/linkedin`
+     - `http://localhost:3000/api/social/callback/linkedin` (only for local testing)
+5. Set `LINKEDIN_REDIRECT_URI` to your canonical production URL.
+6. Verify the scopes shown under **OAuth 2.0 scopes** include: `openid`, `profile`, `email`, `w_member_social`.
+
+**Token lifetimes:**
+- Access tokens: 60 days
+- Refresh tokens: 365 days (auto-renewed by the scheduler before expiry)
+
+**App routes used:**
+- Start: `/api/social/connect/linkedin`
+- Callback: `/api/social/callback/linkedin`
+- Disconnect: POST `/api/social/disconnect` with `{ "platform": "linkedin" }`
+
+---
+
 ### TikTok Login Kit (Production)
 ```
 TIKTOK_CLIENT_ID=your_tiktok_client_key
