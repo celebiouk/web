@@ -29,7 +29,7 @@ const PLATFORMS: Array<{ id: PlatformId; label: string; connectHref: string | nu
   { id: 'instagram', label: 'Instagram', connectHref: null },
   { id: 'tiktok',    label: 'TikTok',    connectHref: null },
   { id: 'twitter',   label: 'X',         connectHref: null },
-  { id: 'youtube',   label: 'YouTube',   connectHref: null },
+  { id: 'youtube',   label: 'YouTube',   connectHref: '/api/social/connect/youtube' },
   { id: 'linkedin',  label: 'LinkedIn',  connectHref: '/api/social/connect/linkedin' },
   { id: 'threads',   label: 'Threads',   connectHref: null },
   { id: 'facebook',  label: 'Facebook',  connectHref: null },

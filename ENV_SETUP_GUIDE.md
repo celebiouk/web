@@ -210,6 +210,52 @@ LINKEDIN_REDIRECT_URI=https://www.cele.bio/api/social/callback/linkedin
 
 ---
 
+### Content Scheduler — YouTube (Pro feature)
+```
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+YOUTUBE_REDIRECT_URI=https://www.cele.bio/api/social/callback/youtube
+```
+**What it does:** Lets Pro creators connect their YouTube channel from the **Schedule** dashboard so cele.bio can upload scheduled Shorts and long-form videos on their behalf.
+
+**How to get it (Google Cloud Console):**
+1. Go to https://console.cloud.google.com → select or create a project
+2. **Enable the API:** Left menu → **APIs & Services → Library** → search "YouTube Data API v3" → click it → **Enable**
+3. **Set up OAuth consent screen:** Left menu → **OAuth consent screen**
+   - User Type: **External** → Create
+   - Fill in App name (e.g. "Cele.bio"), support email, developer contact email → Save
+   - On the **Scopes** step, click "Add or Remove Scopes" and add:
+     - `https://www.googleapis.com/auth/youtube.upload`
+     - `https://www.googleapis.com/auth/youtube.readonly`
+   - On the **Test users** step, add your own Google email so you can test before publishing
+4. **Create credentials:** Left menu → **Credentials → Create Credentials → OAuth 2.0 Client ID**
+   - Application type: **Web application**
+   - Name: "Cele.bio Scheduler"
+   - Under **Authorized redirect URIs**, click Add URI and add:
+     - `https://www.cele.bio/api/social/callback/youtube`
+     - `https://cele.bio/api/social/callback/youtube`
+     - `http://localhost:3000/api/social/callback/youtube` (for local testing)
+   - Click **Create**
+5. Copy **Client ID** → `GOOGLE_CLIENT_ID`
+6. Copy **Client Secret** → `GOOGLE_CLIENT_SECRET`
+7. Set `YOUTUBE_REDIRECT_URI=https://www.cele.bio/api/social/callback/youtube`
+
+**Publishing the app (required for other users to connect):**
+- While in "Testing" mode, only your test users can connect YouTube
+- To let all creators connect: OAuth consent screen → **Publish App**
+- Google may ask you to verify the app (takes 1-3 days for apps requesting YouTube upload scope)
+
+**Token lifetimes:**
+- Access tokens: 1 hour (auto-refreshed by the scheduler before expiry)
+- Refresh tokens: don't expire unless the user revokes access
+
+**App routes used:**
+- Start: `/api/social/connect/youtube`
+- Callback: `/api/social/callback/youtube`
+- Disconnect: POST `/api/social/disconnect` with `{ "platform": "youtube" }`
+
+---
+
 ### TikTok Login Kit (Production)
 ```
 TIKTOK_CLIENT_ID=your_tiktok_client_key
