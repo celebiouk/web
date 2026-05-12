@@ -52,7 +52,7 @@ export async function GET() {
   const { data: results } = postIds.length
     ? await (supabase as any)
         .from('post_results')
-        .select('scheduled_post_id,platform,status,platform_post_url,error_message')
+        .select('scheduled_post_id,platform,status,platform_post_url,error_message,views,likes,comments,shares,clicks,last_metrics_fetched_at')
         .in('scheduled_post_id', postIds)
     : { data: [] };
 

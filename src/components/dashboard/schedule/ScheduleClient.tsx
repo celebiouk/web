@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PostComposer, type PostComposerInitial } from './PostComposer';
-import { Loader2, Trash2, Plus, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
+import {
+  Loader2, Trash2, Plus, ExternalLink, CheckCircle2, AlertCircle,
+  Heart, MessageCircle, Share2, Eye, MousePointerClick,
+} from 'lucide-react';
 
 type PlatformId =
   | 'instagram'
@@ -49,6 +52,12 @@ interface PostResult {
   status: string;
   platform_post_url: string | null;
   error_message: string | null;
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  clicks: number;
+  last_metrics_fetched_at: string | null;
 }
 
 interface PromotableProduct {
@@ -354,6 +363,25 @@ interface PostRowProps {
 
 function PostRow({ post, results, onCancel, isCancelling, isHistory }: PostRowProps) {
   const cover = post.media[0];
+
+  // Aggregate metrics across all posted platforms for the analytics bar.
+  const metrics = results
+    .filter((r) => r.status === 'posted')
+    .reduce(
+      (acc, r) => ({
+        views:    acc.views    + (r.views    ?? 0),
+        likes:    acc.likes    + (r.likes    ?? 0),
+        comments: acc.comments + (r.comments ?? 0),
+        shares:   acc.shares   + (r.shares   ?? 0),
+        clicks:   acc.clicks   + (r.clicks   ?? 0),
+      }),
+      { views: 0, likes: 0, comments: 0, shares: 0, clicks: 0 }
+    );
+  const hasMetrics =
+    isHistory &&
+    post.status === 'posted' &&
+    (metrics.views + metrics.likes + metrics.comments + metrics.shares + metrics.clicks) > 0;
+
   return (
     <li className="flex items-start gap-3 px-4 py-3">
       {cover ? (
@@ -372,9 +400,13 @@ function PostRow({ post, results, onCancel, isCancelling, isHistory }: PostRowPr
           {post.caption || <span className="text-zinc-500 italic">(no caption)</span>}
         </p>
         <p className="mt-0.5 text-xs text-zinc-500">
-          {new Date(post.scheduled_for).toLocaleString()}{' '}
-          · {post.platforms.join(', ')}
+          {isHistory && post.posted_at
+            ? new Date(post.posted_at).toLocaleString()
+            : new Date(post.scheduled_for).toLocaleString()}
+          {' · '}
+          {post.platforms.join(', ')}
         </p>
+
         {results.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {results.map((r) => (
@@ -398,6 +430,37 @@ function PostRow({ post, results, onCancel, isCancelling, isHistory }: PostRowPr
                 )}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Analytics bar — only visible once the cron has fetched metrics */}
+        {hasMetrics && (
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-zinc-400">
+            {metrics.views > 0 && (
+              <span className="flex items-center gap-1">
+                <Eye className="h-3 w-3" /> {metrics.views.toLocaleString()}
+              </span>
+            )}
+            {metrics.likes > 0 && (
+              <span className="flex items-center gap-1">
+                <Heart className="h-3 w-3" /> {metrics.likes.toLocaleString()}
+              </span>
+            )}
+            {metrics.comments > 0 && (
+              <span className="flex items-center gap-1">
+                <MessageCircle className="h-3 w-3" /> {metrics.comments.toLocaleString()}
+              </span>
+            )}
+            {metrics.shares > 0 && (
+              <span className="flex items-center gap-1">
+                <Share2 className="h-3 w-3" /> {metrics.shares.toLocaleString()}
+              </span>
+            )}
+            {metrics.clicks > 0 && (
+              <span className="flex items-center gap-1">
+                <MousePointerClick className="h-3 w-3" /> {metrics.clicks.toLocaleString()}
+              </span>
+            )}
           </div>
         )}
       </div>
