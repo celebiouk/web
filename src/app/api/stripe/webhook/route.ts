@@ -163,6 +163,15 @@ async function handlePaymentSucceeded(supabaseAdmin: SupabaseClient<Database>, p
   await handleAffiliateConversion(supabaseAdmin, paymentIntent);
 
   await recordCommissionLedger(supabaseAdmin, paymentIntent);
+
+  // Enroll buyer in any product_purchase email sequences mapped to this product
+  if (completedOrder?.product_id && completedOrder?.creator_id && completedOrder?.buyer_email) {
+    await enrollBuyerInSequences(supabaseAdmin, {
+      creatorId: completedOrder.creator_id,
+      productId: completedOrder.product_id,
+      buyerEmail: completedOrder.buyer_email,
+    });
+  }
 }
 
 async function handleAffiliateConversion(supabaseAdmin: SupabaseClient<Database>, paymentIntent: Stripe.PaymentIntent) {
@@ -288,6 +297,44 @@ async function handleBundlePurchase(supabaseAdmin: SupabaseClient<Database>, pay
     message: `${buyerEmail} purchased one of your bundles`,
     metadata: { bundle_id: bundleId },
   });
+}
+
+async function enrollBuyerInSequences(
+  supabaseAdmin: SupabaseClient<Database>,
+  { creatorId, productId, buyerEmail }: { creatorId: string; productId: string; buyerEmail: string }
+) {
+  const { data: sequences } = await (supabaseAdmin.from('email_sequences') as any)
+    .select('id')
+    .eq('creator_id', creatorId)
+    .eq('trigger', 'product_purchase')
+    .eq('trigger_product_id', productId)
+    .eq('is_active', true);
+
+  if (!sequences?.length) return;
+
+  // Find or create subscriber record for the buyer
+  const { data: subscriber } = await (supabaseAdmin.from('email_subscribers') as any)
+    .upsert({
+      creator_id: creatorId,
+      email: buyerEmail.toLowerCase(),
+      source: 'purchase',
+      tags: [],
+      is_active: true,
+    }, { onConflict: 'creator_id,email' })
+    .select('id')
+    .single();
+
+  if (!subscriber?.id) return;
+
+  for (const seq of sequences) {
+    await (supabaseAdmin.from('email_sequence_enrollments') as any).upsert({
+      sequence_id: seq.id,
+      subscriber_id: subscriber.id,
+      current_step: 0,
+      next_send_at: new Date().toISOString(),
+      completed: false,
+    }, { onConflict: 'sequence_id,subscriber_id' });
+  }
 }
 
 async function handlePaymentFailed(supabaseAdmin: SupabaseClient<Database>, paymentIntent: Stripe.PaymentIntent) {

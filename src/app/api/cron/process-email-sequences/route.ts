@@ -86,8 +86,14 @@ export async function GET(request: Request) {
           .update({ completed: true, current_step: enrollment.current_step + 1 })
           .eq('id', enrollment.id);
       } else {
-        const nextSendAt = new Date();
-        nextSendAt.setDate(nextSendAt.getDate() + (nextStep.delay_days || 1));
+        let nextSendAt: Date;
+        if ((nextStep.delay_days ?? 0) === 0) {
+          nextSendAt = new Date();
+        } else {
+          nextSendAt = new Date();
+          nextSendAt.setUTCDate(nextSendAt.getUTCDate() + (nextStep.delay_days ?? 1));
+          nextSendAt.setUTCHours(nextStep.send_at_hour ?? 9, nextStep.send_at_minute ?? 0, 0, 0);
+        }
 
         await (supabase.from('email_sequence_enrollments') as any)
           .update({

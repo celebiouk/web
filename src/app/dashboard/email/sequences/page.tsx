@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Loader2, Zap, Plus } from 'lucide-react';
+import Link from 'next/link';
+import { Loader2, Zap, Plus, ChevronRight } from 'lucide-react';
 
 type Sequence = {
   id: string;
@@ -174,6 +175,12 @@ export default function SequencesPage() {
                       ? <Loader2 className="h-3 w-3 animate-spin" />
                       : seq.is_active ? 'Pause' : 'Enable'}
                   </button>
+                  <Link
+                    href={`/dashboard/email/sequences/${seq.id}`}
+                    className="inline-flex items-center gap-1 rounded-md border border-indigo-600/50 bg-indigo-500/10 px-2.5 py-1 text-[11px] text-indigo-300 transition hover:bg-indigo-500/20"
+                  >
+                    Edit funnel <ChevronRight className="h-3 w-3" />
+                  </Link>
                 </div>
               </div>
               {(groupedSteps.get(seq.id) || []).length > 0 && (

@@ -109,6 +109,24 @@ export async function POST(request: Request) {
             <p><a href="${accessUrl}" style="display:inline-block;background:#0D1B2A;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;">Get my free download</a></p>
           `,
         });
+
+        // Enroll in any product_purchase sequences mapped to this lead magnet
+        const { data: productSequences } = await (supabase.from('email_sequences') as any)
+          .select('id')
+          .eq('creator_id', body.creatorId)
+          .eq('trigger', 'product_purchase')
+          .eq('trigger_product_id', leadMagnet.id)
+          .eq('is_active', true);
+
+        for (const seq of productSequences || []) {
+          await (supabase.from('email_sequence_enrollments') as any).upsert({
+            sequence_id: seq.id,
+            subscriber_id: subscriber.id,
+            current_step: 0,
+            next_send_at: new Date().toISOString(),
+            completed: false,
+          }, { onConflict: 'sequence_id,subscriber_id' });
+        }
       }
     }
 
