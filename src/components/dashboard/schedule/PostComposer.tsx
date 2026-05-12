@@ -34,12 +34,20 @@ interface PromotableProduct {
   title: string;
 }
 
+export interface PostComposerInitial {
+  caption?: string;
+  media?: MediaItem[];
+  promotedProductId?: string;
+  utmCampaign?: string;
+}
+
 interface PostComposerProps {
   isOpen: boolean;
   onClose: () => void;
   onCreated: () => void;
   connectedPlatforms: Set<PlatformId>;
   products: PromotableProduct[];
+  initial?: PostComposerInitial;
 }
 
 export function PostComposer({
@@ -48,6 +56,7 @@ export function PostComposer({
   onCreated,
   connectedPlatforms,
   products,
+  initial,
 }: PostComposerProps) {
   const [caption, setCaption] = useState('');
   const [media, setMedia] = useState<MediaItem[]>([]);
@@ -59,18 +68,20 @@ export function PostComposer({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset on close
+  // Re-seed when the modal opens with new initial values (e.g. "Promote
+  // product X" → "Promote product Y"). Resetting on close would race with the
+  // closing animation, so we re-seed on each open instead.
   useEffect(() => {
-    if (!isOpen) {
-      setCaption('');
-      setMedia([]);
+    if (isOpen) {
+      setCaption(initial?.caption ?? '');
+      setMedia(initial?.media ?? []);
       setSelectedPlatforms(new Set());
       setScheduledFor(defaultLocalDateTime());
-      setPromotedProductId('');
-      setUtmCampaign('');
+      setPromotedProductId(initial?.promotedProductId ?? '');
+      setUtmCampaign(initial?.utmCampaign ?? '');
       setError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, initial]);
 
   function togglePlatform(id: PlatformId) {
     if (!connectedPlatforms.has(id)) return;

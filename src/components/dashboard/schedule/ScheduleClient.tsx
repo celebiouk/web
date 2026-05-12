@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { PostComposer } from './PostComposer';
+import { PostComposer, type PostComposerInitial } from './PostComposer';
 import { Loader2, Trash2, Plus, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
 
 type PlatformId =
@@ -54,14 +54,17 @@ interface PostResult {
 interface PromotableProduct {
   id: string;
   title: string;
+  description: string | null;
+  cover_image_url: string | null;
 }
 
 interface ScheduleClientProps {
   accounts: ConnectedAccount[];
   products: PromotableProduct[];
+  username: string;
 }
 
-export function ScheduleClient({ accounts, products }: ScheduleClientProps) {
+export function ScheduleClient({ accounts, products, username }: ScheduleClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const accountByPlatform = useMemo(() => {
@@ -84,11 +87,33 @@ export function ScheduleClient({ accounts, products }: ScheduleClientProps) {
   }
 
   const [composerOpen, setComposerOpen] = useState(false);
+  const [composerInitial, setComposerInitial] = useState<PostComposerInitial | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [resultsByPost, setResultsByPost] = useState<Record<string, PostResult[]>>({});
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [disconnectingPlatform, setDisconnectingPlatform] = useState<PlatformId | null>(null);
+
+  // Auto-open the composer pre-filled when the user lands here via
+  // "Promote this product" on the products page.
+  const promoteId = searchParams.get('promote');
+  useEffect(() => {
+    if (!promoteId) return;
+    const product = products.find((p) => p.id === promoteId);
+    if (!product) return;
+    setComposerInitial(buildPromoteInitial(product, username));
+    setComposerOpen(true);
+    // Clear the param so reloads don't re-open the modal.
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.delete('promote');
+    const qs = params.toString();
+    router.replace(qs ? `/dashboard/schedule?${qs}` : '/dashboard/schedule');
+  }, [promoteId, products, username, router, searchParams]);
+
+  function openBlankComposer() {
+    setComposerInitial(undefined);
+    setComposerOpen(true);
+  }
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -229,7 +254,7 @@ export function ScheduleClient({ accounts, products }: ScheduleClientProps) {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-medium text-zinc-300">Upcoming ({upcoming.length})</h2>
         <button
-          onClick={() => setComposerOpen(true)}
+          onClick={openBlankComposer}
           className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-indigo-400"
         >
           <Plus className="h-3.5 w-3.5" /> New post
@@ -287,9 +312,36 @@ export function ScheduleClient({ accounts, products }: ScheduleClientProps) {
         onCreated={() => void loadPosts()}
         connectedPlatforms={connectedSet}
         products={products}
+        initial={composerInitial}
       />
     </>
   );
+}
+
+function buildPromoteInitial(
+  product: PromotableProduct,
+  username: string
+): PostComposerInitial {
+  const storefrontUrl = `https://cele.bio/${username}?p=${product.id}`;
+  const blurb = (product.description ?? '').trim().slice(0, 180);
+  const caption = blurb
+    ? `${product.title}\n\n${blurb}${blurb.length === 180 ? '…' : ''}\n\nGrab yours: ${storefrontUrl}`
+    : `${product.title}\n\nGrab yours: ${storefrontUrl}`;
+
+  const utmCampaign = product.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+
+  return {
+    caption,
+    media: product.cover_image_url
+      ? [{ url: product.cover_image_url, type: 'image' as const }]
+      : [],
+    promotedProductId: product.id,
+    utmCampaign,
+  };
 }
 
 interface PostRowProps {

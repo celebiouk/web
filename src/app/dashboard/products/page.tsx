@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Layers,
   ArrowRight,
+  Megaphone,
 } from 'lucide-react';
 import type { Product, Profile } from '@/types/supabase';
 import Image from 'next/image';
@@ -499,6 +500,24 @@ export default function ProductsPage() {
                         <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
                         Edit
                       </Link>
+                      {product.is_published && (
+                        <Link
+                          href={
+                            profile?.subscription_tier === 'pro'
+                              ? `/dashboard/schedule?promote=${product.id}`
+                              : `/dashboard/settings/billing?upgrade=schedule`
+                          }
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-[12px] font-medium text-indigo-300 transition-colors hover:border-indigo-500/50 hover:bg-indigo-500/15"
+                          title={
+                            profile?.subscription_tier === 'pro'
+                              ? 'Schedule a social post promoting this product'
+                              : 'Promote is a Pro feature'
+                          }
+                        >
+                          <Megaphone className="h-3.5 w-3.5" strokeWidth={1.75} />
+                          Promote
+                        </Link>
+                      )}
                       <button
                         onClick={() => togglePublish(product.id, product.is_published)}
                         disabled={togglingId === product.id}

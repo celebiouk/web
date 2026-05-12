@@ -25,6 +25,7 @@ export default async function SchedulePage() {
     .from('profiles').select('*').eq('id', user.id).single();
   const profile = profileData as Profile | null;
   if (!profile) redirect('/login');
+  if (!profile.username) redirect('/onboarding/pick-template');
 
   // Pro gate
   if (profile.subscription_tier !== 'pro') {
@@ -67,10 +68,11 @@ export default async function SchedulePage() {
 
   const accounts = (accountRows ?? []) as ConnectedAccount[];
 
-  // Promotable products for the composer dropdown.
+  // Promotable products for the composer dropdown + "Promote this product"
+  // pre-fill (we need cover + description, not just title).
   const { data: products } = await supabase
     .from('products')
-    .select('id,title')
+    .select('id,title,description,cover_image_url')
     .eq('creator_id', user.id)
     .eq('is_published', true)
     .order('created_at', { ascending: false })
@@ -90,7 +92,13 @@ export default async function SchedulePage() {
 
       <ScheduleClient
         accounts={accounts}
-        products={(products ?? []) as { id: string; title: string }[]}
+        products={(products ?? []) as Array<{
+          id: string;
+          title: string;
+          description: string | null;
+          cover_image_url: string | null;
+        }>}
+        username={profile.username}
       />
     </div>
   );
