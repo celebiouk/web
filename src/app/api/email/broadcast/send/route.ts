@@ -339,6 +339,9 @@ export async function POST(request: Request) {
 
         const openTrackingUrl = `${appUrl}/api/email/track/open/${sendId}`;
         const clickTrackingPrefix = `${appUrl}/api/email/track/click/${sendId}`;
+        const unsubscribeUrl = recipient.id
+          ? `${appUrl}/api/email/unsubscribe?sub=${recipient.id}`
+          : null;
 
         const html = buildBroadcastHtml({
           bodyHtml: htmlWithTokens,
@@ -346,6 +349,7 @@ export async function POST(request: Request) {
           subject: broadcast?.subject || 'New update for you',
           openTrackingUrl,
           clickTrackingPrefix,
+          unsubscribeUrl,
         });
 
         await sendMarketingEmail({

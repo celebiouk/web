@@ -51,6 +51,7 @@ export function buildBroadcastHtml(params: {
   subject?: string | null;
   openTrackingUrl: string;
   clickTrackingPrefix: string;
+  unsubscribeUrl?: string | null;
 }) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
   const brandLogoUrl = `${appUrl}/celelogo.png`;
@@ -145,8 +146,8 @@ export function buildBroadcastHtml(params: {
             Sent with cele.bio • Creator email tools for beautiful storefront businesses.<br />
             <div class="footerLinks">
               <a href="https://cele.bio">Visit cele.bio</a>
-              <a href="https://cele.bio/pricing">Pricing</a>
               <a href="https://cele.bio/privacy">Privacy</a>
+              ${params.unsubscribeUrl ? `<a href="${params.unsubscribeUrl}">Unsubscribe</a>` : ''}
             </div>
             <span class="muted">You are receiving this because you subscribed to creator updates.</span>
           </div>
@@ -163,6 +164,7 @@ export function buildCampaignEmailHtml(params: {
   bodyHtml: string;
   previewText?: string | null;
   subject?: string | null;
+  unsubscribeUrl?: string | null;
 }) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
   const brandLogoUrl = `${appUrl}/celelogo.png`;
@@ -249,8 +251,8 @@ export function buildCampaignEmailHtml(params: {
             Sent with cele.bio • Creator email tools for beautiful storefront businesses.<br />
             <div class="footerLinks">
               <a href="https://cele.bio">Visit cele.bio</a>
-              <a href="https://cele.bio/pricing">Pricing</a>
               <a href="https://cele.bio/privacy">Privacy</a>
+              ${params.unsubscribeUrl ? `<a href="${params.unsubscribeUrl}">Unsubscribe</a>` : ''}
             </div>
             <span class="muted">You are receiving this because you subscribed to creator updates.</span>
           </div>

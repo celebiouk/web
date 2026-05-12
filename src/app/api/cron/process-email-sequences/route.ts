@@ -51,6 +51,12 @@ export async function GET(request: Request) {
         .eq('id', sequence.creator_id)
         .maybeSingle();
 
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cele.bio';
+      const subjectApplied = applyEmailTokens(step.subject, {
+        firstName: subscriber.first_name,
+        creatorName: creator?.full_name || 'Creator',
+      });
+
       const htmlBody = applyEmailTokens(step.body_html, {
         firstName: subscriber.first_name,
         creatorName: creator?.full_name || 'Creator',
@@ -58,22 +64,14 @@ export async function GET(request: Request) {
 
       const html = buildCampaignEmailHtml({
         bodyHtml: htmlBody,
-        previewText: applyEmailTokens(step.subject, {
-          firstName: subscriber.first_name,
-          creatorName: creator?.full_name || 'Creator',
-        }),
-        subject: applyEmailTokens(step.subject, {
-          firstName: subscriber.first_name,
-          creatorName: creator?.full_name || 'Creator',
-        }),
+        previewText: subjectApplied,
+        subject: subjectApplied,
+        unsubscribeUrl: `${appUrl}/api/email/unsubscribe?sub=${enrollment.subscriber_id}`,
       });
 
       await sendMarketingEmail({
         to: subscriber.email,
-        subject: applyEmailTokens(step.subject, {
-          firstName: subscriber.first_name,
-          creatorName: creator?.full_name || 'Creator',
-        }),
+        subject: subjectApplied,
         html,
       });
 
